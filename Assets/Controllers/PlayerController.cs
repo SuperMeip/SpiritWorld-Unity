@@ -3,6 +3,7 @@
 namespace Evix.Controllers {
 
   [RequireComponent(typeof(CharacterController))]
+  [RequireComponent(typeof(CapsuleCollider))]
   public class PlayerController : MonoBehaviour {
 
     /// <summary>
@@ -34,6 +35,11 @@ namespace Evix.Controllers {
     /// Smoothing vector for mouselook
     /// </summary>
     public Vector2 smoothing = new Vector2(3, 3);
+
+    /// <summary>
+    /// The strength of gravity
+    /// </summary>
+    public float gravityStrength = 5;
 
     /// <summary>
     /// direction the camera is facing
@@ -82,13 +88,20 @@ namespace Evix.Controllers {
     /// Player movement management
     /// </summary>
     void move() {
-      if (Input.GetAxis("Vertical") == 0 && Input.GetAxis("Horizontal") == 0) {
-        return;
+      // apply gravity
+      Vector3 gravity = new Vector3(0, -gravityStrength, 0);
+      Vector3 move = gravity;
+
+      
+      // movement left and right and forward and back
+      if (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0) {
+        Vector3 forwardMovement = headObject.transform.forward * Input.GetAxis("Vertical") * moveSpeed;
+        Vector3 rightMovement = headObject.transform.right * Input.GetAxis("Horizontal") * moveSpeed;
+        // get the total vector and check if we're moving
+        move += forwardMovement + rightMovement;
       }
-      Vector3 forwardMovement = headObject.transform.forward * Input.GetAxis("Vertical") * moveSpeed;
-      Vector3 rightMovement = headObject.transform.right * Input.GetAxis("Horizontal") * moveSpeed;
-      // get the total vector and check if we're moving
-      Vector3 move = forwardMovement + rightMovement;
+
+      // apply it with the movement controller
       if (move.magnitude > 0) {
         // move character
         movementController.SimpleMove(move);
@@ -99,37 +112,39 @@ namespace Evix.Controllers {
     /// Player mouselook management
     /// </summary>
     void look() {
-      // Allow the script to clamp based on a desired target value.
-      Quaternion targetOrientation = Quaternion.Euler(targetCharacterDirection);
+      if (Input.GetButton("Rotate Camera Lock")) {
+        // Allow the script to clamp based on a desired target value.
+        Quaternion targetOrientation = Quaternion.Euler(targetCharacterDirection);
 
-      // Get raw mouse input for a cleaner reading on more sensitive mice.
-      Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
+        // Get raw mouse input for a cleaner reading on more sensitive mice.
+        Vector2 mouseDelta = new Vector2(Input.GetAxisRaw("Mouse X"), Input.GetAxisRaw("Mouse Y"));
 
-      // Scale input against the sensitivity setting and multiply that against the smoothing value.
-      mouseDelta = Vector2.Scale(mouseDelta, new Vector2(sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
+        // Scale input against the sensitivity setting and multiply that against the smoothing value.
+        mouseDelta = Vector2.Scale(mouseDelta, new Vector2(sensitivity.x * smoothing.x, sensitivity.y * smoothing.y));
 
-      // Interpolate mouse movement over time to apply smoothing delta.
-      smoothMouse.x = Mathf.Lerp(smoothMouse.x, mouseDelta.x, 1f / smoothing.x);
-      smoothMouse.y = Mathf.Lerp(smoothMouse.y, mouseDelta.y, 1f / smoothing.y);
+        // Interpolate mouse movement over time to apply smoothing delta.
+        smoothMouse.x = Mathf.Lerp(smoothMouse.x, mouseDelta.x, 1f / smoothing.x);
+        smoothMouse.y = Mathf.Lerp(smoothMouse.y, mouseDelta.y, 1f / smoothing.y);
 
-      // Find the absolute mouse movement value from point zero.
-      mouseAbsolute += smoothMouse;
+        // Find the absolute mouse movement value from point zero.
+        mouseAbsolute += smoothMouse;
 
-      // Clamp and apply the local x value first, so as not to be affected by world transforms.
-      if (clampInDegrees.x < 360) {
-        mouseAbsolute.x = Mathf.Clamp(mouseAbsolute.x, -clampInDegrees.x * 0.5f, clampInDegrees.x * 0.5f);
+        // Clamp and apply the local x value first, so as not to be affected by world transforms.
+        if (clampInDegrees.x < 360) {
+          mouseAbsolute.x = Mathf.Clamp(mouseAbsolute.x, -clampInDegrees.x * 0.5f, clampInDegrees.x * 0.5f);
+        }
+
+        // Then clamp and apply the global y value.
+        if (clampInDegrees.y < 360) {
+          mouseAbsolute.y = Mathf.Clamp(mouseAbsolute.y, -clampInDegrees.y * 0.5f, clampInDegrees.y * 0.5f);
+        }
+
+        // Set the new look rotations
+        headObject.transform.localRotation = Quaternion.AngleAxis(-mouseAbsolute.y, targetOrientation * Vector3.right) * targetOrientation;
+        Quaternion yRotation = Quaternion.AngleAxis(mouseAbsolute.x, headObject.transform.InverseTransformDirection(Vector3.up));
+        headObject.transform.localRotation *= yRotation;
+        facingDirection = headObject.transform.localRotation.eulerAngles;
       }
-
-      // Then clamp and apply the global y value.
-      if (clampInDegrees.y < 360) {
-        mouseAbsolute.y = Mathf.Clamp(mouseAbsolute.y, -clampInDegrees.y * 0.5f, clampInDegrees.y * 0.5f);
-      }
-
-      // Set the new look rotations
-      headObject.transform.localRotation = Quaternion.AngleAxis(-mouseAbsolute.y, targetOrientation * Vector3.right) * targetOrientation;
-      Quaternion yRotation = Quaternion.AngleAxis(mouseAbsolute.x, headObject.transform.InverseTransformDirection(Vector3.up));
-      headObject.transform.localRotation *= yRotation;
-      facingDirection = headObject.transform.localRotation.eulerAngles;
     }
   }
 }

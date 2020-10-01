@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SpiritWorld.World.Terrain.TileGrid.Features;
+using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace SpiritWorld.World.Terrain.TileGrid {
 
@@ -10,6 +10,12 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// Tiles stores by hex axial coordinates.
     /// </summary>
     Dictionary<Coordinate, Tile> tiles;
+
+    /// <summary>
+    /// Tile features stores by hex axial coordinates of the tile they're on, and then by the feature layer.
+    /// </summary>
+    Dictionary<Coordinate, Dictionary<TileFeature.Layer, TileFeature>> features
+      = new Dictionary<Coordinate, Dictionary<TileFeature.Layer, TileFeature>>();
 
     /// <summary>
     /// Make a new grid of tiles
@@ -30,6 +36,27 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Set a tile and it's features at once
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="features"></param>
+    public void set(Tile tile, Dictionary<TileFeature.Layer, TileFeature> features) {
+      set(tile);
+      if (features != null) {
+        set(tile.axialKey, features);
+      }
+    }
+
+    /// <summary>
+    /// Set a tile and it's features at once
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="features"></param>
+    public void set((Tile tile, Dictionary<TileFeature.Layer, TileFeature> features) tileValues) {
+      set(tileValues.tile, tileValues.features);
+    }
+
+    /// <summary>
     /// Set the hex tile using it's world location's coodinates
     /// </summary>
     /// <param name="worldLocation">The 2D in world location of the tile (X, 0Z)</param>
@@ -37,6 +64,39 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     public void set(Coordinate worldLocation, Tile.Type tileType, byte height = 0) {
       Tile newTile = new Tile(worldLocation, tileType, height);
       set(newTile);
+    }
+
+    /// <summary>
+    /// Set a feature on a given tile
+    /// </summary>
+    /// <param name="tileAxialKey"></param>
+    /// <param name="feature"></param>
+    public void set(Coordinate tileAxialKey, TileFeature feature) {
+      if (tiles.ContainsKey(tileAxialKey)) {
+        if (features.ContainsKey(tileAxialKey)) {
+          features[tileAxialKey].Add(feature.type.Layer, feature);
+        } else {
+          features[tileAxialKey] = new Dictionary<TileFeature.Layer, TileFeature> {{
+            feature.type.Layer,
+            feature
+          }};
+        }
+      } else {
+        throw new IndexOutOfRangeException($"No tile found to be set at {tileAxialKey}. Cannot set a feature to an empty tile");
+      }
+    }
+
+    /// <summary>
+    /// Set a feature on a given tile
+    /// </summary>
+    /// <param name="tileAxialKey"></param>
+    /// <param name="feature"></param>
+    public void set(Coordinate tileAxialKey, Dictionary<TileFeature.Layer, TileFeature> newFeatures) {
+      if (tiles.ContainsKey(tileAxialKey)) {
+        features[tileAxialKey] = newFeatures;
+      } else {
+        throw new IndexOutOfRangeException($"No tile found to be set at {tileAxialKey}. Cannot set a feature to an empty tile");
+      }
     }
 
     /// <summary>
@@ -54,8 +114,20 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// </summary>
     /// <param name="action">A function taking the world coordinate location of the hexagon as well as the tile</param>
     public void forEach(Action<Coordinate, Tile> action) {
-      foreach (KeyValuePair<Coordinate, Tile> entry in tiles) {
-        action(entry.Key, entry.Value);
+      foreach (KeyValuePair<Coordinate, Tile> tile in tiles) {
+        action(tile.Key, tile.Value);
+      }
+    }
+
+    /// <summary>
+    /// Do something on each tile with a feature
+    /// Coordinate: axial coord of the hex
+    /// tile: the tile type
+    /// </summary>
+    /// <param name="action">A function taking the world coordinate location of the hexagon as well as the tile</param>
+    public void forEach(Action<Coordinate, Tile, Dictionary<TileFeature.Layer, TileFeature>> action) {
+      foreach (KeyValuePair<Coordinate, Dictionary<TileFeature.Layer, TileFeature>> feature in features) {
+        action(feature.Key, tiles[feature.Key], feature.Value);
       }
     }
   }
