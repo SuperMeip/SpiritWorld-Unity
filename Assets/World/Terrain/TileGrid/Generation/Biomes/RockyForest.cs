@@ -1,6 +1,5 @@
-﻿using SpiritWorld.World.Terrain.Generation.Noise;
-using SpiritWorld.World.Terrain.TileGrid.Features;
-using System.Collections.Generic;
+﻿using SpiritWorld.World.Terrain.Features;
+using SpiritWorld.World.Terrain.Generation.Noise;
 using UnityEngine;
 
 namespace SpiritWorld.World.Terrain.TileGrid.Generation {
@@ -43,10 +42,7 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
       /// Generate a forest with some rocky areas
       /// </summary>
       /// <returns></returns>
-      public override (
-        Tile tile,
-        Dictionary<TileFeature.Layer, TileFeature> features
-      ) generateAt(Coordinate axialKey, FastNoise[] noiseLayers) {
+      public override (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers) {
         /// get the tile type and height
         float heightNoise = noiseLayers[(int)NoiseLayers.Height].GetPerlinFractal(axialKey.x * 20, axialKey.z * 20);
         float tileTypeNoise = noiseLayers[(int)NoiseLayers.Terrain].GetPerlinFractal(axialKey.x * 10, axialKey.z * 10);
@@ -59,12 +55,12 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
               : Tile.Types.Grass;
 
         /// check for features
-        Dictionary<TileFeature.Layer, TileFeature> features = null;
+        FeaturesByLayer features = null;
         // trees
         if (tileType == Tile.Types.Grass) {
           float forestNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(axialKey.x * 20, axialKey.z * 20);
           if (forestNoise >= 0) {
-            features = new Dictionary<TileFeature.Layer, TileFeature> {{
+            features = new FeaturesByLayer {{
                TileFeature.Types.ConniferTrio.Layer,
                new TileFeature(TileFeature.Types.ConniferTrio)
              }};
@@ -72,36 +68,37 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
         }
 
         // rocks
+        float cloudNoise = noiseLayers[(int)NoiseLayers.Clouds].GetCellular(axialKey.x * 50, axialKey.z * 50);
         if ((tileType == Tile.Types.Rocky || tileType == Tile.Types.Grass) && (features == null || !features.ContainsKey(TileFeature.Layer.Decoration))) {
-          float rockNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(axialKey.x * 10, axialKey.z * 10);
+          float rockNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(axialKey.x * 35, axialKey.z * 40);
           if (rockNoise >= 0) {
-            // TODO: create the feature, then use a noise value to set how used up it is instead of the init function
+          int rockMode = (int)cloudNoise.scale(0, 3);
             if (features == null) {
-              features = new Dictionary<TileFeature.Layer, TileFeature> {{
+              features = new FeaturesByLayer {{
                TileFeature.Types.RockPile.Layer,
-               new TileFeature(TileFeature.Types.RockPile)
+               new TileFeature(TileFeature.Types.RockPile, rockMode)
              }};
             } else {
               features.Add(
                 TileFeature.Types.RockPile.Layer,
-                new TileFeature(TileFeature.Types.RockPile)
+                new TileFeature(TileFeature.Types.RockPile, rockMode)
               );
             }
           }
         }
 
         // clouds
-        float cloudNoise = noiseLayers[(int)NoiseLayers.Clouds].GetCellular(axialKey.x * 50, axialKey.z * 50);
         if (cloudNoise >= 0.7f) {
+          int cloudMode = (int)cloudNoise.scale(0, 3);
           if (features == null) {
-            features = new Dictionary<TileFeature.Layer, TileFeature> {{
+            features = new FeaturesByLayer {{
                TileFeature.Types.WhiteClouds.Layer,
-               new TileFeature(TileFeature.Types.WhiteClouds)
+               new TileFeature(TileFeature.Types.WhiteClouds, cloudMode)
              }};
           } else {
             features.Add(
               TileFeature.Types.WhiteClouds.Layer,
-              new TileFeature(TileFeature.Types.WhiteClouds)
+              new TileFeature(TileFeature.Types.WhiteClouds, cloudMode)
             );
           }
         }

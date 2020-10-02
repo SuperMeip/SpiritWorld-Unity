@@ -1,4 +1,4 @@
-﻿using SpiritWorld.World.Terrain.TileGrid.Features;
+﻿using SpiritWorld.World.Terrain.Features;
 using UnityEngine;
 
 /// <summary>
@@ -34,7 +34,7 @@ public class TileFeatureModelsDataMaper : MonoBehaviour {
   /// <param name="feature"></param>
   /// <returns></returns>
   public static GameObject GetModelForFeature(TileFeature feature) {
-    return TileFeatureModelMapsById[feature.type.Id].ModelsByUsagesRemaining[Mathf.Max(feature.remainingInteractions, 0)];
+    return TileFeatureModelMapsById[feature.type.Id].ModelsByMode[Mathf.Max(feature.mode, 0)];
   }
 }
 
@@ -49,5 +49,5 @@ public class TileFeatureModelsDataMap {
   /// 0 is used for unlimited use/non-interactable features as well
   /// </summary>
   [SerializeField]
-  public GameObject[] ModelsByUsagesRemaining;
+  public GameObject[] ModelsByMode;
 }

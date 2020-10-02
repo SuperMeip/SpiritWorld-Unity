@@ -135,10 +135,19 @@ public static class Hexagon {
   /// <param name="hexWorldLocation"></param>
   /// <returns></returns>
   public static Coordinate WorldLocationToAxialKey(Vector3 hexWorldLocation) {
-    return HexRound(new Vector2(
+    return HexRound(WorldLocationToFractionalAxialKey(hexWorldLocation));
+  }
+
+  /// <summary>
+  /// Convert a world location to an axial location
+  /// </summary>
+  /// <param name="hexWorldLocation"></param>
+  /// <returns></returns>
+  public static Vector2 WorldLocationToFractionalAxialKey(Vector3 hexWorldLocation) {
+    return new Vector2(
       (2.0f / 3.0f * hexWorldLocation.x) / Universe.HexRadius,
       (-1.0f / 3.0f * hexWorldLocation.x + Mathf.Sqrt(3) / 3.0f * hexWorldLocation.z) / Universe.HexRadius
-    ));
+    );
   }
 
   /// <summary>

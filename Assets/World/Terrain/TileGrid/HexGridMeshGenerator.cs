@@ -69,12 +69,23 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// Generate the mesh for a grid of hex tiles
     /// </summary>
     /// <param name="tiles"></param>
+    /// <param name="chunkLocation">The chunk location in world space / it's id</param>
     /// <returns></returns>
-    public static Mesh generate(TileBoard tiles) {
+    public static Mesh generate(HexGrid tiles, Coordinate chunkLocation = default) {
+      Vector3 chunkWorldOffset = Vector3.zero;
       List<Vector3> verticies = new List<Vector3>();
       List<int> triangles = new List<int>();
       List<Vector2> uvs = new List<Vector2>();
       int triangleCount = 0;
+
+      /// Calculate the units to move all the verts over -X and -Z if this tile is in a chunk not at 0,0.
+      if (!chunkLocation.Equals(Coordinate.Zero)) {
+        chunkWorldOffset = new Vector3(
+          -chunkLocation.x * RectangularBoard.ChunkWorldOffset.x,
+          0
+          -chunkLocation.z * RectangularBoard.ChunkWorldOffset.z
+        );
+      }
 
       // Generate each tile
       tiles.forEach((axialKey, tile) => {
@@ -100,7 +111,8 @@ namespace SpiritWorld.World.Terrain.TileGrid {
               hexCenter,
               side,
               neighboringTile.height * Universe.StepHeight,
-              tile.height * Universe.StepHeight
+              tile.height * Universe.StepHeight,
+              chunkWorldOffset
             );
             verticies.AddRange(sideVerts);
             triangles.AddRange(new int[]{
@@ -125,12 +137,13 @@ namespace SpiritWorld.World.Terrain.TileGrid {
             // if we don't have them yet, we just need to loop through and calculate them quick
             int index = 0;
             foreach (Hexagon.Vertexes vertex in Hexagon.VerticiesFor(side)) {
-              topTriangleVerts[index++] = Hexagon.VertexLocation(hexCenter, vertex);
+              Vector3 worldVertLocation = Hexagon.VertexLocation(hexCenter, vertex);
+              topTriangleVerts[index++] = worldVertLocation += chunkWorldOffset;
             }
           }
 
           // then we just need the center point at the correct height
-          topTriangleVerts[2] = hexCenter;
+          topTriangleVerts[2] = hexCenter + chunkWorldOffset;
 
           // UVs for the top
           Vector2[] topTriangleUVs = GetHexTopUVCoordinates(textureCenter, side);
@@ -159,12 +172,20 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <param name="side">The side we want the verts for</param>
     /// <param name="bottomHeight">The bottom height (where the side begins to be exposed from the ground up)</param>
     /// <param name="topHeight">The height of the top of the side (where it meets the hex face)</param>
+    /// <param name="chunkWorldOffset">The position of the 0,0 of the chunk, used to offset the world location of the tiles for mesh construction in other chunks</param>
     /// <returns></returns>
-    static Vector3[] GenerateVertsForHexBlockSide(Vector3 hexBlockCenter, Hexagon.Sides side, float bottomHeight, float topHeight) {
+    static Vector3[] GenerateVertsForHexBlockSide(
+      Vector3 hexBlockCenter,
+      Hexagon.Sides side,
+      float bottomHeight,
+      float topHeight,
+      Vector3 chunkWorldOffset = default
+    ) {
       Vector3[] verticies = new Vector3[4];
       int index = 0;
       foreach (Hexagon.Vertexes vertex in Hexagon.VerticiesFor(side)) {
         Vector3 vertexLocation2D = Hexagon.VertexLocation(hexBlockCenter, vertex);
+        vertexLocation2D += chunkWorldOffset;
         Vector3 bottomVertexLocation = new Vector3(vertexLocation2D.x, bottomHeight, vertexLocation2D.z);
         Vector3 topVertexLocation = new Vector3(vertexLocation2D.x, topHeight, vertexLocation2D.z);
         verticies[index++] = bottomVertexLocation;

@@ -1,5 +1,5 @@
 ﻿using SpiritWorld.World.Terrain.Generation.Noise;
-using SpiritWorld.World.Terrain.TileGrid.Features;
+using SpiritWorld.World.Terrain.Features;
 using System.Collections.Generic;
 
 namespace SpiritWorld.World.Terrain.TileGrid.Generation {
@@ -44,10 +44,7 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
     /// Generate the tile and it's features at an axial point using the biome type
     /// </summary>
     /// <param name="axialKey"></param>
-    public (
-      Tile tile,
-      Dictionary<TileFeature.Layer, TileFeature> features
-    ) generateAt(Coordinate axialKey) {
+    public (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey) {
       return type.generateAt(axialKey, noiseLayers);
     }
   }

@@ -1,5 +1,5 @@
-﻿using SpiritWorld.World.Terrain.Generation.Noise;
-using SpiritWorld.World.Terrain.TileGrid.Features;
+﻿using SpiritWorld.World.Terrain.Features;
+using SpiritWorld.World.Terrain.Generation.Noise;
 using System.Collections.Generic;
 
 namespace SpiritWorld.World.Terrain.TileGrid.Generation {
@@ -41,10 +41,7 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
       /// </summary>
       /// <param name="axialKey"></param>
       /// <returns></returns>
-      public abstract (
-        Tile tile, Dictionary<TileFeature.Layer,
-        TileFeature> features
-      ) generateAt(Coordinate axialKey, FastNoise[] noiseLayers);
+      public abstract (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers);
     }
 
     /// <summary>

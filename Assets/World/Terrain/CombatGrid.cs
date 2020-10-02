@@ -14,7 +14,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <summary>
     /// The hex grid the combat grid is projected onto
     /// </summary>
-    TileBoard parentGrid;
+    HexGrid parentGrid;
 
     /// <summary>
     /// The location of the 0,0 of this grid on it's parent grid

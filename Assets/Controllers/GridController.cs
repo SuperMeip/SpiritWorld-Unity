@@ -1,15 +1,16 @@
 ﻿
 using SpiritWorld.World.Terrain.Generation.Noise;
 using SpiritWorld.World.Terrain.TileGrid;
-using SpiritWorld.World.Terrain.TileGrid.Features;
+using SpiritWorld.World.Terrain.Features;
 using SpiritWorld.World.Terrain.TileGrid.Generation;
 using System.Collections.Generic;
 using UnityEngine;
+using SpiritWorld.World;
 
 [RequireComponent(typeof(MeshCollider))]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(MeshFilter))]
-public class TileboardController : MonoBehaviour {
+public class GridController : MonoBehaviour {
 
   /// <summary>
   /// The collider for this chunk
@@ -28,7 +29,7 @@ public class TileboardController : MonoBehaviour {
     meshFilter.mesh = new Mesh();
     meshFilter.mesh.Clear();
 
-    TileBoard testGrid = testBiome();
+    HexGrid testGrid = testWorldScape();
     Mesh mesh = HexGridMeshGenerator.generate(testGrid);
     testGrid.forEach((tileAxialKey, tile, features) => {
       foreach (KeyValuePair<TileFeature.Layer, TileFeature> feature in features) {
@@ -50,9 +51,18 @@ public class TileboardController : MonoBehaviour {
     meshFilter.mesh.RecalculateNormals();
 
   }
+
+  HexGrid testWorldScape() {
+    WorldScape testScape = new WorldScape();
+    Biome testForest = new Biome(Biome.Types.RockyForest, 1234);
+    testScape.mainBoard.createNewGrid((0, 0), testForest);
+    testScape.mainBoard.createNewGrid((1, 0), testForest);
+
+    return testScape.mainBoard[(0, 0)];
+  }
   
-  TileBoard testBiome() {
-    TileBoard testGrid = new TileBoard();
+  HexGrid testBiome() {
+    HexGrid testGrid = new HexGrid();
     Biome testBiome = new Biome(Biome.Types.RockyForest, 1234);
     HexGridShaper.Rectangle((36, 36), axialKey => {
       testGrid.set(testBiome.generateAt(axialKey));
@@ -61,8 +71,8 @@ public class TileboardController : MonoBehaviour {
     return testGrid;
   }
 
-  TileBoard getTestGrid() {
-    TileBoard testGrid = new TileBoard();
+  HexGrid getTestGrid() {
+    HexGrid testGrid = new HexGrid();
     testGrid.set(new Tile(Tile.Types.Grass, (0, 0), 1));
     testGrid.set(new Tile(Tile.Types.Grass, (0, 1), 2));
     testGrid.set(new Tile(Tile.Types.Grass, (1, 0), 3));
@@ -74,8 +84,8 @@ public class TileboardController : MonoBehaviour {
     return testGrid;
   }
 
-  TileBoard getTestGeneratedGrid() {
-    TileBoard testGrid = new TileBoard();
+  HexGrid getTestGeneratedGrid() {
+    HexGrid testGrid = new HexGrid();
     HexGridShaper.Rectangle((20, 20), axialKey => {
       testGrid.set(new Tile(Tile.Types.Grass, axialKey, Random.Range(1, 6)));
     });
@@ -83,8 +93,8 @@ public class TileboardController : MonoBehaviour {
     return testGrid;
   }
 
-  TileBoard getTestNoiseGrid() {
-    TileBoard testGrid = new TileBoard();
+  HexGrid getTestNoiseGrid() {
+    HexGrid testGrid = new HexGrid();
     FastNoise noise = new FastNoise(1234);
     FastNoise terrainNoise = new FastNoise(1111);
     HexGridShaper.Rectangle((30, 30), axialKey => {

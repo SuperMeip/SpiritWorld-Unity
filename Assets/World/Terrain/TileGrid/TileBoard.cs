@@ -1,134 +1,45 @@
-﻿using SpiritWorld.World.Terrain.TileGrid.Features;
-using System;
+﻿using SpiritWorld.World.Terrain.TileGrid.Generation;
 using System.Collections.Generic;
+using UnityEngine;
 
+/// <summary>
+///  collection for hex grids into one big board
+///  Indexed by world coordinates
+/// </summary>
 namespace SpiritWorld.World.Terrain.TileGrid {
-
-  public class TileBoard {
-
-    /// <summary>
-    /// Tiles stores by hex axial coordinates.
-    /// </summary>
-    Dictionary<Coordinate, Tile> tiles;
+  public abstract class TileBoard : Dictionary<Coordinate, HexGrid> {
 
     /// <summary>
-    /// Tile features stores by hex axial coordinates of the tile they're on, and then by the feature layer.
+    /// Shape configurations for tile boards
     /// </summary>
-    Dictionary<Coordinate, Dictionary<TileFeature.Layer, TileFeature>> features
-      = new Dictionary<Coordinate, Dictionary<TileFeature.Layer, TileFeature>>();
+    public enum Shapes {
+      Rectangle
+    }
 
-    /// <summary>
-    /// Make a new grid of tiles
-    /// </summary>
-    public TileBoard() {
-      tiles = new Dictionary<Coordinate, Tile>();
+    public Shapes shape {
+      get;
     }
 
     /// <summary>
-    /// Get the tile at the given axial hex location
+    /// Make a new tileboard
     /// </summary>
-    /// <param name="location"></param>
+    /// <param name="shape"></param>
+    protected TileBoard(Shapes shape) {
+      this.shape = shape;
+    }
+
+    /// <summary>
+    /// Get the grid containing the tile at the given world position
+    /// </summary>
+    /// <param name="worldPosition"></param>
     /// <returns></returns>
-    public Tile get(Coordinate location) {
-      Tile fetchedTile;
-      tiles.TryGetValue(location, out fetchedTile);
-      return fetchedTile;
-    }
+    public abstract HexGrid getGridChunkFor(Vector3 worldPosition);
 
     /// <summary>
-    /// Set a tile and it's features at once
+    /// Create a new grid at the location in this tileboard
     /// </summary>
-    /// <param name="tile"></param>
-    /// <param name="features"></param>
-    public void set(Tile tile, Dictionary<TileFeature.Layer, TileFeature> features) {
-      set(tile);
-      if (features != null) {
-        set(tile.axialKey, features);
-      }
-    }
-
-    /// <summary>
-    /// Set a tile and it's features at once
-    /// </summary>
-    /// <param name="tile"></param>
-    /// <param name="features"></param>
-    public void set((Tile tile, Dictionary<TileFeature.Layer, TileFeature> features) tileValues) {
-      set(tileValues.tile, tileValues.features);
-    }
-
-    /// <summary>
-    /// Set the hex tile using it's world location's coodinates
-    /// </summary>
-    /// <param name="worldLocation">The 2D in world location of the tile (X, 0Z)</param>
-    /// <param name="tile"></param>
-    public void set(Coordinate worldLocation, Tile.Type tileType, byte height = 0) {
-      Tile newTile = new Tile(worldLocation, tileType, height);
-      set(newTile);
-    }
-
-    /// <summary>
-    /// Set a feature on a given tile
-    /// </summary>
-    /// <param name="tileAxialKey"></param>
-    /// <param name="feature"></param>
-    public void set(Coordinate tileAxialKey, TileFeature feature) {
-      if (tiles.ContainsKey(tileAxialKey)) {
-        if (features.ContainsKey(tileAxialKey)) {
-          features[tileAxialKey].Add(feature.type.Layer, feature);
-        } else {
-          features[tileAxialKey] = new Dictionary<TileFeature.Layer, TileFeature> {{
-            feature.type.Layer,
-            feature
-          }};
-        }
-      } else {
-        throw new IndexOutOfRangeException($"No tile found to be set at {tileAxialKey}. Cannot set a feature to an empty tile");
-      }
-    }
-
-    /// <summary>
-    /// Set a feature on a given tile
-    /// </summary>
-    /// <param name="tileAxialKey"></param>
-    /// <param name="feature"></param>
-    public void set(Coordinate tileAxialKey, Dictionary<TileFeature.Layer, TileFeature> newFeatures) {
-      if (tiles.ContainsKey(tileAxialKey)) {
-        features[tileAxialKey] = newFeatures;
-      } else {
-        throw new IndexOutOfRangeException($"No tile found to be set at {tileAxialKey}. Cannot set a feature to an empty tile");
-      }
-    }
-
-    /// <summary>
-    /// Set the preconfigured new tile
-    /// </summary>
-    /// <param name="newTile"></param>
-    public void set(Tile newTile) {
-      tiles[newTile.axialKey] = newTile;
-    }
-
-    /// <summary>
-    /// Do something on each tile (in no particular order)
-    /// Coordinate: axial coord of the hex
-    /// tile: the tile type
-    /// </summary>
-    /// <param name="action">A function taking the world coordinate location of the hexagon as well as the tile</param>
-    public void forEach(Action<Coordinate, Tile> action) {
-      foreach (KeyValuePair<Coordinate, Tile> tile in tiles) {
-        action(tile.Key, tile.Value);
-      }
-    }
-
-    /// <summary>
-    /// Do something on each tile with a feature
-    /// Coordinate: axial coord of the hex
-    /// tile: the tile type
-    /// </summary>
-    /// <param name="action">A function taking the world coordinate location of the hexagon as well as the tile</param>
-    public void forEach(Action<Coordinate, Tile, Dictionary<TileFeature.Layer, TileFeature>> action) {
-      foreach (KeyValuePair<Coordinate, Dictionary<TileFeature.Layer, TileFeature>> feature in features) {
-        action(feature.Key, tiles[feature.Key], feature.Value);
-      }
-    }
+    /// <param name="gridWorldLocation"></param>
+    /// <param name="biome"></param>
+    public abstract void createNewGrid(Coordinate gridWorldLocation, Biome biome);
   }
 }

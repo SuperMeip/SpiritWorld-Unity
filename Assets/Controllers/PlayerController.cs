@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SpiritWorld.World.Terrain.TileGrid;
+using UnityEngine;
 
 namespace Evix.Controllers {
 
@@ -10,6 +11,11 @@ namespace Evix.Controllers {
     /// The character's head, for mouselook
     /// </summary>
     public GameObject headObject;
+
+    /// <summary>
+    /// The object used to hilight the selected tile
+    /// </summary>
+    public GameObject SelectedTileHilight;
 
     /// <summary>
     /// The move speed of the player
@@ -82,6 +88,7 @@ namespace Evix.Controllers {
     void Update() {
       move();
       look();
+      selectTile();
     }
 
     /// <summary>
@@ -92,7 +99,7 @@ namespace Evix.Controllers {
       Vector3 gravity = new Vector3(0, -gravityStrength, 0);
       Vector3 move = gravity;
 
-      
+
       // movement left and right and forward and back
       if (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0) {
         Vector3 forwardMovement = headObject.transform.forward * Input.GetAxis("Vertical") * moveSpeed;
@@ -145,6 +152,28 @@ namespace Evix.Controllers {
         headObject.transform.localRotation *= yRotation;
         facingDirection = headObject.transform.localRotation.eulerAngles;
       }
+    }
+
+    void selectTile() {
+     /* Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+      // if the mouse is pointing at the tileboard
+      if (Physics.Raycast(ray, out RaycastHit hit, 25) && hit.collider.gameObject.CompareTag("TileBoard")) {
+        // get the place we hit, plus a little forward in case we hit the side of a column
+        Vector3 gridHitPosition = hit.point + (hit.normal * 0.1f);
+        // zero out they, we dont' account for height in the coords.
+        gridHitPosition.y = 0;
+        // get the axial of the selected hex.
+        Coordinate selectedHexAxialKey = Hexagon.WorldLocationToAxialKey(gridHitPosition);
+        if (SelectedTileHilight != null) {
+          Tile selectedTile = Universe.GetActiveBoard().getGridContaining(gridHitPosition).get(selectedHexAxialKey);
+          SelectedTileHilight.transform.position = new Vector3(
+            selectedTile.worldLocation.x,
+            selectedTile.height * Universe.StepHeight,
+            selectedTile.worldLocation.z
+          );
+        }
+      }*/
     }
   }
 }

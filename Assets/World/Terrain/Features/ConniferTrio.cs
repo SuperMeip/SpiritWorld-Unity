@@ -1,4 +1,4 @@
-﻿namespace SpiritWorld.World.Terrain.TileGrid.Features {
+﻿namespace SpiritWorld.World.Terrain.Features {
   public partial struct TileFeature {
     public static partial class Types {
       public static Type ConniferTrio = new ConniferTrio();

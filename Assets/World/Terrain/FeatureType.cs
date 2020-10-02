@@ -1,17 +1,18 @@
 ﻿using System.Collections.Generic;
 
-namespace SpiritWorld.World.Terrain.TileGrid.Features {
+namespace SpiritWorld.World.Terrain.Features {
  
   public partial struct TileFeature {
+
+    /// <summary>
+    /// Constant for unlimited interacounts count
+    /// </summary>
+    public const int UnlimitedInteractions = -1;
+
     /// <summary>
     /// Singleton class for tile feature type data
     /// </summary>
     public abstract class Type {
-
-      /// <summary>
-      /// Constant for unlimited interacounts count
-      /// </summary>
-      public const int UnlimitedInteractions = -1;
 
       /// <summary>
       /// The id of this feature type
@@ -36,13 +37,28 @@ namespace SpiritWorld.World.Terrain.TileGrid.Features {
       } = false;
 
       /// <summary>
-      /// How many times this resource can be interacted with before being used up.
-      /// -1 is infinite.
+      /// If this resource can be mined/used up with interactions
       /// </summary>
-      public int InteractionCount {
+      public bool HasLimitedUses {
         get;
         protected set;
-      } = 0;
+      } = false;
+
+      /// <summary>
+      /// How many modes/models this reouces has.
+      /// </summary>
+      public int NumberOfModes {
+        get;
+        protected set;
+      } = 1;
+
+      /// <summary>
+      /// How many times this resource can be interacted with before it's used up if HasLimitedUses is true
+      /// </summary>
+      public int NumberOfUses {
+        get;
+        protected set;
+      } = UnlimitedInteractions;
 
       /// <summary>
       /// For making new types

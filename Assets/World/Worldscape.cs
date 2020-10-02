@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.World.Terrain.TileGrid;
+using System;
 using System.Collections.Generic;
 
 namespace SpiritWorld.World {
@@ -6,27 +7,36 @@ namespace SpiritWorld.World {
   /// <summary>
   /// A Level/Land/World in the game, made up of entities, tile boards, and structures.
   /// </summary>
-  public class Worldscape {
+  public class WorldScape {
 
     /// <summary>
     /// The tile boards that make up this worldscape
     /// </summary>
-    List<TileBoard> tileboards 
+    List<TileBoard> boards 
       = new List<TileBoard>();
 
     /// <summary>
     /// The main/base board of the level, from which other boards stem
     /// </summary>
-    public TileBoard mainboard {
-      get => tileboards[0];
+    public TileBoard mainBoard {
+      get => boards[0];
     }
 
     /// <summary>
     /// Make a new worldscape with a tileboard of the given size
     /// </summary>
-    /// <param name="mainboardSize"></param>
-    public Worldscape((int width, int depth) mainboardSize) {
-      tileboards[0] = new TileBoard();
+    public WorldScape() {
+      /// add the main board
+      boards.Add(new RectangularBoard());
+    }
+
+    /// <summary>
+    /// Get a board from this scape by id
+    /// </summary>
+    /// <param name="boardId"></param>
+    /// <returns></returns>
+    public TileBoard getBoard(int boardId) {
+      return boards[boardId];
     }
   }
 }
