@@ -1,13 +1,23 @@
 ﻿
-/// <summary>
-/// An object in the game world on the terrain
-/// </summary>
-interface IEntity {
+namespace SpiritWorld.Entities {
 
   /// <summary>
-  /// The type of entity this is
+  /// An object in the game world on the terrain
   /// </summary>
-  Entity.Type type {
-    get;
+  interface IEntity {
+
+    /// <summary>
+    /// The unique id of this entity;
+    /// </summary>
+    int id {
+      get;
+    }
+
+    /// <summary>
+    /// The type of entity this is
+    /// </summary>
+    Entity.Type type {
+      get;
+    }
   }
 }

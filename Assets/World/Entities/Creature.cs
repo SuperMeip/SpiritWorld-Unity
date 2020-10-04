@@ -1,63 +1,78 @@
 ﻿
+using SpiritWorld.World.Entities.Creatures.Stats;
 using System.Collections.Generic;
 
-public partial class Creature : Entity {
+namespace SpiritWorld.Entities {
 
   /// <summary>
-  /// A living and moving entity. Like a monster or player
+  /// Creature's are living and moving entities with stats like hp, etc.
   /// </summary>
-  public abstract new class Type : Entity.Type {
+  public partial class Creature : Entity {
 
     /// <summary>
-    /// Base for making a new creature
+    /// The creature type's base stats
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="name"></param>
-    protected Type(int id, string name) : base(id, name) {
-
-      // add to creature singleton too
-      Types.Add(this);
+    public BaseStatsSheet baseStats {
+      get;
     }
-  }
 
-  /// <summary>
-  /// Constant for creature entity types
-  /// </summary>
-  public static new partial class Types {
     /// <summary>
-    /// All registered types as an ordered array
+    /// A living and moving entity. Like a monster or player.
+    /// Has Stats
     /// </summary>
-    public static Type[] All {
-      get {
-        Type[] types = new Type[all.Count];
-        all.Values.CopyTo(types, 0);
-        return types;
+    public abstract new class Type : Entity.Type {
+
+      /// <summary>
+      /// Base for making a new creature
+      /// </summary>
+      /// <param name="id"></param>
+      /// <param name="name"></param>
+      protected Type(int id, string name) : base(id, name) {
+
+        // add to creature singleton too
+        Types.Add(this);
       }
     }
 
     /// <summary>
-    /// The dictionary of type values
+    /// Constant for creature entity types
     /// </summary>
-    static SortedDictionary<int, Type> all = new SortedDictionary<int, Type>();
+    public static new partial class Types {
+      /// <summary>
+      /// All registered types as an ordered array
+      /// </summary>
+      public static Type[] All {
+        get {
+          Type[] types = new Type[all.Count];
+          all.Values.CopyTo(types, 0);
+          return types;
+        }
+      }
 
-    /// <summary>
-    /// Get a type by it's id
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
-    public static Type Get(int id) {
-      return all[id];
-    }
+      /// <summary>
+      /// The dictionary of type values
+      /// </summary>
+      static SortedDictionary<int, Type> all = new SortedDictionary<int, Type>();
 
-    /// <summary>
-    /// Add a type to the list of all types
-    /// </summary>
-    /// <param name="type"></param>
-    internal static void Add(Type type) {
-      if (all.ContainsKey(type.Id)) {
-        throw new System.Exception("Attempted to register a new Creature with an existing type's Id");
-      } else {
-        all.Add(type.Id, type);
+      /// <summary>
+      /// Get a type by it's id
+      /// </summary>
+      /// <param name="id"></param>
+      /// <returns></returns>
+      public static Type Get(int id) {
+        return all[id];
+      }
+
+      /// <summary>
+      /// Add a type to the list of all types
+      /// </summary>
+      /// <param name="type"></param>
+      internal static void Add(Type type) {
+        if (all.ContainsKey(type.Id)) {
+          throw new System.Exception("Attempted to register a new Stat with an existing type's Id");
+        } else {
+          all.Add(type.Id, type);
+        }
       }
     }
   }

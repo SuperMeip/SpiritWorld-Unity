@@ -1,8 +1,4 @@
 namespace SpiritWorld.World.Terrain.TileGrid {
-
-  /// <summary>
-  /// Extensions for the Grass tile type
-  /// </summary>
   public partial struct Tile {
 
     /// <summary>

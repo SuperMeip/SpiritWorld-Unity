@@ -1,7 +1,6 @@
 ﻿using SpiritWorld.World.Terrain.Features;
 using SpiritWorld.World.Terrain.Generation.Noise;
 using System.Collections.Generic;
-using System.Numerics;
 
 namespace SpiritWorld.World.Terrain.TileGrid.Generation {
   public partial struct Biome {

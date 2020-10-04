@@ -7,7 +7,7 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
   /// <summary>
   /// Extensions for the Grass tile type
   /// </summary>
-  public partial struct Biome {
+  public partial struct Biome {tm q
 
     /// <summary>
     /// Tile type singleton constants
