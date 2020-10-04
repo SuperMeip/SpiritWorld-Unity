@@ -1,6 +1,7 @@
 ﻿using SpiritWorld.World.Terrain.Generation.Noise;
 using SpiritWorld.World.Terrain.Features;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SpiritWorld.World.Terrain.TileGrid.Generation {
   public partial struct Biome {
@@ -43,9 +44,8 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
     /// <summary>
     /// Generate the tile and it's features at an axial point using the biome type
     /// </summary>
-    /// <param name="axialKey"></param>
-    public (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey) {
-      return type.generateAt(axialKey, noiseLayers);
+    public (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, Coordinate offset = default) {
+      return type.generateAt(axialKey, noiseLayers, offset);
     }
   }
 }

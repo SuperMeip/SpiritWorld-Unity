@@ -42,10 +42,11 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
       /// Generate a forest with some rocky areas
       /// </summary>
       /// <returns></returns>
-      public override (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers) {
+      public override (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers, Coordinate offset = default) {
         /// get the tile type and height
-        float heightNoise = noiseLayers[(int)NoiseLayers.Height].GetPerlinFractal(axialKey.x * 20, axialKey.z * 20);
-        float tileTypeNoise = noiseLayers[(int)NoiseLayers.Terrain].GetPerlinFractal(axialKey.x * 10, axialKey.z * 10);
+        Coordinate noiseKey = axialKey + offset;
+        float heightNoise = noiseLayers[(int)NoiseLayers.Height].GetPerlinFractal(noiseKey.x * 20, noiseKey.z * 20);
+        float tileTypeNoise = noiseLayers[(int)NoiseLayers.Terrain].GetPerlinFractal(noiseKey.x * 10, noiseKey.z * 10);
         int scaledHeightValue = Mathf.Max((int)heightNoise.scale(20, 1), 7);
         Tile.Type tileType =
           scaledHeightValue == 7
@@ -58,7 +59,7 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
         FeaturesByLayer features = null;
         // trees
         if (tileType == Tile.Types.Grass) {
-          float forestNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(axialKey.x * 20, axialKey.z * 20);
+          float forestNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(noiseKey.x * 20, noiseKey.z * 10);
           if (forestNoise >= 0) {
             features = new FeaturesByLayer {{
                TileFeature.Types.ConniferTrio.Layer,
@@ -68,9 +69,9 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
         }
 
         // rocks
-        float cloudNoise = noiseLayers[(int)NoiseLayers.Clouds].GetCellular(axialKey.x * 50, axialKey.z * 50);
+        float cloudNoise = noiseLayers[(int)NoiseLayers.Clouds].GetCellular(noiseKey.x * 50, noiseKey.z * 50);
         if ((tileType == Tile.Types.Rocky || tileType == Tile.Types.Grass) && (features == null || !features.ContainsKey(TileFeature.Layer.Decoration))) {
-          float rockNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(axialKey.x * 35, axialKey.z * 40);
+          float rockNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(noiseKey.x * 35, noiseKey.z * 40);
           if (rockNoise >= 0) {
           int rockMode = (int)cloudNoise.scale(0, 3);
             if (features == null) {

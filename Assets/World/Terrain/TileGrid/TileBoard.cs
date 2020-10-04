@@ -29,6 +29,42 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Override for missing grids
+    /// </summary>
+    /// <param name="chunkBoardLocationKey"></param>
+    /// <returns></returns>
+    public new HexGrid this[Coordinate chunkBoardLocationKey] 
+      => TryGetValue(chunkBoardLocationKey, out HexGrid grid) ? grid : null;
+
+    /// <summary>
+    /// Get a tile at the world position in this board.
+    /// Also can return the key of the chunk it's in
+    /// </summary>
+    /// <param name="worldPosition"></param>
+    /// <returns></returns>
+    public abstract Tile get(Vector3 worldPosition, out Coordinate containingChunkKey);
+
+    /// <summary>
+    /// Get a tile at the world position in this board.
+    /// Also can return the key of the chunk it's in
+    /// </summary>
+    /// <param name="worldPosition"></param>
+    /// <returns></returns>
+    public Tile get(Vector3 worldPosition) {
+      return get(worldPosition, out _);
+    }
+
+    /// <summary>
+    /// Populate a range of new grids.
+    /// </summary>
+    /// <param name="start">inclusive</param>
+    /// <param name="end">exclusive</param>
+    /// <param name="biome"></param>
+    public void populate(Coordinate start, Coordinate end, Biome biome) {
+      start.until(end, chunkLocation => createNewGrid(chunkLocation, biome));
+    }
+
+    /// <summary>
     /// Get the grid containing the tile at the given world position
     /// </summary>
     /// <param name="worldPosition"></param>

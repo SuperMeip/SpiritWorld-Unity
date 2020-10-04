@@ -29,6 +29,14 @@ namespace SpiritWorld.World.Terrain.Features {
       }
 
       /// <summary>
+      /// The way this tile type is rotated on placement
+      /// </summary>
+      public RotationType PlacementRotationType {
+        get;
+        protected set;
+      } = RotationType.Random;
+
+      /// <summary>
       /// If this feature can be interacted with/harvested/mined/picked up
       /// </summary>
       public bool IsInteractive {

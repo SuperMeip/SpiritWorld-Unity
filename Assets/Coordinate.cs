@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 /// <summary>
 /// A tile position in a level
 /// </summary>
@@ -34,6 +35,13 @@ public struct Coordinate {
   }
 
   /// <summary>
+  /// get this as a cube coord
+  /// </summary>
+  public Vector3 Cube {
+    get => new Vector3(x, -x - z, z);
+  }
+
+  /// <summary>
   /// If this coordinate is valid and was properly initialized
   /// </summary>
   public bool isInitialized {
@@ -53,6 +61,23 @@ public struct Coordinate {
   }
 
   /// <summary>
+  /// preform the acton on all coordinates between this one and the end coordinate
+  /// </summary>
+  /// <param name="end">The final point to run on, exclusive</param>
+  /// <param name="action">the function to run on each point</param>
+  /// <param name="step">the value by which the coordinate values are incrimented</param>
+  public void until(Coordinate end, Action<Coordinate> action, short step = 1) {
+    Coordinate current = (x, z);
+    for (current.x = x; current.x < end.x; current.x += step) {
+      for (current.z = z; current.z < end.z; current.z += step) {
+        action(current);
+      }
+    }
+  }
+
+  /// implicit opperators
+  ///===================================
+  /// <summary>
   /// Create a coordinate from a touple.
   /// </summary>
   /// <param name="coordinates">(X, Z)</param>
@@ -66,6 +91,14 @@ public struct Coordinate {
   /// <param name="coordinates">(X, Z)</param>
   public static implicit operator Coordinate(Vector3 coordinate) {
     return new Coordinate((short)coordinate.x, (short)coordinate.z);
+  }
+
+  /// <summary>
+  /// Create a vector 3 from a coordinate
+  /// </summary>
+  /// <param name="coordinates">(X, Z)</param>
+  public static implicit operator Vector3(Coordinate coordinate) {
+    return new Vector3(coordinate.x, 0, coordinate.z);
   }
 
   /// <summary>
@@ -106,10 +139,43 @@ public struct Coordinate {
     );
   }
 
+
+  public static Vector3 operator *(Vector3 a, Coordinate b) {
+     return new Vector3(
+      a.x * b.x,
+      a.y,
+      a.z * b.z
+    );
+  }
+
   public static Coordinate operator *(Coordinate a, int b) {
     return (
       a.x * b,
       a.z * b
+    );
+  }
+
+  public static Vector3 operator %(Coordinate a, Vector3 b) {
+    return new Vector3(
+      a.x % b.x,
+      b.y,
+      a.z % b.z
+    );
+  }
+
+  public static Vector3 operator +(Coordinate a, Vector3 b) {
+    return new Vector3(
+      a.x + b.x,
+      b.y,
+      a.z + b.z
+    );
+  }
+
+  public static Vector3 operator +(Vector3 a, Coordinate b) {
+    return new Vector3(
+      a.x + b.x,
+      a.y,
+      a.z + b.z
     );
   }
 
@@ -129,6 +195,153 @@ public struct Coordinate {
     return "{" + x + ", " + z + "}";
   }
 }
+
+#region Directions
+
+/// <summary>
+/// Direction constants
+/// </summary>
+public static class Directions {
+
+  /// <summary>
+  /// A valid direction
+  /// </summary>
+  public class Direction : IEquatable<Direction> {
+
+    /// <summary>
+    /// The id of the direction
+    /// </summary>
+    public int Value {
+      get;
+      private set;
+    }
+
+    /// <summary>
+    /// The name of this direction
+    /// </summary>
+    public string Name {
+      get;
+      private set;
+    }
+
+    /// <summary>
+    /// The x y z offset of this direction from the origin
+    /// </summary>
+    public Coordinate Offset {
+      get => Offsets[Value];
+    }
+
+    /// <summary>
+    /// Get the oposite of this direction
+    /// </summary>
+    /// <param name="direction"></param>
+    /// <returns></returns>
+    public Direction Reverse {
+      get {
+        if (Equals(North)) {
+          return South;
+        }
+        if (Equals(South)) {
+          return North;
+        }
+        if (Equals(East)) {
+          return West;
+        }
+
+        return East;
+      }
+    }
+
+    internal Direction(int value, string name) {
+      Value = value;
+      Name = name;
+    }
+
+    /// <summary>
+    /// To string
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() {
+      return Name;
+    }
+
+    public override int GetHashCode() {
+      return Value;
+    }
+
+    /// <summary>
+    /// Equatable
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool Equals(Direction other) {
+      return other.Value == Value;
+    }
+
+    /// <summary>
+    /// Override equals
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    public override bool Equals(object obj) {
+      return (obj != null)
+        && !GetType().Equals(obj.GetType())
+        && ((Direction)obj).Value == Value;
+    }
+  }
+
+  /// <summary>
+  /// Z+
+  /// </summary>
+  public static Direction North = new Direction(0, "North");
+
+  /// <summary>
+  /// X+
+  /// </summary>
+  public static Direction East = new Direction(1, "East");
+
+  /// <summary>
+  /// Z-
+  /// </summary>
+  public static Direction South = new Direction(2, "South");
+
+  /// <summary>
+  /// X-
+  /// </summary>
+  public static Direction West = new Direction(3, "West");
+
+  /// <summary>
+  /// All the directions in order
+  /// </summary>
+  public static Direction[] All = new Direction[4] {
+      North,
+      East,
+      South,
+      West
+    };
+
+  /// <summary>
+  /// The cardinal directions. Non Y related
+  /// </summary>
+  public static Direction[] Cardinal = new Direction[4] {
+      North,
+      East,
+      South,
+      West
+    };
+
+  /// <summary>
+  /// The coordinate directional offsets
+  /// </summary>
+  public static Coordinate[] Offsets = new Coordinate[4] {
+      (0,1),
+      (1,0),
+      (0,-1),
+      (-1, 0)
+    };
+}
+
+#endregion
 
 #region Float Utilities
 

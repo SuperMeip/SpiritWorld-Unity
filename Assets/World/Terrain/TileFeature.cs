@@ -15,6 +15,15 @@
     }
 
     /// <summary>
+    /// The type of rotation to use when positioning this feature in world
+    /// </summary>
+    public enum RotationType {
+      Static, // set by model
+      Random//, // random.range, 1->360, around the Y
+      //Set // based on the facingDirection value of the TileFeature itself 
+    }
+
+    /// <summary>
     /// The type data for this feature
     /// </summary>
     public Type type {

@@ -1,11 +1,15 @@
 ﻿using SpiritWorld.World.Terrain.TileGrid;
+using System;
 using UnityEngine;
 
-namespace Evix.Controllers {
-
+namespace SpiritWorld.Controllers {
   [RequireComponent(typeof(CharacterController))]
   [RequireComponent(typeof(CapsuleCollider))]
   public class PlayerController : MonoBehaviour {
+    /// <summary>
+    /// The minimum time a key must be held down in order to get a hold action instead of a click action
+    /// </summary>
+    const float MinimumHoldDownTime = 0.5f;
 
     /// <summary>
     /// The character's head, for mouselook
@@ -58,6 +62,16 @@ namespace Evix.Controllers {
     public Vector2 targetCharacterDirection;
 
     /// <summary>
+    /// The currently selected tile
+    /// </summary>
+    Tile selectedTile;
+
+    /// <summary>
+    /// A timer for performing an action
+    /// </summary>
+    float actionTimer;
+
+    /// <summary>
     /// The character controller unity component, used for movement.
     /// </summary>
     CharacterController movementController;
@@ -88,7 +102,8 @@ namespace Evix.Controllers {
     void Update() {
       move();
       look();
-      selectTile();
+      selectHoveredTile();
+      tryToActOnSelectedTile();
     }
 
     /// <summary>
@@ -154,26 +169,68 @@ namespace Evix.Controllers {
       }
     }
 
-    void selectTile() {
-     /* Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+    /// <summary>
+    /// Select and hilight the tile the mouse is hovering over
+    /// </summary>
+    void selectHoveredTile() {
+      // we only want to change the selected tile when we're not acting on a tile atm
+      if (!Input.GetButton("Act")) {
+        /// if the mouse is pointing at the tileboard, use a ray get data about the tile
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Debug.DrawRay(ray.origin, ray.direction * 25, Color.red);
+        if (Physics.Raycast(ray, out RaycastHit hit, 25) && hit.collider.gameObject.CompareTag("TileBoard")) {
+          // get the place we hit, plus a little forward in case we hit the side of a column
+          Vector3 gridHitPosition = hit.point + (hit.normal * 0.1f);
+          // zero out the y, we dont' account for height in the coords.
+          gridHitPosition.y = 0;
+          // get which tile we hit and the chunk it's in
+          selectedTile = Universe.GetActiveBoard().get(gridHitPosition, out Coordinate containingChunkKey);
 
-      // if the mouse is pointing at the tileboard
-      if (Physics.Raycast(ray, out RaycastHit hit, 25) && hit.collider.gameObject.CompareTag("TileBoard")) {
-        // get the place we hit, plus a little forward in case we hit the side of a column
-        Vector3 gridHitPosition = hit.point + (hit.normal * 0.1f);
-        // zero out they, we dont' account for height in the coords.
-        gridHitPosition.y = 0;
-        // get the axial of the selected hex.
-        Coordinate selectedHexAxialKey = Hexagon.WorldLocationToAxialKey(gridHitPosition);
-        if (SelectedTileHilight != null) {
-          Tile selectedTile = Universe.GetActiveBoard().getGridContaining(gridHitPosition).get(selectedHexAxialKey);
-          SelectedTileHilight.transform.position = new Vector3(
-            selectedTile.worldLocation.x,
-            selectedTile.height * Universe.StepHeight,
-            selectedTile.worldLocation.z
-          );
+          /// Move the selected tile hilight to the correct location
+          if (SelectedTileHilight != null) {
+            SelectedTileHilight.transform.position = new Vector3(
+              selectedTile.worldLocation.x,
+              selectedTile.height * Universe.StepHeight,
+              selectedTile.worldLocation.z
+            ) + RectangularBoard.ChunkWorldOffset * containingChunkKey;
+          }
         }
-      }*/
+      }
+    }
+
+    /// <summary>
+    /// Act on the selected tile when appropriate
+    /// </summary>
+    void tryToActOnSelectedTile() {
+      // if we're holding the button
+      if (Input.GetButton("Act")) {
+        actionTimer += Time.deltaTime;
+        // if we've been holding it for the minimum hold time at least, act via hold action
+        if (actionTimer >= MinimumHoldDownTime) {
+          holdDownActionOnSelectedTile(actionTimer, Time.deltaTime);
+        }
+      }
+      // if we've let go of the button
+      if (Input.GetButtonUp("Act")) {
+        // if we haven't gone over minimum hold time, do the single click action on the tile
+        if (actionTimer < MinimumHoldDownTime) {
+          clickActionOnSelectedTile();
+        }
+        // reset the action timer
+        actionTimer = 0;
+      }
+    }
+
+    void holdDownActionOnSelectedTile(float actionTimer, float deltaTime) {
+      // check if the tile has a resource. If it does, we'll use on the resource
+      selectedTile.getFeaturesFrom(Universe.GetActiveBoard());
+      selectedTile.use(actionTimer, deltaTime);
+    }
+
+    /// <summary>
+    /// display info about the tile
+    /// </summary>
+    void clickActionOnSelectedTile() {
     }
   }
 }
