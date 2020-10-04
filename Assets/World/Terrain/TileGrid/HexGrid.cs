@@ -7,6 +7,13 @@ namespace SpiritWorld.World.Terrain.TileGrid {
   public class HexGrid {
 
     /// <summary>
+    /// The location of this grid in the chunk grid if it's being used as a chunk
+    /// </summary>
+    public Coordinate chunkLocationKey {
+      get;
+    }
+
+    /// <summary>
     /// Tiles stores by hex axial coordinates.
     /// </summary>
     Dictionary<Coordinate, Tile> tiles;
@@ -20,7 +27,8 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <summary>
     /// Make a new grid of tiles
     /// </summary>
-    public HexGrid() {
+    public HexGrid(Coordinate chunkLocationKey = default) {
+      this.chunkLocationKey = chunkLocationKey;
       tiles = new Dictionary<Coordinate, Tile>();
     }
 
@@ -30,9 +38,18 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <param name="location"></param>
     /// <returns></returns>
     public Tile get(Coordinate location) {
-      Tile fetchedTile;
-      tiles.TryGetValue(location, out fetchedTile);
+      tiles.TryGetValue(location, out Tile fetchedTile);
       return fetchedTile;
+    }
+
+    /// <summary>
+    /// Get the tile at the given axial hex location
+    /// </summary>
+    /// <param name="tileKey"></param>
+    /// <returns></returns>
+    public FeaturesByLayer getTileFeatures(Coordinate tileKey) {
+      features.TryGetValue(tileKey, out FeaturesByLayer tileFeatures);
+      return tileFeatures;
     }
 
     /// <summary>
@@ -57,12 +74,22 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Set a tile and it's features at once
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="features"></param>
+    public void set(Tile tile, TileFeature feature) {
+      set(tile);
+      set(tile.axialKey, feature);
+    }
+
+    /// <summary>
     /// Set the hex tile using it's world location's coodinates
     /// </summary>
     /// <param name="worldLocation">The 2D in world location of the tile (X, 0Z)</param>
     /// <param name="tile"></param>
     public void set(Coordinate worldLocation, Tile.Type tileType, byte height = 0) {
-      Tile newTile = new Tile(worldLocation, tileType, height);
+      Tile newTile = new Tile(worldLocation, tileType, height, chunkLocationKey);
       set(newTile);
     }
 
@@ -74,7 +101,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     public void set(Coordinate tileAxialKey, TileFeature feature) {
       if (tiles.ContainsKey(tileAxialKey)) {
         if (features.ContainsKey(tileAxialKey)) {
-          features[tileAxialKey].Add(feature.type.Layer, feature);
+          features[tileAxialKey][feature.type.Layer] = feature;
         } else {
           features[tileAxialKey] = new FeaturesByLayer {{
             feature.type.Layer,

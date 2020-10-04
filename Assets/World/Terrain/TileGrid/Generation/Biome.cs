@@ -44,8 +44,8 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
     /// <summary>
     /// Generate the tile and it's features at an axial point using the biome type
     /// </summary>
-    public (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, Coordinate offset = default) {
-      return type.generateAt(axialKey, noiseLayers, offset);
+    public (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, Coordinate chunkKeyOffset = default) {
+      return type.generateAt(axialKey, noiseLayers, chunkKeyOffset);
     }
   }
 }

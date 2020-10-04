@@ -1,4 +1,6 @@
-﻿namespace SpiritWorld.World.Terrain.Features {
+﻿using SpiritWorld.World.Terrain.TileGrid;
+
+namespace SpiritWorld.World.Terrain.Features {
 
   /// <summary>
   /// Something on a tile
@@ -51,7 +53,7 @@
     /// If this feature's interactions have been used up
     /// </summary>
     public bool isUsedUp {
-      get => type.IsInteractive && type.HasLimitedUses && remainingInteractions == 0;
+      get => (type is LimitedUseType) && remainingInteractions == 0;
     }
 
     /// <summary>
@@ -66,30 +68,39 @@
       // for features that can be used up, we start at the highest mode.
       // otherwise we start at mode 0, the base mode
       this.mode = mode == null
-        ? type.HasLimitedUses
+        ? type is LimitedUseType
           ? type.NumberOfModes - 1
           : 0
         : (int)mode;
 
       // if this is interactive and use-upable, record our remaining use count.
-      remainingInteractions = type.IsInteractive && type.HasLimitedUses 
-        ? type.NumberOfUses
-        : UnlimitedInteractions;
+      remainingInteractions = type is LimitedUseType 
+        ? (type as LimitedUseType).NumberOfUses
+        : Type.UnlimitedInteractions;
     }
 
     /// <summary>
-    /// Use up X uses of this resource
+    /// Use this tile feature
+    /// </summary>
+    /// <param name="totalTimeUsedForSoFar"></param>
+    /// <param name="deltaTimeUsedFor"></param>
+    public void interact(float totalTimeUsedForSoFar = 0) {
+      if (remainingInteractions != 0) {
+        if (type is LimitedUseType limitedUseType && limitedUseType.tryToUseOnce(totalTimeUsedForSoFar)) {
+          remainingInteractions--;
+          updateModeBasedOnRemainingInteractions();
+        }
+      }
+    }
+
+    /// <summary>
+    /// get the mode to switch to based on the % of uses remaining for this feature
+    /// This assumes mode 0 is empty.
     /// </summary>
     /// <param name="count"></param>
-    public void useUp(int count = 1) {
-      if (type.HasLimitedUses && remainingInteractions > 0) {
-        // decrement the remaining uses.
-        remainingInteractions -= count;
-
-        // get the mode to switch to based on the % of uses remaining for this feature
-        float percentRemaining = remainingInteractions / type.NumberOfUses;
-        mode = (int)(type.NumberOfModes * percentRemaining);
-      }
+    void updateModeBasedOnRemainingInteractions() {
+      float percentRemaining = (float)remainingInteractions / (type as LimitedUseType).NumberOfUses;
+      mode = (int)((type.NumberOfModes - 1) * percentRemaining);
     }
   }
 }

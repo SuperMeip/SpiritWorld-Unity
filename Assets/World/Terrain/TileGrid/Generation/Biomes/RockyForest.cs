@@ -42,9 +42,9 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
       /// Generate a forest with some rocky areas
       /// </summary>
       /// <returns></returns>
-      public override (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers, Coordinate offset = default) {
+      public override (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers, Coordinate chunkKeyOffset = default) {
         /// get the tile type and height
-        Coordinate noiseKey = axialKey + offset;
+        Coordinate noiseKey = axialKey + chunkKeyOffset * RectangularBoard.ChunkWorldOffset;
         float heightNoise = noiseLayers[(int)NoiseLayers.Height].GetPerlinFractal(noiseKey.x * 20, noiseKey.z * 20);
         float tileTypeNoise = noiseLayers[(int)NoiseLayers.Terrain].GetPerlinFractal(noiseKey.x * 10, noiseKey.z * 10);
         int scaledHeightValue = Mathf.Max((int)heightNoise.scale(20, 1), 7);
@@ -71,9 +71,10 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
         // rocks
         float cloudNoise = noiseLayers[(int)NoiseLayers.Clouds].GetCellular(noiseKey.x * 50, noiseKey.z * 50);
         if ((tileType == Tile.Types.Rocky || tileType == Tile.Types.Grass) && (features == null || !features.ContainsKey(TileFeature.Layer.Decoration))) {
+          bool hasResouce = features?.ContainsKey(TileFeature.Layer.Resource) ?? false;
           float rockNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(noiseKey.x * 35, noiseKey.z * 40);
-          if (rockNoise >= 0) {
-          int rockMode = (int)cloudNoise.scale(0, 3);
+          if ((!hasResouce && tileType != Tile.Types.Grass && rockNoise >= 0) || rockNoise >= 0.5f) {
+          int rockMode = (int)cloudNoise.scale(0, (hasResouce || tileType == Tile.Types.Grass) ? 2 : 3);
             if (features == null) {
               features = new FeaturesByLayer {{
                TileFeature.Types.RockPile.Layer,
@@ -108,7 +109,8 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
           new Tile(
             tileType,
             axialKey,
-            scaledHeightValue
+            scaledHeightValue,
+            chunkKeyOffset
           ),
           features
         );

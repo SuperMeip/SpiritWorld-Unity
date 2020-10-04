@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace SpiritWorld.World.Terrain.TileGrid {
 
@@ -22,6 +23,20 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// The location of this block within the chunk with world coordinates
+    /// </summary>
+    public Vector3 localLocation {
+      get => worldLocation - RectangularBoard.ChunkWorldOffset * parentChunkKey;
+    }
+
+    /// <summary>
+    /// The X,Z of the parent chunk
+    /// </summary>
+    public Coordinate parentChunkKey {
+      get;
+    }
+
+    /// <summary>
     /// The height of this tile
     /// </summary>
     public int height {
@@ -32,7 +47,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// The key used to store hexagons in the grid
     /// </summary>
     public Coordinate axialKey {
-      get => Hexagon.WorldLocationToAxialKey(worldLocation);
+      get;
     }
 
     /// <summary>
@@ -41,9 +56,12 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     public Tile(
       Type type = null,
       Coordinate axialKey = default,
-      int height = 0
+      int height = 0,
+      Coordinate parentChunkKey = default
     ) {
-      Vector3 worldLocationXZ = Hexagon.AxialKeyToWorldLocation(axialKey);
+      this.axialKey = axialKey;
+      this.parentChunkKey = parentChunkKey;
+      Vector3 worldLocationXZ = Hexagon.AxialKeyToWorldLocation(axialKey) + RectangularBoard.ChunkWorldOffset * parentChunkKey;
       worldLocation = new Vector3(worldLocationXZ.x, height, worldLocationXZ.z);
 
       this.type = type ?? Types.Empty;
@@ -54,8 +72,11 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// </summary>
     /// <param name="type"></param>
     /// <param name="height"></param>
-    public Tile(Coordinate worldLocation2D = default, Type type = null, int height = 0) {
+    public Tile(Coordinate worldLocation2D = default, Type type = null, int height = 0, Coordinate parentChunkKey = default) {
+      this.parentChunkKey = parentChunkKey;
       worldLocation = new Vector3(worldLocation2D.x, height, worldLocation2D.z);
+      axialKey = Hexagon.WorldLocationToAxialKey(worldLocation - RectangularBoard.ChunkWorldOffset * parentChunkKey);
+      worldLocation += RectangularBoard.ChunkWorldOffset * parentChunkKey;
 
       this.type = type ?? Types.Empty;
     }

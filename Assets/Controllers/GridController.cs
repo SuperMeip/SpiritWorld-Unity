@@ -6,6 +6,7 @@ using SpiritWorld.World.Terrain.TileGrid.Generation;
 using System.Collections.Generic;
 using UnityEngine;
 using SpiritWorld.World;
+using System;
 
 namespace SpiritWorld.Controllers {
 
@@ -42,7 +43,7 @@ namespace SpiritWorld.Controllers {
     /// Grid features that are visible on the map
     /// Indexed by the tile's axial coord and then by the feature layer
     /// </summary>
-    readonly Dictionary<Coordinate, Dictionary<TileFeature.Layer, GameObject>> visibleGridFeatures
+    readonly Dictionary<Coordinate, Dictionary<TileFeature.Layer, GameObject>> visibleFeatures
       = new Dictionary<Coordinate, Dictionary<TileFeature.Layer, GameObject>>();
 
     /// <summary>
@@ -78,24 +79,12 @@ namespace SpiritWorld.Controllers {
         activeGrid.forEach((tileAxialKey, tile, features) => {
           foreach (KeyValuePair<TileFeature.Layer, TileFeature> feature in features) {
             // instantiate the feature on top of the tile
-            GameObject featureModel = Instantiate(
-              TileFeatureModelsDataMaper.GetModelForFeature(feature.Value),
-              new Vector3(
-                tile.worldLocation.x + chunkWorldLocation.x,
-                tile.worldLocation.y * Universe.StepHeight,
-                tile.worldLocation.z + chunkWorldLocation.z
-              ),
-              feature.Value.type.PlacementRotationType == TileFeature.RotationType.Random
-                ? Quaternion.Euler(0, UnityEngine.Random.Range(1, 360), 0)
-                : Quaternion.Euler(0, 0, 0),
-              transform
-            );
-
+            GameObject featureModel = instantiateFeature(tile, feature.Value, true);
             // store the newly instantiated feature's model
-            if (visibleGridFeatures.ContainsKey(tileAxialKey)) {
-              visibleGridFeatures[tileAxialKey][feature.Value.type.Layer] = featureModel;
+            if (visibleFeatures.ContainsKey(tileAxialKey)) {
+              visibleFeatures[tileAxialKey][feature.Value.type.Layer] = featureModel;
             } else {
-              visibleGridFeatures[tileAxialKey] = new Dictionary<TileFeature.Layer, GameObject> {
+              visibleFeatures[tileAxialKey] = new Dictionary<TileFeature.Layer, GameObject> {
                 [feature.Value.type.Layer] = featureModel
               };
             }
@@ -112,6 +101,22 @@ namespace SpiritWorld.Controllers {
     }
 
     /// <summary>
+    /// Update the model for a given feature
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="feature"></param>
+    public void updateFeatureModel(Tile tile, TileFeature feature) {
+      if (visibleFeatures.TryGetValue(tile.axialKey, out Dictionary<TileFeature.Layer, GameObject> features)) {
+        if (features.TryGetValue(feature.type.Layer, out GameObject oldFeatureModel)) {
+          GameObject newFeatureModel = instantiateFeature(tile, feature);
+          newFeatureModel.transform.rotation = oldFeatureModel.transform.rotation;
+          visibleFeatures[tile.axialKey][feature.type.Layer] = newFeatureModel;
+          Destroy(oldFeatureModel);
+        }
+      }
+    }
+
+    /// <summary>
     /// remove the grid this is managing and hide this controller
     /// </summary>
     public void clear() {
@@ -120,7 +125,7 @@ namespace SpiritWorld.Controllers {
       /// remove active grid
       activeGrid = null;
       /// delete all the features
-      foreach(KeyValuePair<Coordinate, Dictionary<TileFeature.Layer, GameObject>> tileWithFeatures in visibleGridFeatures) {
+      foreach(KeyValuePair<Coordinate, Dictionary<TileFeature.Layer, GameObject>> tileWithFeatures in visibleFeatures) {
         foreach (KeyValuePair<TileFeature.Layer, GameObject> featureModel in tileWithFeatures.Value) {
           Destroy(featureModel.Value);
         }
@@ -129,72 +134,26 @@ namespace SpiritWorld.Controllers {
       meshFilter.mesh.Clear();
     }
 
-    #region Test grid generation
-
-    HexGrid testWorldScape() {
-      WorldScape testScape = new WorldScape();
-      Biome testForest = new Biome(Biome.Types.RockyForest, 1234);
-      testScape.mainBoard.createNewGrid((0, 0), testForest);
-      testScape.mainBoard.createNewGrid((1, 0), testForest);
-
-      return testScape.mainBoard[(0, 0)];
+    /// <summary>
+    /// Instantiate a feature's model on the given tile
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="feature"></param>
+    /// <returns></returns>
+    GameObject instantiateFeature(Tile tile, TileFeature feature, bool randomizeDirection = false) {
+      return Instantiate(
+        TileFeatureModelsDataMaper.GetModelForFeature(feature),
+        new Vector3(
+          tile.worldLocation.x,
+          tile.worldLocation.y * Universe.StepHeight,
+          tile.worldLocation.z
+        ),
+        feature.type.PlacementRotationType == TileFeature.RotationType.Random
+          ? Quaternion.Euler(0, UnityEngine.Random.Range(1, 360), 0)
+          : Quaternion.Euler(0, 0, 0),
+        transform
+      );
     }
-
-    HexGrid testBiome() {
-      HexGrid testGrid = new HexGrid();
-      Biome testBiome = new Biome(Biome.Types.RockyForest, 1234);
-      HexGridShaper.Rectangle((36, 36), axialKey => {
-        testGrid.set(testBiome.generateAt(axialKey));
-      });
-
-      return testGrid;
-    }
-
-    HexGrid getTestGrid() {
-      HexGrid testGrid = new HexGrid();
-      testGrid.set(new Tile(Tile.Types.Grass, (0, 0), 1));
-      testGrid.set(new Tile(Tile.Types.Grass, (0, 1), 2));
-      testGrid.set(new Tile(Tile.Types.Grass, (1, 0), 3));
-      testGrid.set(new Tile(Tile.Types.Grass, (1, -1), 5));
-      testGrid.set(new Tile(Tile.Types.Grass, (0, -1), 5));
-      testGrid.set(new Tile(Tile.Types.Grass, (-1, 0), 6));
-      testGrid.set(new Tile(Tile.Types.Grass, (-1, 1), 7));
-
-      return testGrid;
-    }
-
-    HexGrid getTestGeneratedGrid() {
-      HexGrid testGrid = new HexGrid();
-      HexGridShaper.Rectangle((20, 20), axialKey => {
-        testGrid.set(new Tile(Tile.Types.Grass, axialKey, UnityEngine.Random.Range(1, 6)));
-      });
-
-      return testGrid;
-    }
-
-    HexGrid getTestNoiseGrid() {
-      HexGrid testGrid = new HexGrid();
-      FastNoise noise = new FastNoise(1234);
-      FastNoise terrainNoise = new FastNoise(1111);
-      HexGridShaper.Rectangle((30, 30), axialKey => {
-        float noiseValue = noise.GetPerlinFractal(axialKey.x * 20, axialKey.z * 20);
-        float terrainValue = terrainNoise.GetPerlinFractal(axialKey.x * 10, axialKey.z * 10);
-        int scaledNoise = Mathf.Max((int)noiseValue.scale(20, 1), 7);
-        testGrid.set(new Tile(
-          scaledNoise == 7
-            ? Tile.Types.Water
-            : terrainValue > 0 && scaledNoise > 10
-              ? Tile.Types.Rocky
-              : Tile.Types.Grass,
-          axialKey,
-          scaledNoise
-        ));
-      });
-
-      return testGrid;
-    }
-
-    #endregion
   }
 }
 

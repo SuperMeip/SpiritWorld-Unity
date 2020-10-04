@@ -1,4 +1,6 @@
-﻿using SpiritWorld.World.Terrain.TileGrid;
+﻿using SpiritWorld.Managers;
+using SpiritWorld.World.Terrain.Features;
+using SpiritWorld.World.Terrain.TileGrid;
 using System;
 using UnityEngine;
 
@@ -62,6 +64,11 @@ namespace SpiritWorld.Controllers {
     public Vector2 targetCharacterDirection;
 
     /// <summary>
+    /// The character controller unity component, used for movement.
+    /// </summary>
+    CharacterController movementController;
+
+    /// <summary>
     /// The currently selected tile
     /// </summary>
     Tile selectedTile;
@@ -69,12 +76,7 @@ namespace SpiritWorld.Controllers {
     /// <summary>
     /// A timer for performing an action
     /// </summary>
-    float actionTimer;
-
-    /// <summary>
-    /// The character controller unity component, used for movement.
-    /// </summary>
-    CharacterController movementController;
+    float actionTimer = 0.0f;
 
     /// <summary>
     /// The absolute mouse mosition
@@ -86,8 +88,7 @@ namespace SpiritWorld.Controllers {
     /// </summary>
     Vector2 smoothMouse;
 
-    // Use this for initialization
-    void Start() {
+    void Awake() {
       movementController = GetComponent<CharacterController>();
       // Set target direction to the camera's initial orientation.
       facingDirection = headObject.transform.localRotation.eulerAngles;
@@ -184,7 +185,7 @@ namespace SpiritWorld.Controllers {
           // zero out the y, we dont' account for height in the coords.
           gridHitPosition.y = 0;
           // get which tile we hit and the chunk it's in
-          selectedTile = Universe.GetActiveBoard().get(gridHitPosition, out Coordinate containingChunkKey);
+          selectedTile = Universe.ActiveBoardManager.activeBoard.get(gridHitPosition);
 
           /// Move the selected tile hilight to the correct location
           if (SelectedTileHilight != null) {
@@ -192,7 +193,7 @@ namespace SpiritWorld.Controllers {
               selectedTile.worldLocation.x,
               selectedTile.height * Universe.StepHeight,
               selectedTile.worldLocation.z
-            ) + RectangularBoard.ChunkWorldOffset * containingChunkKey;
+            );
           }
         }
       }
@@ -207,7 +208,7 @@ namespace SpiritWorld.Controllers {
         actionTimer += Time.deltaTime;
         // if we've been holding it for the minimum hold time at least, act via hold action
         if (actionTimer >= MinimumHoldDownTime) {
-          holdDownActionOnSelectedTile(actionTimer, Time.deltaTime);
+          holdDownActionOnSelectedTile();
         }
       }
       // if we've let go of the button
@@ -221,16 +222,30 @@ namespace SpiritWorld.Controllers {
       }
     }
 
-    void holdDownActionOnSelectedTile(float actionTimer, float deltaTime) {
-      // check if the tile has a resource. If it does, we'll use on the resource
-      selectedTile.getFeaturesFrom(Universe.GetActiveBoard());
-      selectedTile.use(actionTimer, deltaTime);
+    /// <summary>
+    /// Use an equiped tool on the tile's feature
+    /// </summary>
+    /// <param name="actionTimer"></param>
+    void holdDownActionOnSelectedTile() {
+      // check if the tile has a resource. If it does, we'll try to mine it
+      // @todo: replace this with a messaging system and listeners
+      FeaturesByLayer features = Universe.ActiveBoardManager.activeBoard.getFeaturesFor(selectedTile);
+      if (features != null && features.TryGetValue(TileFeature.Layer.Resource, out TileFeature resource)) {
+        TileFeature beforeResourceValues = resource;
+        resource.interact(actionTimer);
+        Universe.ActiveBoardManager.activeBoard.update(selectedTile, resource);
+        if (beforeResourceValues.mode != resource.mode) {
+          actionTimer = 0;
+          Universe.ActiveBoardManager.updateModeForFeature(selectedTile, resource);
+        }
+      }
     }
 
     /// <summary>
     /// display info about the tile
     /// </summary>
     void clickActionOnSelectedTile() {
+
     }
   }
 }

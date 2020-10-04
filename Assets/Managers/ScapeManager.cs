@@ -18,6 +18,7 @@ namespace SpiritWorld.Managers {
 
     // set up our scape
     void Start() {
+      Universe.ActiveBoardManager = boardManager;
       WorldScape testScape = new WorldScape();
       Universe.CurrentScape = testScape;
       Biome testForest = new Biome(Biome.Types.RockyForest, 1234);

@@ -1,4 +1,6 @@
-﻿using SpiritWorld.World.Terrain.TileGrid.Generation;
+﻿using SpiritWorld.World.Terrain.Features;
+using SpiritWorld.World.Terrain.TileGrid.Generation;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -55,6 +57,22 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Get the features for the given tile
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <returns></returns>
+    public FeaturesByLayer getFeaturesFor(Tile tile) {
+      return this[tile.parentChunkKey]?.getTileFeatures(tile.axialKey);
+    }
+
+    /// <summary>
+    /// Get the grid containing the tile at the given world position
+    /// </summary>
+    /// <param name="worldPosition"></param>
+    /// <returns></returns>
+    public abstract Coordinate getChunkKeyFor(Tile tile);
+
+    /// <summary>
     /// Populate a range of new grids.
     /// </summary>
     /// <param name="start">inclusive</param>
@@ -65,17 +83,17 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
-    /// Get the grid containing the tile at the given world position
-    /// </summary>
-    /// <param name="worldPosition"></param>
-    /// <returns></returns>
-    public abstract HexGrid getGridChunkFor(Vector3 worldPosition);
-
-    /// <summary>
     /// Create a new grid at the location in this tileboard
     /// </summary>
     /// <param name="gridWorldLocation"></param>
     /// <param name="biome"></param>
     public abstract void createNewGrid(Coordinate gridWorldLocation, Biome biome);
+
+    /// <summary>
+    /// Set or update a tile and a feature on the tileboard
+    /// </summary>
+    /// <param name="selectedTile"></param>
+    /// <param name="resource"></param>
+    internal abstract void update(Tile selectedTile, TileFeature resource);
   }
 }

@@ -5,14 +5,14 @@ namespace SpiritWorld.World.Terrain.Features {
   public partial struct TileFeature {
 
     /// <summary>
-    /// Constant for unlimited interacounts count
-    /// </summary>
-    public const int UnlimitedInteractions = -1;
-
-    /// <summary>
     /// Singleton class for tile feature type data
     /// </summary>
     public abstract class Type {
+
+      /// <summary>
+      /// Constant for unlimited interacounts count
+      /// </summary>
+      public const int UnlimitedInteractions = -1;
 
       /// <summary>
       /// The id of this feature type
@@ -29,28 +29,19 @@ namespace SpiritWorld.World.Terrain.Features {
       }
 
       /// <summary>
+      /// If this is an interactive/cliclable/usable feature
+      /// </summary>
+      public bool IsInteractive {
+        get;
+      }
+
+      /// <summary>
       /// The way this tile type is rotated on placement
       /// </summary>
       public RotationType PlacementRotationType {
         get;
         protected set;
       } = RotationType.Random;
-
-      /// <summary>
-      /// If this feature can be interacted with/harvested/mined/picked up
-      /// </summary>
-      public bool IsInteractive {
-        get;
-        protected set;
-      } = false;
-
-      /// <summary>
-      /// If this resource can be mined/used up with interactions
-      /// </summary>
-      public bool HasLimitedUses {
-        get;
-        protected set;
-      } = false;
 
       /// <summary>
       /// How many modes/models this reouces has.
@@ -61,20 +52,13 @@ namespace SpiritWorld.World.Terrain.Features {
       } = 1;
 
       /// <summary>
-      /// How many times this resource can be interacted with before it's used up if HasLimitedUses is true
-      /// </summary>
-      public int NumberOfUses {
-        get;
-        protected set;
-      } = UnlimitedInteractions;
-
-      /// <summary>
       /// For making new types
       /// </summary>
       /// <param name="id"></param>
-      protected Type(byte id, Layer layer) {
+      protected Type(byte id, Layer layer, bool isInteractive = false) {
         Id = id;
         Layer = layer;
+        IsInteractive = isInteractive;
 
         // on creation, add the singleton to the all types list.
         Types.Add(this);

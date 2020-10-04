@@ -1,4 +1,5 @@
-﻿using SpiritWorld.World.Terrain.TileGrid.Generation;
+﻿using SpiritWorld.World.Terrain.Features;
+using SpiritWorld.World.Terrain.TileGrid.Generation;
 using UnityEngine;
 
 namespace SpiritWorld.World.Terrain.TileGrid {
@@ -63,27 +64,48 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
-    /// get the chunk a world location is in
+    /// update the data for an existing tile and feature
     /// </summary>
-    /// <param name="worldPosition"></param>
+    /// <param name="selectedTile"></param>
+    /// <param name="resource"></param>
+    internal override void update(Tile tile, TileFeature feature) {
+      this[getChunkKeyFor(tile)]?.set(tile, feature);
+    }
+
+    /// <summary>
+    /// Get the key of the chunk this tile is in
+    /// </summary>
+    /// <param name="tile"></param>
     /// <returns></returns>
-    public override HexGrid getGridChunkFor(Vector3 worldPosition) {
-      Coordinate chunkLocation = ChunkLocationFromWorldPosition(worldPosition);
-      return ContainsKey(chunkLocation) ? this[chunkLocation] : null;
+    public override Coordinate getChunkKeyFor(Tile tile) {
+      Coordinate containingChunkKey;
+      containingChunkKey = ChunkLocationFromWorldPosition(tile.worldLocation);
+      // adjust for chunk edges that don't fit together peftectly
+      if (tile.axialKey.x >= ChunkDiameterInTiles) {
+        containingChunkKey += Directions.East.Offset;
+      }
+      Tile foundTile = this[containingChunkKey]?.get(tile.axialKey) ?? default;
+
+      // this can happen if the tile is missing, but it can also happen if we're in the wrong chunk. Try moving up a chunk
+      if (!foundTile.axialKey.Equals(tile.axialKey)) {
+        containingChunkKey += Directions.North.Offset;
+      }
+
+      return containingChunkKey;
     }
 
     /// <summary>
     /// Add a new rectangular chunk of grid to the tile board
     /// </summary>
-    /// <param name="gridWorldLocation"></param>
+    /// <param name="chunkLocationKey"></param>
     /// <param name="biome"></param>
-    public override void createNewGrid(Coordinate gridWorldLocation, Biome biome) {
+    public override void createNewGrid(Coordinate chunkLocationKey, Biome biome) {
       HexGrid newGrid = new HexGrid();
       HexGridShaper.Rectangle((36, 36), axialKey => {
-        newGrid.set(biome.generateAt(axialKey, (gridWorldLocation * ChunkDiameterInTiles)));
+        newGrid.set(biome.generateAt(axialKey, (chunkLocationKey)));
       });
 
-      Add(gridWorldLocation, newGrid);
+      Add(chunkLocationKey, newGrid);
     }
 
     /// <summary>

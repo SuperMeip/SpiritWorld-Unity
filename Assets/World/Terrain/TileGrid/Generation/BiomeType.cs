@@ -40,7 +40,7 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
       /// <summary>
       /// Generate the tile at the given axial key location
       /// </summary>
-      public abstract (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers, Coordinate offset = default);
+      public abstract (Tile tile, FeaturesByLayer features) generateAt(Coordinate axialKey, FastNoise[] noiseLayers, Coordinate chunkKeyOffset = default);
     }
 
     /// <summary>
