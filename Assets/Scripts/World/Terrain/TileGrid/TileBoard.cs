@@ -17,7 +17,17 @@ namespace SpiritWorld.World.Terrain.TileGrid {
       Rectangle
     }
 
+    /// <summary>
+    /// The shape of this type of board
+    /// </summary>
     public Shapes shape {
+      get;
+    }
+
+    /// <summary>
+    /// The biome for this board
+    /// </summary>
+    protected Biome biome {
       get;
     }
 
@@ -25,8 +35,9 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// Make a new tileboard
     /// </summary>
     /// <param name="shape"></param>
-    protected TileBoard(Shapes shape) {
+    protected TileBoard(Shapes shape, Biome biome) {
       this.shape = shape;
+      this.biome = biome;
     }
 
     /// <summary>
@@ -35,7 +46,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <param name="chunkBoardLocationKey"></param>
     /// <returns></returns>
     public new HexGrid this[Coordinate chunkBoardLocationKey] 
-      => TryGetValue(chunkBoardLocationKey, out HexGrid grid) ? grid : null;
+      => getChunk(chunkBoardLocationKey);
 
     /// <summary>
     /// Get a tile at the world position in this board.
@@ -72,21 +83,11 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     public abstract Coordinate getChunkKeyFor(Tile tile);
 
     /// <summary>
-    /// Populate a range of new grids.
-    /// </summary>
-    /// <param name="start">inclusive</param>
-    /// <param name="end">exclusive</param>
-    /// <param name="biome"></param>
-    public void populate(Coordinate start, Coordinate end, Biome biome) {
-      start.until(end, chunkLocation => createNewGrid(chunkLocation, biome));
-    }
-
-    /// <summary>
     /// Create a new grid at the location in this tileboard
     /// </summary>
     /// <param name="gridWorldLocation"></param>
     /// <param name="biome"></param>
-    public abstract void createNewGrid(Coordinate gridWorldLocation, Biome biome);
+    public abstract void createNewGrid(Coordinate gridWorldLocation);
 
     /// <summary>
     /// Set or update a tile and a feature on the tileboard
@@ -94,5 +95,43 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <param name="selectedTile"></param>
     /// <param name="resource"></param>
     internal abstract void update(Tile selectedTile, TileFeature resource);
+
+    /// <summary>
+    /// Populate a range of new grids.
+    /// </summary>
+    /// <param name="start">inclusive</param>
+    /// <param name="end">exclusive</param>
+    internal void populate(Coordinate start, Coordinate end) {
+      start.until(end, chunkLocation => createNewGrid(chunkLocation));
+    }
+
+    /// <summary>
+    /// Get the chunk at the given key. This loads it if nessisary.
+    /// </summary>
+    /// <param name="chunkKey"></param>
+    /// <returns></returns>
+    HexGrid getChunk(Coordinate chunkKey) {
+      /// if we have it, return it.
+      if (TryGetValue(chunkKey, out HexGrid grid)) {
+        return grid;
+      }
+
+      /// if not, load it.
+      return loadChunk(chunkKey);
+    }
+
+    /// <summary>
+    /// Load a new chunk and return it as well.
+    /// currently this just uses create
+    /// TODO change this to load from file
+    /// </summary>
+    /// <param name="chunkKey"></param>
+    /// <returns></returns>
+    HexGrid loadChunk(Coordinate chunkKey) {
+      createNewGrid(chunkKey);
+      return TryGetValue(chunkKey, out HexGrid grid) 
+        ? grid 
+        : null;
+    }
   }
 }

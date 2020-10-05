@@ -30,7 +30,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <summary>
     /// Make a new board of rectangular shape
     /// </summary>
-    public RectangularBoard() : base(Shapes.Rectangle) {}
+    public RectangularBoard(Biome biome) : base(Shapes.Rectangle, biome) {}
 
     /// <summary>
     /// Get a tile at the world position in this board.
@@ -99,7 +99,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// </summary>
     /// <param name="chunkLocationKey"></param>
     /// <param name="biome"></param>
-    public override void createNewGrid(Coordinate chunkLocationKey, Biome biome) {
+    public override void createNewGrid(Coordinate chunkLocationKey) {
       HexGrid newGrid = new HexGrid();
       HexGridShaper.Rectangle((36, 36), axialKey => {
         newGrid.set(biome.generateAt(axialKey, (chunkLocationKey)));

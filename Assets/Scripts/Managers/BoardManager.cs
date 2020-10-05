@@ -3,10 +3,16 @@ using SpiritWorld.Events;
 using SpiritWorld.World.Terrain.Features;
 using SpiritWorld.World.Terrain.TileGrid;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace SpiritWorld.Managers {
   public class BoardManager : MonoBehaviour, IObserver {
+
+    /// <summary>
+    /// The chunks to show active around the chunk the player is in
+    /// </summary>
+    public int ActiveChunkBuffer = 1;
 
     /// <summary>
     /// The chunk controllers we have available to use
@@ -22,6 +28,11 @@ namespace SpiritWorld.Managers {
     }
 
     /// <summary>
+    /// The controller of the local player
+    /// </summary>
+    LocalPlayerController localPlayerController;
+
+    /// <summary>
     /// Controllers currently being used, indexed by which chunk they're being used for
     /// </summary>
     Dictionary<Coordinate, GridController> inUseControllers
@@ -32,6 +43,14 @@ namespace SpiritWorld.Managers {
     /// </summary>
     void Awake() {
       chunkControllerPool = gameObject.GetComponentsInChildren<GridController>(true);
+      localPlayerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerController>();
+    }
+
+    /// <summary>
+    /// Poll player location
+    /// </summary>
+    void Update() {
+      checkAndUpdateChunksAroundLocalPlayer();
     }
 
     /// <summary>
@@ -55,7 +74,7 @@ namespace SpiritWorld.Managers {
 
         // assign controllers to the board chunks
         int index = 0;
-        foreach(Coordinate chunkLocationKey in chunkLocationsToLoad) {
+        foreach (Coordinate chunkLocationKey in chunkLocationsToLoad) {
           // currently chunks load on assignment
           inUseControllers[chunkLocationKey] = chunkControllerPool[index];
           chunkControllerPool[index++].updateGridTo(activeBoard[chunkLocationKey], chunkLocationKey);
@@ -68,13 +87,49 @@ namespace SpiritWorld.Managers {
     /// </summary>
     void clear() {
       activeBoard = null;
-      foreach(GridController controller in chunkControllerPool) {
+      foreach (GridController controller in chunkControllerPool) {
         controller.clear();
       }
     }
 
     /// <summary>
+    /// used for polling player location and updating the loaded chunks
+    /// </summary>
+    void checkAndUpdateChunksAroundLocalPlayer() {
+      Coordinate[] chunkLocationsThatShouldBeLoaded = getLiveChunksAround(localPlayerController.transform.position);
+      // if the chunks that should be loaded don't match the current in use chunk controllers
+      IEnumerable<Coordinate> chunksToLoad = chunkLocationsThatShouldBeLoaded.Except(inUseControllers.Keys.ToArray());
+      IEnumerable<Coordinate> chunksToUnload = inUseControllers.Keys.ToArray().Except(chunkLocationsThatShouldBeLoaded);
+      foreach (Coordinate chunkKey in chunksToUnload) {
+        inUseControllers[chunkKey].clear();
+        inUseControllers.Remove(chunkKey);
+      }
+      foreach (Coordinate chunkKeyToLoad in chunksToLoad) {
+        // currently chunks load on assignment
+        inUseControllers[chunkKeyToLoad] = chunkControllerPool[getUnusedControllerIndex()];
+        inUseControllers[chunkKeyToLoad].updateGridTo(activeBoard[chunkKeyToLoad], chunkKeyToLoad);
+      }
+    }
+
+    /// <summary>
+    /// Get an empty controller index
+    /// </summary>
+    /// <returns></returns>
+    int getUnusedControllerIndex() {
+      int index = 0;
+      foreach (GridController controller in chunkControllerPool) {
+        if (!controller.isInUse) {
+          return index;
+        }
+        index++;
+      }
+
+      return -1;
+    }
+
+    /// <summary>
     /// Get the board locations of the chunks that should be visible to a player at the given worldlocation
+    /// TODO test this with a sled, check for inconsistencies
     /// </summary>
     /// <returns>The board locations (x/z of the grid in the tileboard)</returns>
     Coordinate[] getLiveChunksAround(Vector3 worldLocation) {
@@ -90,39 +145,54 @@ namespace SpiritWorld.Managers {
       };
 
       // if we're close to the east of the chunk
-      if (inChunkTileLocation.x > (RectangularBoard.ChunkWorldCenter.x + RectangularBoard.ChunkWorldCenter.x / 2)) {
+      if (inChunkTileLocation.x > RectangularBoard.ChunkWorldCenter.x) {
         chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.East.Offset);
         // if we're also close to the north of the chunk
-        if (inChunkTileLocation.z > (RectangularBoard.ChunkWorldCenter.y + RectangularBoard.ChunkWorldCenter.y / 2)) {
+        if (inChunkTileLocation.z > RectangularBoard.ChunkWorldCenter.y) {
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset);
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset + Directions.East.Offset);
-        // if we're also close to the south of the chunk
-        } else if (inChunkTileLocation.y < (RectangularBoard.ChunkWorldCenter.y - RectangularBoard.ChunkWorldCenter.z / 2)) {
+          // if we're also close to the south of the chunk
+        } else if (inChunkTileLocation.y < RectangularBoard.ChunkWorldCenter.y) {
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset);
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset + Directions.East.Offset);
         }
-      // if we're close to the west of the chunk
-      } else if (inChunkTileLocation.x < (RectangularBoard.ChunkWorldCenter.x - RectangularBoard.ChunkWorldCenter.x / 2)) {
+        // if we're close to the west of the chunk
+      } else if (inChunkTileLocation.x < RectangularBoard.ChunkWorldCenter.x) {
         chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.West.Offset);
         // if we're also close to the north of the chunk
-        if (inChunkTileLocation.z > (RectangularBoard.ChunkWorldCenter.z + RectangularBoard.ChunkWorldCenter.z / 2)) {
+        if (inChunkTileLocation.z > RectangularBoard.ChunkWorldCenter.z) {
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset);
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset + Directions.West.Offset);
           // if we're also close to the south of the chunk
-        } else if (inChunkTileLocation.z < (RectangularBoard.ChunkWorldCenter.z - RectangularBoard.ChunkWorldCenter.z / 2)) {
+        } else if (inChunkTileLocation.z < RectangularBoard.ChunkWorldCenter.z) {
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset);
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset + Directions.West.Offset);
         }
-      // if we're only close to the north of the chunk
-      } else if (inChunkTileLocation.z > (RectangularBoard.ChunkWorldCenter.z + RectangularBoard.ChunkWorldCenter.z / 2)) {
+        // if we're only close to the north of the chunk
+      } else if (inChunkTileLocation.z > RectangularBoard.ChunkWorldCenter.z) {
         chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset);
-      // if we're only close to the south of the chunk
-      } else if (inChunkTileLocation.z < (RectangularBoard.ChunkWorldCenter.z - RectangularBoard.ChunkWorldCenter.z / 2)) {
+        // if we're only close to the south of the chunk
+      } else if (inChunkTileLocation.z < RectangularBoard.ChunkWorldCenter.z) {
         chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset);
       }
 
       return chunkLocationsToLoad.ToArray();
     }
+
+    /// <summary>
+    /// Get the board locations of the chunks that should be visible to a player at the given worldlocation
+    /// </summary>
+    /// <returns>The board locations (x/z of the grid in the tileboard)</returns>
+    /*Coordinate[] getLiveChunksAround(Vector3 worldLocation) {
+      Coordinate currentChunkLocationKey = RectangularBoard.ChunkLocationFromWorldPosition(worldLocation);
+      List<Coordinate> chunkLocationsToLoad = new List<Coordinate>();
+      (currentChunkLocationKey - ActiveChunkBuffer)
+        .until((currentChunkLocationKey + ActiveChunkBuffer + 1), (chunkKey) => {
+          chunkLocationsToLoad.Add(chunkKey);
+        });
+
+      return chunkLocationsToLoad.ToArray();
+    }*/
 
     /// <summary>
     /// Listen for events

@@ -118,6 +118,20 @@ public struct Coordinate {
       a.z + b.z
     );
   }
+  
+  public static Coordinate operator -(Coordinate a, Coordinate b) {
+    return (
+      a.x - b.x,
+      a.z - b.z
+    );
+  }
+  
+  public static Coordinate operator -(Coordinate a, int b) {
+    return (
+      a.x - b,
+      a.z - b
+    );
+  }
 
   public static Coordinate operator +(Coordinate a, int b) {
     return (
