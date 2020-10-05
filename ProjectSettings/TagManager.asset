@@ -6,6 +6,7 @@ TagManager:
   tags:
   - TileBoard
   - Board Manager
+  - Local Player
   layers:
   - Default
   - TransparentFX

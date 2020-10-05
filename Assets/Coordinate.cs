@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 /// <summary>
 /// A tile position in a level
@@ -426,6 +427,27 @@ public static class RangeUtilities {
   /// <returns></returns>
   public static float box01(this float number) {
     return box(number, 0, 1);
+  }
+}
+
+#endregion
+
+#region Sort Utilities
+
+public static class SortExtentions {
+  private static System.Random rng = new System.Random();
+
+  public static IList<T> Shuffle<T>(this IList<T> list) {
+    int n = list.Count;
+    while (n > 1) {
+      n--;
+      int k = rng.Next(n + 1);
+      T value = list[k];
+      list[k] = list[n];
+      list[n] = value;
+    }
+
+    return list;
   }
 }
 
