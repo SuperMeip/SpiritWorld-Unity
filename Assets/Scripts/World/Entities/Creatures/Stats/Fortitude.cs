@@ -8,7 +8,7 @@
     /// Mental Fortitude, mental resistance to magic and effects
     /// </summary>
     public class Fortitude : Type {
-      internal Fortitude() : base(14, "Fortitude", "FOR") { }
+      internal Fortitude() : base(14, "Fortitude", "FOR", VariationGroups.Combat) { }
     }
   }
 }

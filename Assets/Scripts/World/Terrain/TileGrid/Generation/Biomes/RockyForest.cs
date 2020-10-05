@@ -89,6 +89,22 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
           }
         }
 
+        // lilypads
+        if (tileType == Tile.Types.Water) {
+          float lillyNoise = noiseLayers[(int)NoiseLayers.Clouds].GetPerlinFractal(noiseKey.x * 25 + 10, noiseKey.z * 25 + 25);
+          if (lillyNoise >= 0.3f) {
+            features = new FeaturesByLayer {{
+               TileFeature.Types.BloomingLilypads.Layer,
+               new TileFeature(TileFeature.Types.BloomingLilypads)
+             }};
+          } else if (lillyNoise >= 0.1f) {
+            features = new FeaturesByLayer {{
+               TileFeature.Types.SmallLilypads.Layer,
+               new TileFeature(TileFeature.Types.SmallLilypads)
+             }};
+          }
+        }
+
         // clouds
         if (cloudNoise >= 0.7f) {
           int cloudMode = (int)cloudNoise.scale(0, 3);

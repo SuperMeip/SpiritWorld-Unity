@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class NoiseSensitivity : Type {
-      internal NoiseSensitivity() : base(204, "Noise Sensitivity", "NS") { }
+      internal NoiseSensitivity() : base(204, "Noise Sensitivity", "NS", VariationGroups.Perception) { }
     }
   }
 }

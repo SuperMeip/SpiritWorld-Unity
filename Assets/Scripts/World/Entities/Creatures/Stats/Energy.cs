@@ -8,7 +8,7 @@
     /// Energy stat. How many spells/mental powers you can use
     /// </summary>
     public class Energy : Type {
-      internal Energy() : base(3, "Energy", "EP") { }
+      internal Energy() : base(3, "Energy", "EP", VariationGroups.Depleteable) { }
     }
   }
 }

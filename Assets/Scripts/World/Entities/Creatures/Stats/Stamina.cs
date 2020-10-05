@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class Stamina : Type {
-      internal Stamina() : base(2, "Stamina", "SP") { }
+      internal Stamina() : base(2, "Stamina", "SP", VariationGroups.Depleteable) { }
     }
   }
 }

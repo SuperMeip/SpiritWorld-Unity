@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class SightRange : Type {
-      internal SightRange() : base(201, "Sight Range", "SR") { }
+      internal SightRange() : base(201, "Sight Range", "SR", VariationGroups.Perception) { }
     }
   }
 }

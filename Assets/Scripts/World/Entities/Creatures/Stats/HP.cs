@@ -8,7 +8,7 @@
     /// Health stat
     /// </summary>
     public class HP : Type {
-      internal HP() : base(1, "Health", "HP") { }
+      internal HP() : base(1, "Health", "HP", VariationGroups.Depleteable) { }
     }
   }
 }

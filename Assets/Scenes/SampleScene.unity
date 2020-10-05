@@ -674,6 +674,11 @@ MonoBehaviour:
     - {fileID: 3658756886933054698, guid: 36c495ecead3eed46847b5dbe1e0d25d, type: 3}
     - {fileID: 1292932586311906457, guid: 4f0673b71f971e6479b73e6d1e437402, type: 3}
     - {fileID: 6033328759097531188, guid: 4a006b19107047c40be661b40ed849a7, type: 3}
+  - ModelsByMode:
+    - {fileID: 5739022768234212788, guid: 636c7130e114eb34595c94c0eab452a3, type: 3}
+    - {fileID: 5739022768234212788, guid: 1ac38014d282346438d202acba6803f1, type: 3}
+  - ModelsByMode:
+    - {fileID: 5739022768234212788, guid: e141f556e72f997448c005c42eec81a2, type: 3}
 --- !u!4 &1133174705
 Transform:
   m_ObjectHideFlags: 0

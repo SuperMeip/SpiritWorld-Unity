@@ -8,7 +8,7 @@
     /// Magical power and prowess with spells
     /// </summary>
     public class Attunement : Type {
-      internal Attunement() : base(13, "Attunement", "ATN") { }
+      internal Attunement() : base(13, "Attunement", "ATN", VariationGroups.Combat) { }
     }
   }
 }

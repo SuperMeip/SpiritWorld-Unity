@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class Smell : Type {
-      internal Smell() : base(203, "Smell Power", "SM") { }
+      internal Smell() : base(203, "Smell Power", "SM", VariationGroups.Perception) { }
     }
   }
 }

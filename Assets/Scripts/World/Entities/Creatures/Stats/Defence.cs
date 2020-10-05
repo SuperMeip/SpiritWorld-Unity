@@ -8,7 +8,7 @@
     /// Defence, physical resistance to damange
     /// </summary>
     public class Defence : Type {
-      internal Defence() : base(12, "Defence", "DEF") { }
+      internal Defence() : base(12, "Defence", "DEF", VariationGroups.Combat) { }
     }
   }
 }

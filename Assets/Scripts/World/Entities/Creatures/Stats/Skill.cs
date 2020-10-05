@@ -8,7 +8,7 @@
     /// Mental Fortitude, mental resistance to magic and effects
     /// </summary>
     public class Skill : Type {
-      internal Skill() : base(16, "Skill", "SKL") { }
+      internal Skill() : base(16, "Skill", "SKL", VariationGroups.Combat) { }
     }
   }
 }

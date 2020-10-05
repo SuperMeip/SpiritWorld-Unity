@@ -12,8 +12,17 @@ namespace SpiritWorld.World.Entities {
     /// <summary>
     /// The creature type's base stats
     /// </summary>
-    public CombatStats baseStats {
+    public CombatStats combatStats {
       get;
+      protected set;
+    }
+
+    /// <summary>
+    /// The creature's sensory stats
+    /// </summary>
+    public SenseStats senseStats {
+      get;
+      protected set;
     }
 
     /// <summary>

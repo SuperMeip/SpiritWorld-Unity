@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class VisionAccuracy : Type {
-      internal VisionAccuracy() : base(202, "Vision Accuracy", "VA") { }
+      internal VisionAccuracy() : base(202, "Vision Accuracy", "VA", VariationGroups.Perception) { }
     }
   }
 }

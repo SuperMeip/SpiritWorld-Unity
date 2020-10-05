@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class HearingRadius : Type {
-      internal HearingRadius() : base(204, "Hearing Radius", "HR") { }
+      internal HearingRadius() : base(204, "Hearing Radius", "HR", VariationGroups.Perception) { }
     }
   }
 }

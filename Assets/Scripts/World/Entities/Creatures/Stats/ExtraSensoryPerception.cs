@@ -8,7 +8,7 @@
     /// Stamina stat. How many actions/round you can do etc
     /// </summary>
     public class ExtraSensoryPerception : Type {
-      internal ExtraSensoryPerception() : base(204, "Exra Sensory", "EX") { }
+      internal ExtraSensoryPerception() : base(204, "Exra Sensory", "EX", VariationGroups.Perception) { }
     }
   }
 }

@@ -8,7 +8,7 @@
     /// Physical strenth and attack damage
     /// </summary>
     public class Strength : Type {
-      internal Strength() : base(11, "Strength", "STR") { }
+      internal Strength() : base(11, "Strength", "STR", VariationGroups.Combat) { }
     }
   }
 }

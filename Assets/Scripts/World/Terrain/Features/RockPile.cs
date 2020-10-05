@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-
-namespace SpiritWorld.World.Terrain.Features {
+﻿namespace SpiritWorld.World.Terrain.Features {
   public partial struct TileFeature {
     public static partial class Types {
       public static Type RockPile = new RockPile();

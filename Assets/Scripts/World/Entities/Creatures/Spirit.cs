@@ -10,6 +10,16 @@ namespace SpiritWorld.World.Entities.Spirits {
   public partial class Spirit : Creature {
 
     /// <summary>
+    /// Make a new spirit of the given species with randomized stats
+    /// </summary>
+    /// <param name="species"></param>
+    public Spirit(Species species) {
+      (CombatStats randomCombatStats, SenseStats randomSenseStats) = species.BaseStats.getStatBlocks();
+      senseStats = randomSenseStats;
+      combatStats = randomCombatStats;
+    }
+
+    /// <summary>
     /// A species of capturable and fightable monster in the game
     /// </summary>
     public abstract partial class Species : Type {

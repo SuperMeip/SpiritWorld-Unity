@@ -27,8 +27,11 @@ namespace SpiritWorld.Controllers {
 
     void Update() {
       switch (state) {
-        case: AI.States.Initial:
-          creature.type.AI.initialize();
+        case AI.States.Initial:
+          //creature.type.AI.initialize();
+          break;
+        default:
+          break;
       }
     }
 
@@ -46,7 +49,7 @@ namespace SpiritWorld.Controllers {
     }
 
     void lookAround() {
-      Physics.OverlapSphere()
+      //Physics.OverlapSphere()
     }
   }
 }
