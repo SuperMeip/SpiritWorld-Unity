@@ -22,7 +22,7 @@ namespace SpiritWorld.World.Entities.Spirits {
     /// </summary>
     /// <param name="species"></param>
     public Spirit(Species species) {
-      (CombatStats randomCombatStats, SenseStats randomSenseStats) = species.BaseStats.getStatBlocks();
+      (CombatStats randomCombatStats, SenseStats randomSenseStats) = species.BaseStats.getRandomStatBlocks();
       senseStats = randomSenseStats;
       combatStats = randomCombatStats;
     }
@@ -35,7 +35,7 @@ namespace SpiritWorld.World.Entities.Spirits {
       /// <summary>
       /// The base stat defaults for this species
       /// </summary>
-      public SpeciesBaseStats BaseStats {
+      public SpeciesBaseStatCollection BaseStats {
         get;
       }
 
@@ -44,7 +44,7 @@ namespace SpiritWorld.World.Entities.Spirits {
       /// </summary>
       /// <param name="id"></param>
       /// <param name="name"></param>
-      protected Species(int id, string name, SpeciesBaseStats baseStats) : base(id, name) {
+      protected Species(int id, string name, SpeciesBaseStatCollection baseStats) : base(id, name) {
         BaseStats = baseStats;
 
         // add to monster singleton too

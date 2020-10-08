@@ -5,31 +5,33 @@ namespace SpiritWorld.Inventories.Items {
 
   /// <summary>
   /// An item that can be used to change the terrain and do thigns in the overworld.
-  /// These will all show up in the hot-bar
-  /// TODO: should this be an interface instead? What's different between tool and useable? 
-  /// I think each resource should need to know the tool types that can mine it, and their level, maybe make those into the type?
+  /// TODO: resources should have a mineable at level properties that can also take in an optional alternate drop collection for that level for each mineable type.
   /// </summary>
   public partial class Weapon : UseableItem {
 
     /// <summary>
-    /// Make a new usable item
+    /// This weapon's stats
     /// </summary>
-    /// <param name="type"></param>
-    /// <param name="quantity"></param>
-    /// <param name="usesRemaining"></param>
-    public Weapon(Type type, byte quantity = 1, int? usesRemaining = null) : base(type, quantity) {
-      this.usesRemaining = usesRemaining ?? type.NumberOfUses;
+    public WeaponStats weaponStats {
+      get;
+    }
+
+    /// <summary>
+    /// Make a new weapon
+    /// </summary>
+    public Weapon(Type type, byte quantity = 1) : base(type, quantity) {
+      weaponStats = type.WeaponStats.getBaseStatBlock();
     }
 
     /// <summary>
     /// The class pattern for a tool type
     /// </summary>
-    public new abstract class Type : UseableItem.Type {
+    public new abstract class Type : UseableItem.Type, IWeapon {
 
       /// <summary>
       /// The weapon's stats
       /// </summary>
-      public abstract WeaponStats WeaponStats {
+      public abstract WeaponBaseStatCollection WeaponStats {
         get;
       }
 

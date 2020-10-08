@@ -31,8 +31,8 @@ namespace SpiritWorld.Inventories.Items {
       /// <summary>
       /// The stat block for this weapon type
       /// </summary>
-      public override WeaponStats WeaponStats
-        => new WeaponStats(10, 1, 1, 1, 1, 0, 20, 10);
+      public override WeaponBaseStatCollection WeaponStats
+        => new WeaponBaseStatCollection(10, 1, 1, 1, 1, 0, 20, 10);
 
       internal WoodenSword() : base(2011, "Wooden Sword", 1) {}
     }

@@ -14,7 +14,7 @@ namespace SpiritWorld.World.Entities.Spirits {
       internal UFS() : base(
         101,
         "UFS",
-        new SpeciesBaseStats(
+        new SpeciesBaseStatCollection(
           (20, 5),
           (7, 2),
           (5, 2), // SP

@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace SpiritWorld.Stats {
 
   /// <summary>
   /// A base stat collection and management class for different creatures
   /// </summary>
-  public class SpeciesBaseStats : BaseStatCollection {
+  public class SpeciesBaseStatCollection 
+    : BaseStatCollection<(CombatStats combatStats, SenseStats senseStats)> {
 
     /// <summary>
     /// Make a block of basic stats
     /// </summary>
-    public SpeciesBaseStats(
+    public SpeciesBaseStatCollection(
       (int value, int variance) HP,
       (int value, int variance) EP,
       (int value, int variance) SP,
@@ -28,7 +27,7 @@ namespace SpiritWorld.Stats {
       (int value, int variance) HR,
       (int value, int variance) NS,
       (int value, int variance) EX
-    ) {
+      ) {
       /// depletable stats
       add(Stat.Types.HP, HP);
       add(Stat.Types.Energy, EP);
@@ -52,34 +51,10 @@ namespace SpiritWorld.Stats {
     }
 
     /// <summary>
-    /// Generate a set of random but balanced stat blocks from this stat base.
+    /// Format the stat values from an array
     /// </summary>
-    public (CombatStats combatStats, SenseStats senseStats) getStatBlocks() {
-      // collect all of our stat values as we increment them
-      Dictionary<Stat.Type, int> statValues = new Dictionary<Stat.Type, int>();
-
-      // go through each variance pool and set up each stat, and get it's excess values.
-      foreach (KeyValuePair<Stat.VariationGroups, (Dictionary<Stat.Type, VariantStat> stats, int variancePointPool)> statVariancePool in this) {
-        List<Stat.Type> statPointSlotPool = new List<Stat.Type>();
-        foreach (VariantStat variantStat in statVariancePool.Value.stats.Values) {
-          // set each stat to minimum to start, and add to our overall stat point pool all of the potential points
-          statValues.Add(variantStat.type, variantStat.defaultMax - variantStat.variance);
-          for (int index = 0; index < variantStat.variance * 2; index++) {
-            statPointSlotPool.Add(variantStat.type);
-          }
-        }
-
-        /// Shuffle the available stat point slots and fill them in until we've spent all of our remaining stat points
-        statPointSlotPool.Shuffle();
-        for (int remainingStatPoints = statVariancePool.Value.variancePointPool; remainingStatPoints > 0; remainingStatPoints--) {
-          // get a random stat from the pool of available stat point slots to increase
-          int randomIndex = UnityEngine.Random.Range(0, statPointSlotPool.Count);
-          // update the stat by 1 point
-          statValues[statPointSlotPool[randomIndex]] = statValues[statPointSlotPool[randomIndex]] + 1;
-          // remove that item from the stat point slot pool as the slot has been used up
-          statPointSlotPool.RemoveAt(randomIndex);
-        }
-      }
+    /// <returns></returns>
+    protected override (CombatStats combatStats, SenseStats senseStats) formatStatValuesForOutput(Dictionary<Stat.Type, int> statValues) {
 
       /// return the packaged stat blocks
       return (
@@ -105,37 +80,12 @@ namespace SpiritWorld.Stats {
       );
     }
 
-    /// <summary>
-    /// Add a stat to this collection
-    /// </summary>
-    /// <param name="type"></param>
-    /// <param name="statValues"></param>
-    void add(Stat.Type type, (int value, int variance) statValues) {
-      if (TryGetValue(type.VariationGroup, out (Dictionary<Stat.Type, VariantStat> stats, int variancePointPool) statVariationGroup)) {
-        statVariationGroup.stats.Add(
-          type,
-          new VariantStat(type, statValues.value, statValues.variance)
-        );
-        this[type.VariationGroup] = (
-          statVariationGroup.stats,
-          statVariationGroup.variancePointPool + statValues.variance
-        );
-      } else {
-        this[type.VariationGroup] = (
-          new Dictionary<Stat.Type, VariantStat>() {{
-            type,
-            new VariantStat(type, statValues.value, statValues.variance)
-          }},
-          statValues.variance
-        );
-      }
-    }
-
     #region Old Code
 
     /// <summary>
     /// Generate a set of random but balanced stat blocks from this stat base.
     /// </summary>
+    /*
     (CombatStats combatStats, SenseStats senseStats) getStatBlocksAlt() {
       Dictionary<Stat.Type, Stat> stats = new Dictionary<Stat.Type, Stat>();
       foreach (KeyValuePair<Stat.VariationGroups, (Dictionary<Stat.Type, VariantStat> stats, int variancePointPool)> statVariancePool in this) {
@@ -206,7 +156,7 @@ namespace SpiritWorld.Stats {
         )
       );
     }
-
+    */
     #endregion
   }
 }

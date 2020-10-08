@@ -16,7 +16,7 @@ namespace SpiritWorld.World.Terrain.Features {
       } = 2.0f;
 
       /// <summary>
-      /// How many times this resource can be interacted with before it's used up if HasLimitedUses is true
+      /// How many times this resource can be interacted with before it's used up
       /// </summary>
       public int NumberOfUses {
         get;
@@ -25,11 +25,6 @@ namespace SpiritWorld.World.Terrain.Features {
       /// <summary>
       /// Make a new interactive feature type
       /// </summary>
-      /// <param name="id"></param>
-      /// <param name="layer"></param>
-      /// <param name="hasLimitedUses"></param>
-      /// <param name="useTime"></param>
-      /// <param name="numberOfUses"></param>
       protected LimitedUseType(
         byte id,
         string name,
