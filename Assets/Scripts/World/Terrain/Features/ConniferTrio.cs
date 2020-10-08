@@ -16,52 +16,71 @@ namespace SpiritWorld.World.Terrain.Features {
         1,
         "Firr Trees",
         Layer.Resource,
-        2,
-        new DropChanceCollection[] {
+        2
+      ) {
+        Drops = new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]>[] {
           // mode 0: stump
-          new DropChanceCollection(
-            new (int, Inventory)[] {
-              (2, new Inventory{
-                {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              }),
-              (3, new Inventory{
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              })
-            }),
-          // mode 1: Big tree
-          new DropChanceCollection(
-            new (int, Inventory)[] {
-              (3, new Inventory{
-                {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
-                {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              }),
-              (1, new Inventory{
-                {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                {Item.Types.Log, new Item(Item.Types.Log, 3)}
-              }),
-              (5, new Inventory{
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              })
-            }),
-          // mode 2: Small and dead tree
-          new DropChanceCollection(
-            new (int, Inventory)[] {
-              (1, new Inventory{
-                {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              }),
-              (2, new Inventory{
-                {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              }),
-              (3, new Inventory{
-                {Item.Types.Log, new Item(Item.Types.Log, 2)}
-              })
-            }),
-          }
-      ) { }
+          new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]> {{
+            Tool.Type.Shovel,
+            new DropChanceCollection[] {
+              new DropChanceCollection(
+                new (int, Inventory)[] {
+                  (2, new Inventory{
+                    {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  }),
+                  (3, new Inventory{
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  })
+                }
+              ),
+            }
+          }},
+          // mode 1: Big Tree
+          new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]> {{
+            Tool.Type.Axe,
+            new DropChanceCollection[] {
+              new DropChanceCollection(
+                new (int, Inventory)[] {
+                  (3, new Inventory{
+                    {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
+                    {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  }),
+                  (1, new Inventory{
+                    {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
+                    {Item.Types.Log, new Item(Item.Types.Log, 3)}
+                  }),
+                  (5, new Inventory{
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  })
+                }
+              ),
+            }
+          }},
+          // mode 1: Small and Dead Tree
+          new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]> {{
+            Tool.Type.Axe,
+            new DropChanceCollection[] {
+              new DropChanceCollection(
+                new (int, Inventory)[] {
+                  (1, new Inventory{
+                    {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  }),
+                  (2, new Inventory{
+                    {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  }),
+                  (3, new Inventory{
+                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                  })
+                }
+              ),
+            }
+          }},
+        };
+      }
     }
   }
 }

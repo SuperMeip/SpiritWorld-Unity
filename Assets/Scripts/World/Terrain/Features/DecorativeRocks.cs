@@ -25,7 +25,22 @@ namespace SpiritWorld.World.Terrain.Features {
             }
           )
         }
-      ) {}
+      ) {
+        Drops = new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]>[] {
+          new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]> {{
+            Tool.Type.Any,
+            new DropChanceCollection[] {
+              new DropChanceCollection(
+                new (int, Inventory)[] {
+                  (1, new Inventory() {
+                    {Item.Types.Stone, new Item(Item.Types.Stone, 1)}
+                  })
+                }
+              )
+            }
+          }}
+        };
+      }
     }
   }
 }

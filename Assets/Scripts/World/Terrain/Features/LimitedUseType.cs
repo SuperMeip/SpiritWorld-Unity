@@ -30,9 +30,8 @@ namespace SpiritWorld.World.Terrain.Features {
         string name,
         Layer layer,
         int numberOfUses = UnlimitedInteractions,
-        DropChanceCollection[] drops = null,
         float useTime = 2.0f
-      ) : base(id, name, layer, true, drops) {
+      ) : base(id, name, layer, true) {
         NumberOfModes = numberOfUses + 1;
         TimeToUse = useTime;
         NumberOfUses = numberOfUses;

@@ -9,6 +9,7 @@
     /// Types of tools that are useable
     /// </summary>
     public enum Type {
+      Any,
       Axe,
       Shovel
     }
