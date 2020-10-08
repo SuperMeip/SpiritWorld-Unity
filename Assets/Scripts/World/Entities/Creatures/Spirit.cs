@@ -1,5 +1,5 @@
 ﻿
-using SpiritWorld.World.Entities.Creatures.Stats;
+using SpiritWorld.Stats;
 using System.Collections.Generic;
 
 namespace SpiritWorld.World.Entities.Spirits {
@@ -8,6 +8,14 @@ namespace SpiritWorld.World.Entities.Spirits {
   /// A capturable in-game monster
   /// </summary>
   public partial class Spirit : Creature {
+
+    /// <summary>
+    /// The creature's sensory stats
+    /// </summary>
+    public SenseStats senseStats {
+      get;
+      protected set;
+    }
 
     /// <summary>
     /// Make a new spirit of the given species with randomized stats

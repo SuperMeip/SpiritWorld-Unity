@@ -1,5 +1,5 @@
 ﻿
-using SpiritWorld.World.Entities.Creatures.Stats;
+using SpiritWorld.Stats;
 using System.Collections.Generic;
 
 namespace SpiritWorld.World.Entities {
@@ -13,14 +13,6 @@ namespace SpiritWorld.World.Entities {
     /// The creature type's base stats
     /// </summary>
     public CombatStats combatStats {
-      get;
-      protected set;
-    }
-
-    /// <summary>
-    /// The creature's sensory stats
-    /// </summary>
-    public SenseStats senseStats {
       get;
       protected set;
     }

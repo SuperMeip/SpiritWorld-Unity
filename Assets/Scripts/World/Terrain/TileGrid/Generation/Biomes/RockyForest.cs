@@ -74,16 +74,23 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
           bool hasResouce = features?.ContainsKey(TileFeature.Layer.Resource) ?? false;
           float rockNoise = noiseLayers[(int)NoiseLayers.Forest].GetCellular(noiseKey.x * 35, noiseKey.z * 40);
           if ((!hasResouce && tileType != Tile.Types.Grass && rockNoise >= 0) || rockNoise >= 0.5f) {
-          int rockMode = (int)cloudNoise.scale(0, (hasResouce || tileType == Tile.Types.Grass) ? 2 : 3);
+            TileFeature rockPile;
+            if (hasResouce) {
+              rockPile = new TileFeature(TileFeature.Types.DecorativeRocks);
+            } else {
+              int rockSize = (int)cloudNoise.scale(0, (tileType == Tile.Types.Grass) ? 2 : 3);
+              rockPile = new TileFeature(TileFeature.Types.RockPile);
+              rockPile.setRemainingInteractions(rockSize);
+            }
             if (features == null) {
               features = new FeaturesByLayer {{
-               TileFeature.Types.RockPile.Layer,
-               new TileFeature(TileFeature.Types.RockPile, rockMode)
+               rockPile.type.Layer,
+               rockPile
              }};
             } else {
               features.Add(
-                TileFeature.Types.RockPile.Layer,
-                new TileFeature(TileFeature.Types.RockPile, rockMode)
+                rockPile.type.Layer,
+                rockPile
               );
             }
           }

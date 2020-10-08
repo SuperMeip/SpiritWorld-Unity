@@ -1,4 +1,4 @@
-﻿using SpiritWorld.World.Entities.Creatures.Stats;
+﻿using SpiritWorld.Stats;
 
 namespace SpiritWorld.World.Entities.Spirits {
   public partial class Spirit {

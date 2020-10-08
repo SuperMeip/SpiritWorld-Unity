@@ -95,10 +95,14 @@ namespace SpiritWorld.Controllers {
 
       // movement left and right and forward and back
       if (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0) {
-        Vector3 forwardMovement = headObject.transform.forward * Input.GetAxis("Vertical") * moveSpeed;
-        Vector3 rightMovement = headObject.transform.right * Input.GetAxis("Horizontal") * moveSpeed;
+        float currentSpeed = moveSpeed;
+        if (Input.GetButton("Sprint Lock")) {
+          currentSpeed *= 2;
+        }
+        Vector3 forwardMovement = headObject.transform.forward * Input.GetAxis("Vertical");
+        Vector3 rightMovement = headObject.transform.right * Input.GetAxis("Horizontal");
         // get the total vector and check if we're moving
-        move += forwardMovement + rightMovement;
+        move += (forwardMovement + rightMovement) * currentSpeed;
       }
 
       // apply it with the movement controller

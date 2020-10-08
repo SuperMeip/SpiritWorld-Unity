@@ -86,11 +86,20 @@ namespace SpiritWorld.World.Terrain.Features {
     /// <param name="deltaTimeUsedFor"></param>
     public void interact(float totalTimeUsedForSoFar = 0) {
       if (remainingInteractions != 0) {
-        if (type is LimitedUseType limitedUseType && limitedUseType.tryToUseOnce(totalTimeUsedForSoFar)) {
+        if (type is LimitedUseType limitedUseType && limitedUseType.TryToUseOnce(totalTimeUsedForSoFar)) {
           remainingInteractions--;
           updateModeBasedOnRemainingInteractions();
         }
       }
+    }
+
+    /// <summary>
+    /// Used for initalizing models to less than their normal mode or interaction count
+    /// </summary>
+    /// <param name="remainingInteractions"></param>
+    public void setRemainingInteractions(int remainingInteractions) {
+      this.remainingInteractions = remainingInteractions;
+      updateModeBasedOnRemainingInteractions();
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using SpiritWorld.Inventories;
 
 namespace SpiritWorld.World.Terrain.Features {
   public partial struct TileFeature {
@@ -35,8 +35,9 @@ namespace SpiritWorld.World.Terrain.Features {
         string name,
         Layer layer,
         int numberOfUses = UnlimitedInteractions,
+        DropChanceCollection[] drops = null,
         float useTime = 2.0f
-      ) : base(id, name, layer, true) {
+      ) : base(id, name, layer, true, drops) {
         NumberOfModes = numberOfUses + 1;
         TimeToUse = useTime;
         NumberOfUses = numberOfUses;
@@ -46,7 +47,7 @@ namespace SpiritWorld.World.Terrain.Features {
       /// Try to 'use'/interact with this tile
       /// </summary>
       /// <returns></returns>
-      public bool tryToUseOnce(float totalTimeInteractedWithForSoFar) {
+      public bool TryToUseOnce(float totalTimeInteractedWithForSoFar) {
         return totalTimeInteractedWithForSoFar >= TimeToUse;
       }
     }

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using SpiritWorld.Inventories;
+using System;
+using System.Collections.Generic;
 
 namespace SpiritWorld.World.Terrain.Features {
  
@@ -18,6 +20,13 @@ namespace SpiritWorld.World.Terrain.Features {
       /// The id of this feature type
       /// </summary>
       public byte Id {
+        get;
+      }
+
+      /// <summary>
+      /// The name of the tile feature
+      /// </summary>
+      public string Name {
         get;
       }
 
@@ -52,31 +61,41 @@ namespace SpiritWorld.World.Terrain.Features {
       } = 1;
 
       /// <summary>
-      /// The name of the tile feature
+      /// The drops, indexed by the mode they'll drop for.
+      /// If there's only one item in the list we'll use that for all modes.
+      /// If it's null there's no drops
       /// </summary>
-      public string Name {
+      public DropChanceCollection[] DropsPerMode {
         get;
-      }
+      } = null;
 
       /// <summary>
       /// For making new types
       /// </summary>
       /// <param name="id"></param>
-      protected Type(byte id, string name, Layer layer, bool isInteractive = false) {
+      protected Type(
+        byte id,
+        string name,
+        Layer layer,
+        bool isInteractive = false,
+        DropChanceCollection[] drops = null
+      ) {
         Id = id;
         Name = name;
         Layer = layer;
         IsInteractive = isInteractive;
+        DropsPerMode = drops;
 
         // on creation, add the singleton to the all types list.
         Types.Add(this);
       }
 
       /// <summary>
-      /// Apply special creation rules to some features
+      /// Get a random drop inventory for this type of tile when it's used up. Null if it has none
       /// </summary>
-      /// <param name="feature"></param>
-      internal virtual void initializeFeature(TileFeature feature) { }
+      internal Inventory getRandomDrop(int mode = 0) {
+        return DropsPerMode?[Math.Min(mode, DropsPerMode.Length - 1)].getRandomDrop();
+      }
     }
 
     /// <summary>
