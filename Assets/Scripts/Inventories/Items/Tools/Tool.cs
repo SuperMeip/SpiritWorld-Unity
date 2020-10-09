@@ -11,7 +11,8 @@
     public enum Type {
       Any,
       Axe,
-      Shovel
+      Shovel,
+      Pickaxe
     }
   }
 }

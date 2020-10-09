@@ -1,6 +1,4 @@
-﻿using SpiritWorld.Inventories;
-
-namespace SpiritWorld.World.Terrain.Features {
+﻿namespace SpiritWorld.World.Terrain.Features {
   public partial struct TileFeature {
 
     /// <summary>

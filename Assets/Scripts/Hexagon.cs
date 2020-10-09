@@ -6,13 +6,32 @@ public static class Hexagon {
   /// The sides of the hexigon in order
   /// Named by cardinal directions
   /// </summary>
-  public enum Sides { N, NE, SE, S, SW, NW}
+  public enum Edges { N, NE, SE, S, SW, NW }
 
   /// <summary>
   /// The vertexes of the hexigons in order
   /// Named by carinal direction
   /// </summary>
-  public enum Vertexes { NW, NE, E, SE, SW, W}
+  public enum Vertexes { NW, NE, E, SE, SW, W }
+
+  /// <summary>
+  /// Locations on a hexagon around the edges and corners
+  /// </summary>
+  public enum PerimeterSlots {
+    Center,
+    N_Edge,
+    NE_Vertex,
+    NE_Edge,
+    E_Vertex,
+    SE_Edge,
+    SE_Vertex,
+    S_Edge,
+    SW_Vertex,
+    SW_Edge,
+    W_Vertex,
+    NW_Edge,
+    NW_Vertex
+  }
 
   /// <summary>
   /// How many sides does a hexagon have
@@ -40,19 +59,6 @@ public static class Hexagon {
     (-1 , 0),
     (-1, 1)
   };
-  
-
-  /// <summary>
-  /// The offset values for axial coordinat hexagon neighbors
-  /// </summary>
-  /*public static Coordinate[] AxialOffests = {
-    (0, -1),
-    (1, -1),
-    (1 , 0),
-    (0, 1),
-    (-1, 1),
-    (-1, 0)
-  };*/
 
   /// <summary>
   /// Degrees each angle vertex is offset with E being 0
@@ -67,9 +73,21 @@ public static class Hexagon {
   };
 
   /// <summary>
+  /// Degrees each angle vertex is offset with E being 0
+  /// </summary>
+  public static int[] EdgeCenterOffsetDegrees = {
+    270,
+    330,
+    30,
+    90,
+    150,
+    210
+  };
+
+  /// <summary>
   /// The 2 vertexes bordering each side of the hexagon.
   /// </summary>
-  static Vertexes[][] VertexesPerSide = {
+  static Vertexes[][] VertexesPerEdge = {
     new Vertexes[] {Vertexes.NW, Vertexes.NE },
     new Vertexes[] {Vertexes.NE, Vertexes.E },
     new Vertexes[] {Vertexes.E, Vertexes.SE },
@@ -81,16 +99,16 @@ public static class Hexagon {
   /// <summary>
   /// Get the opposite side of the hexagon
   /// </summary>
-  /// <param name="side"></param>
+  /// <param name="edge"></param>
   /// <returns></returns>
-  public static Sides Opposite(Sides side) {
-    switch (side) {
-      case Sides.N:  return Sides.S;
-      case Sides.NE: return Sides.SW;
-      case Sides.SE: return Sides.NW;
-      case Sides.S:  return Sides.N;
-      case Sides.SW: return Sides.NE;
-      case Sides.NW: return Sides.SE;
+  public static Edges Opposite(Edges edge) {
+    switch (edge) {
+      case Edges.N:  return Edges.S;
+      case Edges.NE: return Edges.SW;
+      case Edges.SE: return Edges.NW;
+      case Edges.S:  return Edges.N;
+      case Edges.SW: return Edges.NE;
+      case Edges.NW: return Edges.SE;
       default: throw new System.Exception("Invalid side");
     }
   }
@@ -102,8 +120,52 @@ public static class Hexagon {
   /// <param name="direction">the side direction to move in</param>
   /// <param name="magnitude">how many hexagons to move in the given side direction</param>
   /// <returns></returns>
-  public static Coordinate Move(Coordinate initlalLocation, Sides direction, int magnitude = 1) {
+  public static Coordinate Move(Coordinate initlalLocation, Edges direction, int magnitude = 1) {
     return initlalLocation + AxialOffests[(int)direction] * magnitude;
+  }
+
+  /// <summary>
+  /// Get the vertex from a given placement slot
+  /// </summary>
+  public static Vertexes GetVertexFromPerimeterSlot(PerimeterSlots placementLocation) {
+    switch (placementLocation) {
+      case PerimeterSlots.E_Vertex:
+        return Vertexes.E;
+      case PerimeterSlots.NE_Vertex:
+        return Vertexes.NE;
+      case PerimeterSlots.NW_Vertex:
+        return Vertexes.NW;
+      case PerimeterSlots.SE_Vertex:
+        return Vertexes.SE;
+      case PerimeterSlots.SW_Vertex:
+        return Vertexes.SW;
+      case PerimeterSlots.W_Vertex:
+        return Vertexes.W;
+      default:
+        throw new System.ArgumentOutOfRangeException($"The hexagon placement location {placementLocation} does not have an associated vertex");
+    }
+  }
+
+  /// <summary>
+  /// Get the vertex from a given placement slot
+  /// </summary>
+  public static Edges GetEdgeFromPerimeterSlot(PerimeterSlots placementLocation) {
+    switch (placementLocation) {
+      case PerimeterSlots.N_Edge:
+        return Edges.N;
+      case PerimeterSlots.NE_Edge:
+        return Edges.NE;
+      case PerimeterSlots.NW_Edge:
+        return Edges.NW;
+      case PerimeterSlots.SE_Edge:
+        return Edges.SE;
+      case PerimeterSlots.SW_Edge:
+        return Edges.SW;
+      case PerimeterSlots.S_Edge:
+        return Edges.S;
+      default:
+        throw new System.ArgumentOutOfRangeException($"The hexagon placement location {placementLocation} does not have an associated Edge/Side");
+    }
   }
 
   /// <summary>
@@ -111,8 +173,8 @@ public static class Hexagon {
   /// </summary>
   /// <param name="side"></param>
   /// <returns></returns>
-  public static Vertexes[] VerticiesFor(Sides side) {
-    return VertexesPerSide[(int)side];
+  public static Vertexes[] VerticiesFor(Edges side) {
+    return VertexesPerEdge[(int)side];
   }
 
   /// <summary>
@@ -238,6 +300,24 @@ public static class Hexagon {
       case Vertexes.SW: return hexagonCenterLocation + new Vector3(-(sideLength / 2), 0, -(float)innerRadius);
       case Vertexes.W: return hexagonCenterLocation + new Vector3(-sideLength, 0, 0);
       default: throw new System.Exception("Invalid vertex");
+    }
+  }
+
+  /// <summary>
+  /// Get the center point of the given edge of a hexagon at the given location
+  /// </summary>
+  /// <returns></returns>
+  public static Vector3 EdgeCenterLocation(Vector3 hexagonCenterLocation, Edges edge, float sideLength, float? innerRadius = null) {
+    float r = innerRadius ?? sideLength * (Mathf.Sqrt(3) / 2);
+
+    switch (edge) {
+      case Edges.N: return hexagonCenterLocation + new Vector3(0, 0, r);
+      case Edges.NE: return hexagonCenterLocation + new Vector3(r, 0, r / 2);
+      case Edges.SE: return hexagonCenterLocation + new Vector3(r, 0, -r / 2);
+      case Edges.S: return hexagonCenterLocation + new Vector3(0, 0, -r);
+      case Edges.SW: return hexagonCenterLocation + new Vector3(-r, 0, -r / 2);
+      case Edges.NW: return hexagonCenterLocation + new Vector3(-r, 0, r / 2);
+      default: throw new System.Exception("Invalid Edge");
     }
   }
 }

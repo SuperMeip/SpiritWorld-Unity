@@ -62,8 +62,8 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <summary>
     /// All of the sides of a hexagon
     /// </summary>
-    static Hexagon.Sides[] AllHexagonSides
-      = (Hexagon.Sides[])Enum.GetValues(typeof(Hexagon.Sides));
+    static Hexagon.Edges[] AllHexagonSides
+      = (Hexagon.Edges[])Enum.GetValues(typeof(Hexagon.Edges));
 
     /// <summary>
     /// Generate the mesh for a grid of hex tiles
@@ -99,7 +99,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
         Vector2[] columnSideUVs = GetHexColumnSideUVCoordinates(tile.type);
 
         // generate the 6 sides of each tile and the 6 top triangles
-        foreach (Hexagon.Sides side in AllHexagonSides) {
+        foreach (Hexagon.Edges side in AllHexagonSides) {
           Vector3[] sideVerts = null;
           Tile neighboringTile = tiles.get(Hexagon.Move(axialKey, side));
           hexCenter.y = tile.height * Universe.StepHeight;
@@ -176,7 +176,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// <returns></returns>
     static Vector3[] GenerateVertsForHexBlockSide(
       Vector3 hexBlockCenter,
-      Hexagon.Sides side,
+      Hexagon.Edges side,
       float bottomHeight,
       float topHeight,
       Vector3 chunkWorldOffset = default
@@ -207,7 +207,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// Get the uvs for the given triangle for the given texture.
     /// </summary>
     /// <param name="tileType"></param>
-    static Vector2[] GetHexTopUVCoordinates(Coordinate textureCenter, Hexagon.Sides triangle) {
+    static Vector2[] GetHexTopUVCoordinates(Coordinate textureCenter, Hexagon.Edges triangle) {
       int vertexIndex = 0;
       Vector2[] uvs = new Vector2[3];
 

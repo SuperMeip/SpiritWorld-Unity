@@ -6,14 +6,14 @@ namespace SpiritWorld.World.Terrain.Features {
   /// Something on a tile
   /// </summary>
   public partial struct TileFeature {
+
     /// <summary>
     /// There usually can only be one feature of each layer type on each tile at most.
     /// </summary>
     public enum Layer {
-      Decoration,
-      Resource,
-      Item,
-      Sky
+      Decoration, // ground level decorations. Can overlap with resources, but will be targeted by tools when no resources are on the tile.
+      Resource, // targeted by tools, usually are mined or harvested and provide items.
+      Sky // clouds etc
     }
 
     /// <summary>
