@@ -200,8 +200,8 @@ namespace SpiritWorld.Managers {
     /// <param name="event"></param>
     public void notifyOf(IEvent @event) {
       switch (@event) {
-        case TileSelectionManager.TileFeatureModeChanged tsetfmc:
-          updateModeForFeature(tsetfmc.updatedTile, tsetfmc.updatedFeature);
+        case TileSelectionManager.TileFeatureUpdated tsetfmc:
+          updateFeature(tsetfmc.updatedTile, tsetfmc.updatedFeature);
           break;
         default:
           break;
@@ -209,11 +209,12 @@ namespace SpiritWorld.Managers {
     }
 
     /// <summary>
-    /// Update the mode for a feature on a given tile
+    /// Update the mode for a feature on a given tile.
+    /// It needs to be on the same layer as the one being updated.
     /// </summary>
     /// <param name="tile"></param>
     /// <param name="featureLayer"></param>
-    void updateModeForFeature(Tile tile, TileFeature feature) {
+    void updateFeature(Tile tile, TileFeature feature) {
       if (inUseControllers.TryGetValue(tile.parentChunkKey, out GridController chunkController)) {
         chunkController.updateFeatureModel(tile, feature);
       }

@@ -2,14 +2,14 @@
   public partial class Item {
 
     public partial class Types {
-      public static Log Log = new Log();
+      public static Wood Wood = new Wood();
     }
 
     /// <summary>
     /// A wooden log
     /// </summary>
-    public class Log : Type {
-      internal Log() : base(2, "Log") { }
+    public class Wood : Type {
+      internal Wood() : base(2, "Wood") { }
     }
   }
 }

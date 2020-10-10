@@ -10,7 +10,7 @@ namespace SpiritWorld.World.Terrain.Features {
     /// <summary>
     /// Singleton class for tile feature type data
     /// </summary>
-    public abstract class Type {
+    public abstract class Type : IEquatable<Type> {
 
       /// <summary>
       /// Constant for unlimited interacounts count
@@ -99,6 +99,15 @@ namespace SpiritWorld.World.Terrain.Features {
       }
 
       /// <summary>
+      /// equality
+      /// </summary>
+      /// <param name="other"></param>
+      /// <returns></returns>
+      public bool Equals(Type other) {
+        return Id == other.Id;
+      }
+
+      /// <summary>
       /// Check if the given tool can break this feature at the given mode
       /// </summary>
       internal bool canBeMinedBy(ITool tool, int mode = 0) {
@@ -176,6 +185,7 @@ namespace SpiritWorld.World.Terrain.Features {
 
       /// <summary>
       /// Add a type to the list of all types
+      /// TODO: investigate why this is called twice
       /// </summary>
       /// <param name="type"></param>
       internal static void Add(Type type) {

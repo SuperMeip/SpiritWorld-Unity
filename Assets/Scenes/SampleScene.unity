@@ -838,6 +838,8 @@ MonoBehaviour:
     - {fileID: 5739022768234212788, guid: e141f556e72f997448c005c42eec81a2, type: 3}
   - ModelsByMode:
     - {fileID: 3658756886933054698, guid: 36c495ecead3eed46847b5dbe1e0d25d, type: 3}
+  - ModelsByMode:
+    - {fileID: 6033328759097531188, guid: 6544ea19282be4f408ece3e6775ace02, type: 3}
 --- !u!4 &1133174705
 Transform:
   m_ObjectHideFlags: 0

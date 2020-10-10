@@ -12,7 +12,7 @@ namespace SpiritWorld.World.Terrain.Features {
     }
 
     /// <summary>
-    /// 3 Connifer trees, one big, one small, one dead.
+    /// A rock pile that shrinks when used
     /// </summary>
     public class RockPile : LimitedUseType {
       internal RockPile() : base(

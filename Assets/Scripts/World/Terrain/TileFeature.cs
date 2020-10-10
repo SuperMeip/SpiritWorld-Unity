@@ -1,11 +1,12 @@
 ﻿using SpiritWorld.World.Terrain.TileGrid;
+using System;
 
 namespace SpiritWorld.World.Terrain.Features {
 
   /// <summary>
   /// Something on a tile
   /// </summary>
-  public partial struct TileFeature {
+  public partial struct TileFeature : IEquatable<TileFeature> {
 
     /// <summary>
     /// There usually can only be one feature of each layer type on each tile at most.
@@ -84,13 +85,34 @@ namespace SpiritWorld.World.Terrain.Features {
     /// </summary>
     /// <param name="totalTimeUsedForSoFar"></param>
     /// <param name="deltaTimeUsedFor"></param>
-    public void interact(float totalTimeUsedForSoFar = 0) {
+    public TileFeature interact(float totalTimeUsedForSoFar = 0) {
+      // if we still have normal interactions left, check if we're using one up.
+      // @todo: shovel as a tool should get around this when we add tool here, it can mine base level stuff off a tile.
       if (remainingInteractions != 0) {
         if (type is LimitedUseType limitedUseType && limitedUseType.TryToUseOnce(totalTimeUsedForSoFar)) {
           remainingInteractions--;
+          // if this is a transitional type, it's out of uses, and we've held use for long enough, transition to the next tile type
+          if (remainingInteractions == 0 && type is TransitionalResourceType transitionalResourceType) {
+            return new TileFeature(transitionalResourceType.NextFeatureType);
+          }
+          
+          // else update the mode
           updateModeBasedOnRemainingInteractions();
         }
       }
+
+      return this;
+    }
+
+    /// <summary>
+    /// Tile equality check
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool Equals(TileFeature other) {
+      return other.type == type 
+        && other.mode == mode 
+        && other.remainingInteractions == remainingInteractions;
     }
 
     /// <summary>

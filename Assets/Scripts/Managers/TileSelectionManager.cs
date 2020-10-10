@@ -98,6 +98,10 @@ namespace SpiritWorld.Managers {
     /// Act on the selected tile when appropriate
     /// </summary>
     void tryToActOnSelectedTile() {
+      /// if we just pressed the button, investigate the newly selected tile
+      if (Input.GetButtonDown("Act")) {
+        investigate(selectedTile);
+      }
       // if we're holding the button
       if (Input.GetButton("Act")) {
         actionTimer += Time.deltaTime;
@@ -126,14 +130,19 @@ namespace SpiritWorld.Managers {
       FeaturesByLayer features = Universe.ActiveBoardManager.activeBoard.getFeaturesFor(selectedTile);
       if (features != null && features.TryGetValue(TileFeature.Layer.Resource, out TileFeature resource)) {
         TileFeature beforeResourceValues = resource;
-        resource.interact(actionTimer);
-        Universe.ActiveBoardManager.activeBoard.update(selectedTile, resource);
-        if (beforeResourceValues.mode != resource.mode) {
+        TileFeature updatedResource = resource.interact(actionTimer);
+
+        // if the updated resource doesn't match the old one, we need to update it
+        if (!beforeResourceValues.Equals(updatedResource)) {
+          Universe.ActiveBoardManager.activeBoard.update(selectedTile, updatedResource);
           actionTimer = 0;
           Universe.EventSystem.notifyChannelOf(
-            new TileFeatureModeChanged(selectedTile, resource),
+            new TileFeatureUpdated(selectedTile, updatedResource),
             WorldScapeEventSystem.Channels.TileUpdates
           );
+
+          // set the info to the updated tile.
+          investigate(selectedTile);
         }
       }
     }
@@ -142,7 +151,7 @@ namespace SpiritWorld.Managers {
     /// display info about the tile
     /// </summary>
     void clickActionOnSelectedTile() {
-      investigate(selectedTile);
+      // empty for now
     }
 
     /// <summary>
@@ -168,9 +177,9 @@ namespace SpiritWorld.Managers {
     }
     
     /// <summary>
-    /// An event to send off to let managers know a tile has been changed
+    /// An event to send off to let managers know a tile feature for a certain layer has been changed
     /// </summary>
-    public struct TileFeatureModeChanged : IEvent {
+    public struct TileFeatureUpdated : IEvent {
 
       /// <summary>
       /// Name
@@ -197,7 +206,7 @@ namespace SpiritWorld.Managers {
       /// </summary>
       /// <param name="tile"></param>
       /// <param name="feature"></param>
-      public TileFeatureModeChanged(Tile tile, TileFeature feature) {
+      public TileFeatureUpdated(Tile tile, TileFeature feature) {
         updatedTile = tile;
         updatedFeature = feature;
       }

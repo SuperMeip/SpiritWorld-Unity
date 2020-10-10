@@ -78,9 +78,13 @@ namespace SpiritWorld.World.Terrain.TileGrid.Generation {
             if (hasResouce) {
               rockPile = new TileFeature(TileFeature.Types.DecorativeRocks);
             } else {
-              int rockSize = (int)cloudNoise.scale(0, (tileType == Tile.Types.Grass) ? 2 : 3);
-              rockPile = new TileFeature(TileFeature.Types.RockPile);
-              rockPile.setRemainingInteractions(rockSize);
+              int rockSize = (int)cloudNoise.scale(0, (tileType == Tile.Types.Grass) ? 2 : 4);
+              if (rockSize == 3) {
+                rockPile = new TileFeature(TileFeature.Types.IronVeinedRocks);
+              } else {
+                rockPile = new TileFeature(TileFeature.Types.RockPile);
+                rockPile.setRemainingInteractions(rockSize);
+              }
             }
             if (features == null) {
               features = new FeaturesByLayer {{

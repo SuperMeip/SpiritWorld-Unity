@@ -27,10 +27,10 @@ namespace SpiritWorld.World.Terrain.Features {
                 new (int, Inventory)[] {
                   (2, new Inventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
                   (3, new Inventory{
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   })
                 }
               ),
@@ -45,14 +45,14 @@ namespace SpiritWorld.World.Terrain.Features {
                   (3, new Inventory{
                     {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
                   (1, new Inventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                    {Item.Types.Log, new Item(Item.Types.Log, 3)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 3)}
                   }),
                   (5, new Inventory{
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   })
                 }
               ),
@@ -66,14 +66,14 @@ namespace SpiritWorld.World.Terrain.Features {
                 new (int, Inventory)[] {
                   (1, new Inventory{
                     {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
                   (2, new Inventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
                   (3, new Inventory{
-                    {Item.Types.Log, new Item(Item.Types.Log, 2)}
+                    {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   })
                 }
               ),
