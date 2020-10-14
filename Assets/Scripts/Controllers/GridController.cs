@@ -142,7 +142,7 @@ namespace SpiritWorld.Controllers {
     /// <returns></returns>
     GameObject instantiateFeature(Tile tile, TileFeature feature, bool randomizeDirection = false) {
       return Instantiate(
-        TileFeatureModelsDataMaper.GetModelForFeature(feature),
+        TileFeatureDataMaper.GetModelFor(feature),
         new Vector3(
           tile.worldLocation.x,
           tile.worldLocation.y * Universe.StepHeight,

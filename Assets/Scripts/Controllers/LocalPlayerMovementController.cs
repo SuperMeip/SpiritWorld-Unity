@@ -1,11 +1,11 @@
-﻿using SpiritWorld.World.Terrain.Features;
-using SpiritWorld.World.Terrain.TileGrid;
+﻿using SpiritWorld.Inventories.Items;
+using SpiritWorld.World.Entities.Creatures;
 using UnityEngine;
 
 namespace SpiritWorld.Controllers {
   [RequireComponent(typeof(CharacterController))]
   [RequireComponent(typeof(CapsuleCollider))]
-  public class LocalPlayerController : MonoBehaviour {
+  public class LocalPlayerMovementController : PlayerController {
 
     /// <summary>
     /// The character's head, for mouselook
@@ -18,39 +18,44 @@ namespace SpiritWorld.Controllers {
     public float moveSpeed = 10;
 
     /// <summary>
-    /// The mouselook clamp
+    /// The jump speed of the player
     /// </summary>
-    public Vector2 clampInDegrees = new Vector2(360, 180);
+    public float jumpHeight = 1;
 
     /// <summary>
-    /// Whether to lock cursor for mouselook
+    /// How much to multiply the walk speed for for sprinting
     /// </summary>
-    public bool lockCursor;
-
-    /// <summary>
-    /// Sensitivity vector for mouselook
-    /// </summary>
-    public Vector2 sensitivity = new Vector2(2, 2);
-
-    /// <summary>
-    /// Smoothing vector for mouselook
-    /// </summary>
-    public Vector2 smoothing = new Vector2(3, 3);
+    public float sprintMultiplier = 1.5f;
 
     /// <summary>
     /// The strength of gravity
     /// </summary>
-    public float gravityStrength = 5;
+    public float gravityStrength = -9.81f;
+
+    /// <summary>
+    /// The mouselook clamp
+    /// </summary>
+    Vector2 clampInDegrees = new Vector2(360, 180);
+
+    /// <summary>
+    /// Sensitivity vector for mouselook
+    /// </summary>
+    Vector2 sensitivity = new Vector2(2, 2);
+
+    /// <summary>
+    /// Smoothing vector for mouselook
+    /// </summary>
+    Vector2 smoothing = new Vector2(3, 3);
 
     /// <summary>
     /// direction the camera is facing
     /// </summary>
-    public Vector2 facingDirection;
+    Vector2 facingDirection;
 
     /// <summary>
     /// Direction the character is facing.
     /// </summary>
-    public Vector2 targetCharacterDirection;
+    Vector2 targetCharacterDirection;
 
     /// <summary>
     /// The character controller unity component, used for movement.
@@ -67,8 +72,30 @@ namespace SpiritWorld.Controllers {
     /// </summary>
     Vector2 smoothMouse;
 
+    /// <summary>
+    /// player velocity for movement
+    /// </summary>
+    Vector3 playerVelocity;
+
+    /// <summary>
+    /// The original slope limit set for the movement contorller
+    /// </summary>
+    float startingSlopeLimit;
+
+    /// <summary>
+    /// The original slope limit set for the movement contorller
+    /// </summary>
+    float startingStepOffset;
+
+    /// <summary>
+    /// Whether to lock cursor for mouselook
+    /// </summary>
+    bool lockCursor;
+
     void Awake() {
       movementController = GetComponent<CharacterController>();
+      startingSlopeLimit = movementController.slopeLimit;
+      startingStepOffset = movementController.stepOffset;
       // Set target direction to the camera's initial orientation.
       facingDirection = headObject.transform.localRotation.eulerAngles;
 
@@ -88,28 +115,42 @@ namespace SpiritWorld.Controllers {
     /// Player movement management
     /// </summary>
     void move() {
-      // apply gravity
-      Vector3 gravity = new Vector3(0, -gravityStrength, 0);
-      Vector3 move = gravity;
-
-
-      // movement left and right and forward and back
-      if (Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0) {
-        float currentSpeed = moveSpeed;
-        if (Input.GetButton("Sprint Lock")) {
-          currentSpeed *= 2;
+      bool isGrounded = movementController.isGrounded;
+      if (isGrounded) {
+        // prevent gravity from pulling you into the ground
+        if (playerVelocity.y < 0) {
+          playerVelocity.y = 0f;
         }
-        Vector3 forwardMovement = headObject.transform.forward * Input.GetAxis("Vertical");
-        Vector3 rightMovement = headObject.transform.right * Input.GetAxis("Horizontal");
-        // get the total vector and check if we're moving
-        move += (forwardMovement + rightMovement) * currentSpeed;
+        movementController.slopeLimit = startingSlopeLimit;
+        movementController.stepOffset = startingStepOffset;
+      } else {
+        // prevent the player from jumping up walls
+        movementController.slopeLimit = 0;
+        movementController.stepOffset = 0;
       }
 
-      // apply it with the movement controller
-      if (move.magnitude > 0) {
-        // move character
-        movementController.SimpleMove(move);
+      /// X, Z movement along ground
+      Vector3 horizontalMovement = headObject.transform.forward * Input.GetAxis("Vertical");
+      Vector3 verticalMovement = headObject.transform.right * Input.GetAxis("Horizontal");
+      Vector3 movement2D = horizontalMovement + verticalMovement;
+      float currentSpeed = moveSpeed;
+      // sprint?
+      if (Input.GetButton("Sprint Lock")) {
+        currentSpeed *= sprintMultiplier;
       }
+      movementController.Move(movement2D * Time.deltaTime * currentSpeed);
+
+      // face the directon you're moving in
+      /*if (move != Vector3.zero) {
+        gameObject.transform.forward = move;
+      }*/
+
+      /// Jump?
+      if (isGrounded && Input.GetButtonDown("Jump")) {
+        playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityStrength);
+      }
+      playerVelocity.y += gravityStrength * Time.deltaTime;
+      movementController.Move(playerVelocity * Time.deltaTime);
     }
 
     /// <summary>
@@ -117,6 +158,7 @@ namespace SpiritWorld.Controllers {
     /// </summary>
     void look() {
       if (Input.GetButton("Rotate Camera Lock")) {
+        lockCursor = true;
         // Allow the script to clamp based on a desired target value.
         Quaternion targetOrientation = Quaternion.Euler(targetCharacterDirection);
 
@@ -148,6 +190,8 @@ namespace SpiritWorld.Controllers {
         Quaternion yRotation = Quaternion.AngleAxis(mouseAbsolute.x, headObject.transform.InverseTransformDirection(Vector3.up));
         headObject.transform.localRotation *= yRotation;
         facingDirection = headObject.transform.localRotation.eulerAngles;
+      } else if (lockCursor == true) {
+        lockCursor = false;
       }
     }
   }

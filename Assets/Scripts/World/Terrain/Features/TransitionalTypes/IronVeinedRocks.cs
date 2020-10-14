@@ -30,11 +30,11 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Any,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (5, new Inventory() {
+                new (int, BasicInventory)[] {
+                  (5, new BasicInventory() {
                     {Item.Types.Iron, new Item(Item.Types.Iron, 1)}
                   }),
-                  (1, new Inventory() {
+                  (1, new BasicInventory() {
                     {Item.Types.Iron, new Item(Item.Types.Iron, 2)}
                   })
                 }

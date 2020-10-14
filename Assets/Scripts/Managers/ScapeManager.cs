@@ -15,7 +15,7 @@ namespace SpiritWorld.Managers {
     /// <summary>
     /// The active player
     /// </summary>
-    public LocalPlayerController player;
+    public LocalPlayerMovementController player;
 
     // set up our scape
     void Start() {

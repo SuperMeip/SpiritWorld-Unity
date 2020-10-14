@@ -1,4 +1,6 @@
-﻿namespace SpiritWorld.Inventories.Items {
+﻿using System;
+
+namespace SpiritWorld.Inventories.Items {
   public partial class Item {
 
     public partial class Types {

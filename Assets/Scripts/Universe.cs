@@ -1,4 +1,5 @@
-﻿using SpiritWorld.Events;
+﻿using SpiritWorld.Controllers;
+using SpiritWorld.Events;
 using SpiritWorld.Managers;
 using SpiritWorld.World;
 
@@ -16,6 +17,11 @@ public class Universe {
 	/// The active board manager
 	/// </summary>
   public static BoardManager ActiveBoardManager;
+
+	/// <summary>
+	/// The current local player
+	/// </summary>
+	public static PlayerController LocalPlayerController;
 
 	/// <summary>
 	/// The current board id we're on for the given scape

@@ -16,7 +16,7 @@ namespace SpiritWorld.World.Terrain.Features {
     public class DecorativeRocks : Type {
       internal DecorativeRocks() : base(
         6,
-        "Rocks",
+        "Small Rocks",
         Layer.Decoration
       ) {
         Drops = new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]>[] {
@@ -24,8 +24,8 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Any,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (1, new Inventory() {
+                new (int, BasicInventory)[] {
+                  (1, new BasicInventory() {
                     {Item.Types.Stone, new Item(Item.Types.Stone, 1)}
                   })
                 }

@@ -54,7 +54,7 @@ namespace SpiritWorld.World.Terrain.Features {
     /// If this feature's interactions have been used up
     /// </summary>
     public bool isUsedUp {
-      get => (type is LimitedUseType) && remainingInteractions == 0;
+      get => type.IsInteractive && remainingInteractions == 0;
     }
 
     /// <summary>
@@ -69,14 +69,14 @@ namespace SpiritWorld.World.Terrain.Features {
       // for features that can be used up, we start at the highest mode.
       // otherwise we start at mode 0, the base mode
       this.mode = mode == null
-        ? type is LimitedUseType
+        ? type.IsInteractive
           ? type.NumberOfModes - 1
           : 0
         : (int)mode;
 
       // if this is interactive and use-upable, record our remaining use count.
-      remainingInteractions = type is LimitedUseType 
-        ? (type as LimitedUseType).NumberOfUses
+      remainingInteractions = type.IsInteractive 
+        ? type.NumberOfUses
         : Type.UnlimitedInteractions;
     }
 
@@ -89,7 +89,7 @@ namespace SpiritWorld.World.Terrain.Features {
       // if we still have normal interactions left, check if we're using one up.
       // @todo: shovel as a tool should get around this when we add tool here, it can mine base level stuff off a tile.
       if (remainingInteractions != 0) {
-        if (type is LimitedUseType limitedUseType && limitedUseType.TryToUseOnce(totalTimeUsedForSoFar)) {
+        if (type.IsInteractive && type.TryToUseOnce(totalTimeUsedForSoFar)) {
           remainingInteractions--;
           // if this is a transitional type, it's out of uses, and we've held use for long enough, transition to the next tile type
           if (remainingInteractions == 0 && type is TransitionalResourceType transitionalResourceType) {
@@ -130,7 +130,7 @@ namespace SpiritWorld.World.Terrain.Features {
     /// </summary>
     /// <param name="count"></param>
     void updateModeBasedOnRemainingInteractions() {
-      float percentRemaining = (float)remainingInteractions / (type as LimitedUseType).NumberOfUses;
+      float percentRemaining = (float)remainingInteractions / type.NumberOfUses;
       mode = (int)((type.NumberOfModes - 1) * percentRemaining);
     }
   }

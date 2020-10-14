@@ -46,6 +46,21 @@ namespace SpiritWorld.World.Terrain.Features {
       }
 
       /// <summary>
+      /// The time it takes to use up one unit of this feature
+      /// TODO: this should be on the base
+      /// </summary>
+      public float TimeToUse {
+        get;
+      } = 2.0f;
+
+      /// <summary>
+      /// How many times this resource can be interacted with before it's used up
+      /// </summary>
+      public int NumberOfUses {
+        get;
+      } = UnlimitedInteractions;
+
+      /// <summary>
       /// The way this tile type is rotated on placement
       /// </summary>
       public RotationType PlacementRotationType {
@@ -87,15 +102,28 @@ namespace SpiritWorld.World.Terrain.Features {
         byte id,
         string name,
         Layer layer,
-        bool isInteractive = false
+        bool isInteractive = false,
+        int numberOfUses = UnlimitedInteractions,
+        float useTime = 2.0f
       ) {
         Id = id;
         Name = name;
         Layer = layer;
         IsInteractive = isInteractive;
+        NumberOfModes = numberOfUses + 1;
+        TimeToUse = useTime;
+        NumberOfUses = numberOfUses;
 
         // on creation, add the singleton to the all types list.
         Types.Add(this);
+      }
+
+      /// <summary>
+      /// Try to 'use'/interact with this tile
+      /// </summary>
+      /// <returns></returns>
+      public bool TryToUseOnce(float totalTimeInteractedWithForSoFar) {
+        return totalTimeInteractedWithForSoFar >= TimeToUse;
       }
 
       /// <summary>
@@ -118,7 +146,7 @@ namespace SpiritWorld.World.Terrain.Features {
       /// <summary>
       /// Get a random drop inventory for this type of tile when it's used up. Null if it has none
       /// </summary>
-      internal Inventory getRandomDrop(ITool toolUsed, int mode = 0) {
+      internal BasicInventory getRandomDrop(ITool toolUsed, int mode = 0) {
         Dictionary<Tool.Type, DropChanceCollection[]> modeData = getModeSpecificData(mode);
         DropChanceCollection potentialDrops = null;
         // first try to get the drop collection specific to the tool being used if there is one

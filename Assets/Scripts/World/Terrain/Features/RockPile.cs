@@ -14,11 +14,12 @@ namespace SpiritWorld.World.Terrain.Features {
     /// <summary>
     /// A rock pile that shrinks when used
     /// </summary>
-    public class RockPile : LimitedUseType {
+    public class RockPile : Type {
       internal RockPile() : base(
         3,
         "Rocks",
         Layer.Resource,
+        true,
         2
       ) {
         Drops = new Dictionary<Tool.Type, DropChanceCollection[]>[] {
@@ -27,8 +28,8 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Any,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (1, new Inventory() {
+                new (int, BasicInventory)[] {
+                  (1, new BasicInventory() {
                     {Item.Types.Stone, new Item(Item.Types.Stone, 1)}
                   })
                 }
@@ -40,8 +41,8 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Pickaxe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (1, new Inventory() {
+                new (int, BasicInventory)[] {
+                  (1, new BasicInventory() {
                     {Item.Types.Stone, new Item(Item.Types.Stone, 2)}
                   })
                 }
@@ -53,8 +54,8 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Pickaxe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (1, new Inventory() {
+                new (int, BasicInventory)[] {
+                  (1, new BasicInventory() {
                     {Item.Types.Stone, new Item(Item.Types.Stone, 2)}
                   })
                 }

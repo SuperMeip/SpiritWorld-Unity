@@ -68,14 +68,16 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// <summary>
     /// The players inventories
     /// </summary>
-    public readonly Dictionary<InventorySlots, Inventory> inventory
-      = new Dictionary<InventorySlots, Inventory>();
+    public GridPack inventory {
+      get;
+      protected set;
+    }
 
     /// <summary>
     /// An inventory to hold the hot bar items.
     /// </summary>
-    public readonly Inventory hotBarItems
-      = new Inventory();
+    public readonly BasicInventory hotBarItems
+      = new BasicInventory();
 
     /// <summary>
     /// Initialize a new player

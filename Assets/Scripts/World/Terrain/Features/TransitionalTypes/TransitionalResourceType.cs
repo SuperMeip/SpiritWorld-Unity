@@ -4,7 +4,7 @@
     /// <summary>
     /// subtype for limited use features that turn into another feature
     /// </summary>
-    public abstract class TransitionalResourceType : LimitedUseType {
+    public abstract class TransitionalResourceType : Type {
 
       /// <summary>
       /// The type of feature this one turns into once used up
@@ -21,9 +21,9 @@
         string name,
         Layer layer,
         Type nextFeatureType,
-        int numberOfUses = UnlimitedInteractions,
+        int numberOfUses = 1,
         float useTime = 2.0f
-      ) : base(id, name, layer, numberOfUses, useTime) {
+      ) : base(id, name, layer, true, numberOfUses, useTime) {
         NextFeatureType = nextFeatureType;
         // overrite the mode number offset used for the limited resouce type.
         NumberOfModes = numberOfUses;

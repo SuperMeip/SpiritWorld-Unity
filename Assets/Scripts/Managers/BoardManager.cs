@@ -10,9 +10,9 @@ namespace SpiritWorld.Managers {
   public class BoardManager : MonoBehaviour, IObserver {
 
     /// <summary>
-    /// The chunks to show active around the chunk the player is in
+    /// How often to update the active chunks in seconds 
     /// </summary>
-    public int ActiveChunkBuffer = 1;
+    public float chunkUpdateTickSeconds = 1;
 
     /// <summary>
     /// The chunk controllers we have available to use
@@ -28,9 +28,14 @@ namespace SpiritWorld.Managers {
     }
 
     /// <summary>
+    /// The tick timer
+    /// </summary>
+    float tickTimer = 0;
+
+    /// <summary>
     /// The controller of the local player
     /// </summary>
-    LocalPlayerController localPlayerController;
+    LocalPlayerMovementController localPlayerController;
 
     /// <summary>
     /// Controllers currently being used, indexed by which chunk they're being used for
@@ -43,14 +48,19 @@ namespace SpiritWorld.Managers {
     /// </summary>
     void Awake() {
       chunkControllerPool = gameObject.GetComponentsInChildren<GridController>(true);
-      localPlayerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerController>();
+      localPlayerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerMovementController>();
     }
 
     /// <summary>
     /// Poll player location
     /// </summary>
     void Update() {
-      checkAndUpdateChunksAroundLocalPlayer();
+      if (tickTimer >= chunkUpdateTickSeconds) {
+        checkAndUpdateChunksAroundLocalPlayer();
+        tickTimer = 0;
+      } else {
+        tickTimer += Time.deltaTime;
+      }
     }
 
     /// <summary>
@@ -129,16 +139,17 @@ namespace SpiritWorld.Managers {
 
     /// <summary>
     /// Get the board locations of the chunks that should be visible to a player at the given worldlocation
-    /// TODO test this with a sled, check for inconsistencies
     /// </summary>
     /// <returns>The board locations (x/z of the grid in the tileboard)</returns>
     Coordinate[] getLiveChunksAround(Vector3 worldLocation) {
-      Coordinate currentChunkLocationKey = RectangularBoard.ChunkLocationFromWorldPosition(worldLocation);
-      Vector3 inChunkTileLocation = new Vector3(
+      Tile currentTile = activeBoard.get(worldLocation);
+      Coordinate currentChunkLocationKey = activeBoard.getChunkKeyFor(currentTile);
+      Vector3 inChunkTileLocation = currentTile.localLocation;
+      /*
         worldLocation.x % RectangularBoard.ChunkWorldOffset.x,
         0,
         worldLocation.z % RectangularBoard.ChunkWorldOffset.z
-      );
+      );*/
       // set up and add the current chunk location
       List<Coordinate> chunkLocationsToLoad = new List<Coordinate> {
         currentChunkLocationKey
@@ -148,11 +159,11 @@ namespace SpiritWorld.Managers {
       if (inChunkTileLocation.x > RectangularBoard.ChunkWorldCenter.x) {
         chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.East.Offset);
         // if we're also close to the north of the chunk
-        if (inChunkTileLocation.z > RectangularBoard.ChunkWorldCenter.y) {
+        if (inChunkTileLocation.z > RectangularBoard.ChunkWorldCenter.z) {
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset);
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.North.Offset + Directions.East.Offset);
           // if we're also close to the south of the chunk
-        } else if (inChunkTileLocation.y < RectangularBoard.ChunkWorldCenter.y) {
+        } else if (inChunkTileLocation.z < RectangularBoard.ChunkWorldCenter.z) {
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset);
           chunkLocationsToLoad.Add(currentChunkLocationKey + Directions.South.Offset + Directions.East.Offset);
         }

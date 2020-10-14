@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace SpiritWorld.Inventories.Items {
   public partial class Item {
@@ -6,7 +7,8 @@ namespace SpiritWorld.Inventories.Items {
     /// <summary>
     /// The class pattern for a item type
     /// </summary>
-    public abstract class Type {
+    [System.Serializable]
+    public abstract class Type : IEquatable<Type> {
 
       /// <summary>
       /// The id of this tile type
@@ -40,6 +42,23 @@ namespace SpiritWorld.Inventories.Items {
 
         // on creation, add the singleton to the all types list.
         Types.Add(this);
+      }
+
+      /// <summary>
+      /// eqwuality
+      /// </summary>
+      /// <param name="other"></param>
+      /// <returns></returns>
+      public bool Equals(Type other) {
+        return Id == other.Id;
+      }
+
+      /// <summary>
+      /// hash code
+      /// </summary>
+      /// <returns></returns>
+      public override int GetHashCode() {
+        return Id;
       }
     }
 

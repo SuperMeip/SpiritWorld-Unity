@@ -12,7 +12,7 @@ namespace SpiritWorld.Managers {
     /// <summary>
     /// The minimum time a key must be held down in order to get a hold action instead of a click action
     /// </summary>
-    const float MinimumHoldDownTime = 0.5f;
+    const float MinimumHoldDownTime = 0.3f;
 
     /// <summary>
     /// The object used to hilight the selected tile
@@ -35,6 +35,21 @@ namespace SpiritWorld.Managers {
     public Text investigatedTileFeaturesText;
 
     /// <summary>
+    /// The gameobject to hide and unhide used for the "working on tile ui"
+    /// </summary>
+    public GameObject workOnTileIndicator;
+
+    /// <summary>
+    /// The progress circle image for the work on tile indicator
+    /// </summary>
+    public Image workOnTileProgressCircle;
+
+    /// <summary>
+    /// The tool type icon for the work on tile indicator
+    /// </summary>
+    public Image workOnTileToolTypeIndicator;
+
+    /// <summary>
     /// The currently selected tile
     /// </summary>
     public Tile selectedTile {
@@ -50,13 +65,13 @@ namespace SpiritWorld.Managers {
     /// <summary>
     /// Local player controller
     /// </summary>
-    LocalPlayerController playerController;
+    LocalPlayerMovementController playerController;
 
     /// <summary>
     /// Get the local player controller
     /// </summary>
     private void Awake() {
-      playerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerController>();
+      playerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerMovementController>();
     }
 
     // Update is called once per frame
@@ -116,8 +131,9 @@ namespace SpiritWorld.Managers {
         if (actionTimer < MinimumHoldDownTime) {
           clickActionOnSelectedTile();
         }
-        // reset the action timer
+        // reset the action timer and progress wheel
         actionTimer = 0;
+        workOnTileIndicator.SetActive(false);
       }
     }
 
@@ -131,6 +147,7 @@ namespace SpiritWorld.Managers {
       if (features != null && features.TryGetValue(TileFeature.Layer.Resource, out TileFeature resource)) {
         TileFeature beforeResourceValues = resource;
         TileFeature updatedResource = resource.interact(actionTimer);
+        updateTileProgressBar(updatedResource.remainingInteractions == 0 ? 0 : actionTimer, resource.type.TimeToUse);
 
         // if the updated resource doesn't match the old one, we need to update it
         if (!beforeResourceValues.Equals(updatedResource)) {
@@ -159,21 +176,42 @@ namespace SpiritWorld.Managers {
     /// </summary>
     /// <param name="tile"></param>
     void investigate(Tile tile) {
-      investigatedTileNameText.text = tile.type.Name;
-      investigatedTilePositionText.text = $"({tile.axialKey.x}, {tile.height}, {tile.axialKey.z})";
+      if (tile.type != null) {
+        investigatedTileNameText.text = tile.type.Name;
+        investigatedTilePositionText.text = $"({tile.axialKey.x}, {tile.height}, {tile.axialKey.z})";
 
-      /// if we have features, name them.
-      string featureText;
-      FeaturesByLayer features = Universe.ActiveBoardManager.activeBoard.getFeaturesFor(selectedTile);
-      if (features != null) {
-        featureText = "Features:\n";
-        foreach(KeyValuePair<TileFeature.Layer, TileFeature> feature in features) {
-          featureText += $"{feature.Value.type.Name} {(feature.Value.type is TileFeature.LimitedUseType featureType ? $"({feature.Value.remainingInteractions}/{featureType.NumberOfUses})" : "")}\n";
+        /// if we have features, name them.
+        string featureText;
+        FeaturesByLayer features = Universe.ActiveBoardManager.activeBoard.getFeaturesFor(selectedTile);
+        if (features != null) {
+          featureText = "Features:\n";
+          foreach (KeyValuePair<TileFeature.Layer, TileFeature> feature in features) {
+            featureText += $"{feature.Value.type.Name} {(feature.Value.type.IsInteractive ? $"({feature.Value.remainingInteractions}/{feature.Value.type.NumberOfUses})" : "")}\n";
+          }
+        } else {
+          featureText = "Empty";
         }
-      } else {
-        featureText = "Empty";
+        investigatedTileFeaturesText.text = featureText;
       }
-      investigatedTileFeaturesText.text = featureText;
+    }
+
+    /// <summary>
+    /// Update the tile progress bar with time remaining
+    /// </summary>
+    /// <param name="holdTimeSoFar"></param>
+    /// <param name="useTimeofFeature"></param>
+    void updateTileProgressBar(float holdTimeSoFar, float useTimeofFeature) {
+      // hide it unless we're holding the bar in
+      if (holdTimeSoFar > MinimumHoldDownTime) {
+        if (workOnTileIndicator.activeSelf == false) {
+          workOnTileIndicator.SetActive(true);
+        }
+        float wheelPercentage = holdTimeSoFar / useTimeofFeature;
+        workOnTileProgressCircle.fillAmount = wheelPercentage;
+        workOnTileIndicator.transform.position = Input.mousePosition;
+      } else if (workOnTileIndicator.activeSelf == true) {
+        workOnTileIndicator.SetActive(false);
+      }
     }
     
     /// <summary>

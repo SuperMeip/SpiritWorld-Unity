@@ -11,13 +11,13 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// potential prize pools
     /// </summary>
-    readonly (int prizeWeight, Inventory rewards)[] drops;
+    readonly (int prizeWeight, BasicInventory rewards)[] drops;
 
     /// <summary>
     /// Create a new set of drops
     /// </summary>
     /// <param name="drops"></param>
-    public DropChanceCollection((int prizeWeight, Inventory rewards)[] drops) {
+    public DropChanceCollection((int prizeWeight, BasicInventory rewards)[] drops) {
       this.drops = drops;
     }
 
@@ -25,7 +25,7 @@ namespace SpiritWorld.Inventories {
     /// Get a random drop
     /// </summary>
     /// <returns></returns>
-    public Inventory getRandomDrop() {
+    public BasicInventory getRandomDrop() {
       int currentPrizeIndex = 0;
       List<int> prizeIndexPool = new List<int>();
       // go though each potential drop and fill in the prize pool

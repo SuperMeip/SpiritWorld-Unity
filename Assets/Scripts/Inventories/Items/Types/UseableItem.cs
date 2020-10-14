@@ -27,6 +27,27 @@ namespace SpiritWorld.Inventories.Items {
     }
 
     /// <summary>
+    /// These can only stack if they have the same uses remaining
+    /// </summary>
+    /// <param name="item"></param>
+    /// <returns></returns>
+    public override bool canStackWith(Item item) {
+      return base.canStackWith(item) && (item as UseableItem).usesRemaining == usesRemaining;
+    }
+
+    /// <summary>
+    /// override for copy for this' extra data
+    /// </summary>
+    /// <param name="quantity"></param>
+    /// <returns></returns>
+    protected override Item copy(byte? quantity = null) {
+      UseableItem newItem = new UseableItem(type as Type, quantity ?? this.quantity); ;
+      newItem.usesRemaining = usesRemaining;
+
+      return newItem;
+    }
+
+    /// <summary>
     /// The class pattern for a item type
     /// </summary>
     public new abstract class Type : Item.Type , IUseableItem {

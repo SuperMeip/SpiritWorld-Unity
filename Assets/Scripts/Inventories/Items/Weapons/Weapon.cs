@@ -5,7 +5,6 @@ namespace SpiritWorld.Inventories.Items {
 
   /// <summary>
   /// An item that can be used to change the terrain and do thigns in the overworld.
-  /// TODO: resources should have a mineable at level properties that can also take in an optional alternate drop collection for that level for each mineable type.
   /// </summary>
   public partial class Weapon : UseableItem {
 

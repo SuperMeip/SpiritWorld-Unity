@@ -11,11 +11,12 @@ namespace SpiritWorld.World.Terrain.Features {
     /// <summary>
     /// 3 Connifer trees, one big, one small, one dead.
     /// </summary>
-    public class ConniferTrio : LimitedUseType {
+    public class ConniferTrio : Type {
       internal ConniferTrio() : base(
         1,
         "Firr Trees",
         Layer.Resource,
+        true,
         2
       ) {
         Drops = new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]>[] {
@@ -24,12 +25,12 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Shovel,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (2, new Inventory{
+                new (int, BasicInventory)[] {
+                  (2, new BasicInventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
-                  (3, new Inventory{
+                  (3, new BasicInventory{
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   })
                 }
@@ -41,17 +42,17 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Axe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (3, new Inventory{
+                new (int, BasicInventory)[] {
+                  (3, new BasicInventory{
                     {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
-                  (1, new Inventory{
+                  (1, new BasicInventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 3)}
                   }),
-                  (5, new Inventory{
+                  (5, new BasicInventory{
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   })
                 }
@@ -63,16 +64,16 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Axe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, Inventory)[] {
-                  (1, new Inventory{
+                new (int, BasicInventory)[] {
+                  (1, new BasicInventory{
                     {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
-                  (2, new Inventory{
+                  (2, new BasicInventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   }),
-                  (3, new Inventory{
+                  (3, new BasicInventory{
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
                   })
                 }
