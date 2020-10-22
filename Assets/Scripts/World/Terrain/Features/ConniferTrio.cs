@@ -19,13 +19,78 @@ namespace SpiritWorld.World.Terrain.Features {
         true,
         2
       ) {
+
+        Drops = ParseDropDataJSON(@"
+          [
+            [
+              {
+                ""Tool"": ""Shovel"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 2,
+                      ""Items"": ""3:1,2:2""
+                    },
+                    {
+                      ""Weight"": 3,
+                      ""Items"": ""2:2""
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                ""Tool"": ""Axe"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 3,
+                      ""Items"": ""1:1,3:1,2:2""
+                    },
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""2:3,3:1""
+                    },
+                    {
+                      ""Weight"": 5,
+                      ""Items"": ""2:2""
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                ""Tool"": ""Axe"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""1:1,2:2""
+                    },
+                    {
+                      ""Weight"": 2,
+                      ""Items"": ""2:2,3:1""
+                    },
+                    {
+                      ""Weight"": 3,
+                      ""Items"": ""2:2""
+                    }
+                  ]
+                ]
+              }
+            ],
+          ]
+        ");
+        /*
         Drops = new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]>[] {
           // mode 0: stump
           new System.Collections.Generic.Dictionary<Tool.Type, DropChanceCollection[]> {{
             Tool.Type.Shovel,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (2, new BasicInventory{
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
@@ -42,7 +107,7 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Axe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (3, new BasicInventory{
                     {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
                     {Item.Types.PineCone, new Item(Item.Types.PineCone, 1)},
@@ -64,7 +129,7 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Axe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (1, new BasicInventory{
                     {Item.Types.Spapple, new Item(Item.Types.Spapple, 1)},
                     {Item.Types.Wood, new Item(Item.Types.Wood, 2)}
@@ -80,7 +145,7 @@ namespace SpiritWorld.World.Terrain.Features {
               ),
             }
           }},
-        };
+        };*/
       }
     }
   }

@@ -43,5 +43,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f16d19a0f096144985479c9fd677302, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: 5
-  ItemHilight: {fileID: 0}
+  rotationSpeed: 20
+  ItemHilight: {fileID: 3525642532105562299, guid: 420ff39cd1814954da3fb610a727552b,
+    type: 3}
+  testItemId:
+    itemId: 0
+  testQuantity: 0

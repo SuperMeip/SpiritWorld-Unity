@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.Inventories.Items;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,25 +12,44 @@ namespace SpiritWorld.Inventories {
   public class BasicInventory : Dictionary<Item.Type, Item>, IInventory {
 
     /// <summary>
+    /// the basic inventory
+    /// </summary>
+    public BasicInventory() {}
+
+    /// <summary>
+    /// Create a basic inventory from a list in the format:
+    /// ITemId:quantity,ItemId,quantity
+    /// </summary>
+    /// <param name="v"></param>
+    public BasicInventory(string inventoryString) {
+      string[] itemStacks = inventoryString.Split(',');
+      foreach(string itemString in itemStacks) {
+        tryToAdd(new Item(itemString), out _);
+      }
+    }
+
+    /// <summary>
     /// Return the first available stack of the given item
     /// </summary>
     /// <param name="type"></param>
     /// <returns></returns>
     public new Item this[Item.Type type] {
       get => TryGetValue(type, out Item item) ? item : null;
-      private set => this[type] = value;
+      private set => base[type] = value;
     }
 
     /// <summary>
     /// Generic add an item to the inventory
     /// </summary>
     /// <param name="item"></param>
-    public virtual Item tryToAdd(Item item) {
+    public virtual Item tryToAdd(Item item, out Item successfullyAddedItem) {
       Item existingItem = this[item.type];
       if (existingItem != null) {
-        return existingItem.addToStack(item);
+        return existingItem.addToStack(item, out successfullyAddedItem);
       } else {
         this[item.type] = item;
+        successfullyAddedItem = item;
+
         return null;
       }
     }
@@ -74,6 +94,69 @@ namespace SpiritWorld.Inventories {
     /// <returns></returns>
     public Item[] empty() {
       return Values.ToArray();
+    }
+
+
+    /// <summary>
+    /// Empty this inventory into another one
+    /// TODO: make sure this deletes items that hit 0 from this inventory
+    /// </summary>
+    /// <returns>leftovers that don't fit</returns>
+    public Item[] emptyInto(IInventory otherInventory, out Item[] successfullyAddedItems) {
+      List<Item> addedItems = new List<Item>();
+      List<Item> leftovers = new List<Item>();
+      foreach(Item stack in Values) {
+        leftovers.Add(otherInventory.tryToAdd(stack, out Item addedItem));
+        // TODO remove emptied stacks
+        if (addedItem != null) {
+          addedItems.Add(addedItem);
+        }
+      }
+
+      successfullyAddedItems = addedItems.ToArray();
+      return leftovers.ToArray();
+    }
+
+    /// <summary>
+    /// Make a copy of this inventory
+    /// </summary>
+    /// <returns></returns>
+    public IInventory copy() {
+      BasicInventory copy = new BasicInventory();
+      foreach(Item stack in Values) {
+        copy.Add(stack.type, stack.copy());
+      }
+
+      return copy;
+    }
+
+    /// <summary>
+    /// Inventory Contents
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() {
+      string text = "I{";
+      foreach(Item item in Values) {
+        text += $"[{item.type.Name}:{item.quantity}], ";
+      }
+      text.Trim(new char[] {' ', ','});
+      return text + "}";
+    }
+
+    /// <summary>
+    /// find the given items
+    /// </summary>
+    /// <param name="query"></param>
+    /// <returns></returns>
+    public Item[] search(Func<Item, bool> query) {
+      List<Item> matches = new List<Item>();
+      foreach(Item item in Values) {
+        if (query(item)) {
+          matches.Add(item);
+        }
+      }
+
+      return matches.ToArray();
     }
   }
 }

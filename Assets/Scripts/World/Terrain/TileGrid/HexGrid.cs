@@ -94,6 +94,22 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Remove the feature from the given tile's layer
+    /// </summary>
+    /// <param name="tile"></param>
+    /// <param name="layer"></param>
+    public void remove(Tile tile, TileFeature.Layer layer) {
+      Coordinate tileAxialKey = tile.axialKey;
+      if (tiles.ContainsKey(tileAxialKey)) {
+        if (features.TryGetValue(tileAxialKey, out FeaturesByLayer tileFeatures)) {
+          if (tileFeatures.ContainsKey(layer)) {
+            tileFeatures.Remove(layer);
+          }
+        }
+      }
+    }
+
+    /// <summary>
     /// Set a feature on a given tile
     /// </summary>
     /// <param name="tileAxialKey"></param>

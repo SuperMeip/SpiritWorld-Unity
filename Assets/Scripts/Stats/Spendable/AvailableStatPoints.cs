@@ -8,7 +8,7 @@
     /// Defence, physical resistance to damange
     /// </summary>
     public class AvailableStatPoints : Type {
-      internal AvailableStatPoints() : base(40, "Stat Points Available To Spend", "STAT", VariationGroups.Spendable) { }
+      internal AvailableStatPoints() : base(45, "Stat Points Available To Spend", "STAT", VariationGroups.Spendable) { }
     }
   }
 }

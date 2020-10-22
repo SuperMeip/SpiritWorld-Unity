@@ -76,6 +76,50 @@ public struct Coordinate {
     }
   }
 
+  /// <summary>
+  /// Checks if this coordinate is within a set, dictated by boundaries. (inclusive, and exclusive)
+  /// </summary>
+  public bool isWithin((Coordinate minInclusive, Coordinate maxExclusive) bounds) {
+    return isWithin(bounds.minInclusive, bounds.maxExclusive);
+  }
+
+  /// <summary>
+  /// Checks if this coordinate is within a set, dictated by boundaries. (inclusive, and exclusive)
+  /// </summary>
+  /// <param name="start">The starting location to check if the point is within, inclusive</param>
+  /// <param name="bounds">The outer boundary to check for point inclusion. Exclusive</param>
+  /// <returns></returns>
+  public bool isWithin(Coordinate start, Coordinate bounds) {
+    return isWithin(bounds) && isBeyond(start);
+  }
+
+  /// <summary>
+  /// Checks if this coordinate is within a set, dictated by boundaries. (inclusive, and exclusive)
+  /// </summary>
+  /// <param name="bounds">The inner [0](inclusive) and outer [1](exclusive) boundary to check for point inclusion</param>
+  /// <returns></returns>
+  public bool isWithin(Coordinate[] bounds) {
+    if (bounds != null && bounds.Length == 2) {
+      return isWithin(bounds[1]) && isBeyond(bounds[0]);
+    } else throw new ArgumentOutOfRangeException("Coordinate.isWithin must take an array of size 2.");
+  }
+
+  /// <summary>
+  /// Checks if this coordinate is greater than a lower bounds coordinate (Inclusive)
+  /// </summary>
+  public bool isBeyond(Coordinate bounds) {
+    return x >= bounds.x
+      && z >= bounds.z;
+  }
+
+  /// <summary>
+  /// Checks if this coordinate is within a bounds coodinate (exclusive)
+  /// </summary>
+  public bool isWithin(Coordinate bounds) {
+    return x < bounds.x
+      && z < bounds.z;
+  }
+
   /// implicit opperators
   ///===================================
   /// <summary>
@@ -208,6 +252,16 @@ public struct Coordinate {
   /// <returns></returns>
   public override string ToString() {
     return "{" + x + ", " + z + "}";
+  }
+
+  /// <summary>
+  /// deconstruct
+  /// </summary>
+  /// <param name="x"></param>
+  /// <param name="z"></param>
+  internal void Deconstruct(out int x, out int z) {
+    x = this.x;
+    z = this.z;
   }
 }
 
@@ -446,9 +500,36 @@ public static class RangeUtilities {
 
 #endregion
 
+#region Array Utilities
+public static class ArrayUtilities {
+
+  public static void Populate<T>(this T[,] arr, T value) {
+    for (int i = 0; i < arr.Length; i++) {
+      for (int j = 0; j < arr.Length; j++) {
+        arr[i, j] = value;
+      }
+    }
+  }
+
+  public static void Deconstruct<TKey, TValue>(
+      this KeyValuePair<TKey, TValue> kvp,
+      out TKey key,
+      out TValue value) {
+    key = kvp.Key;
+    value = kvp.Value;
+  }
+
+  public static void Populate<T>(this T[] arr, T value) {
+    for (int i = 0; i < arr.Length; i++) {
+        arr[i] = value;
+    }
+  }
+}
+  #endregion
+
 #region Sort Utilities
 
-public static class SortExtentions {
+  public static class SortExtentions {
   private static System.Random rng = new System.Random();
 
   public static IList<T> Shuffle<T>(this IList<T> list) {

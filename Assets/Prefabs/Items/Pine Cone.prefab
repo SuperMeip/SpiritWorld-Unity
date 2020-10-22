@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 2891685539837547618}
   - component: {fileID: 5889787788577579550}
   - component: {fileID: 2603702734668044623}
-  m_Layer: 0
+  - component: {fileID: 1223563645051637124}
+  m_Layer: 8
   m_Name: Pine Cone Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -79,6 +80,19 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+--- !u!135 &1223563645051637124
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2636979711488414344}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.39252314
+  m_Center: {x: 0.0000000072426847, y: -0.3680242, z: 0.0000000054839875}
 --- !u!1 &7941811585472403959
 GameObject:
   m_ObjectHideFlags: 0
@@ -88,7 +102,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7102106457329458973}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: Pine Cone
   m_TagString: Untagged
   m_Icon: {fileID: 0}

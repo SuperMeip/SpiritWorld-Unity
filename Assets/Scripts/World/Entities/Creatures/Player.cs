@@ -1,6 +1,7 @@
-﻿using SpiritWorld.Inventories;
+﻿using SpiritWorld.Events;
+using SpiritWorld.Inventories;
+using SpiritWorld.Inventories.Items;
 using SpiritWorld.Stats;
-using System.Collections.Generic;
 
 namespace SpiritWorld.World.Entities.Creatures {
 
@@ -8,6 +9,33 @@ namespace SpiritWorld.World.Entities.Creatures {
   /// A player entity
   /// </summary>
   public class Player : Creature {
+
+    /// <summary>
+    /// A player's empty hand as a tool
+    /// </summary>
+    public static ITool EmptyHand = new Hand();
+
+#if UNITY_EDITOR
+
+    /// <summary>
+    /// Test bar
+    /// </summary>
+    public static ItemBar TestStartingItemBar 
+      = new ItemBar(10, 1, new Item[] {
+        new Item(Item.Types.AutoToolShortcut),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.WaterLily, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Iron, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Stone, 2),
+        new Item(Item.Types.PineCone, 2),
+        new Item(Item.Types.Spapple, 2)
+    });
+
+#endif
 
     /// <summary>
     /// Inventory types the player has to store items
@@ -66,18 +94,25 @@ namespace SpiritWorld.World.Entities.Creatures {
       = new Stat(Stat.Types.AbilityPoints, 10, 10);
 
     /// <summary>
-    /// The players inventories
+    /// The players back pack inventory
     /// </summary>
-    public GridPack inventory {
+    public StackedInventory packInventory {
       get;
       protected set;
+    } = new StackedInventory(10);
+
+    /// <summary>
+    /// The players inventories
+    /// </summary>
+    public IInventory[] inventories {
+      get;
     }
 
     /// <summary>
     /// An inventory to hold the hot bar items.
     /// </summary>
-    public readonly BasicInventory hotBarItems
-      = new BasicInventory();
+    public readonly ItemBar hotBarInventory
+      = TestStartingItemBar;
 
     /// <summary>
     /// Initialize a new player
@@ -85,6 +120,27 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// <param name="name"></param>
     public Player(string name) : base() {
       this.name = name;
+      inventories = new IInventory[] {
+        hotBarInventory,
+        packInventory
+      };
     }
+  }
+
+  /// <summary>
+  /// Type for bare hand tool
+  /// </summary>
+  public struct Hand : ITool {
+    public Tool.Type ToolType 
+      => Tool.Type.None;
+
+    public int UpgradeLevel 
+      => 0;
+
+    public string UpgradeLevelName
+      => "Bare Hands";
+
+    public short NumberOfUses 
+      => UseableItem.Type.UnlimitedUses;
   }
 }

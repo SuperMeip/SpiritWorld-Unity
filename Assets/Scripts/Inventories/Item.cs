@@ -37,15 +37,29 @@ namespace SpiritWorld.Inventories.Items {
     }
 
     /// <summary>
+    /// ake an item from a simple json
+    /// </summary>
+    /// <param name="itemString"></param>
+    public Item(string itemString) {
+      string[] itemData = itemString.Split(':');
+      type = Types.Get(short.Parse(itemData[0]));
+      quantity = (byte)short.Parse(itemData[1]);
+    }
+
+    /// <summary>
     /// Add a nother item's count to this one's.
     /// This doesn't check canStackWith first.
     /// </summary>
+    /// <param name="successfullyAddedItem">The item stack that was successfuly added, for reporting</param>
     /// <returns>the overflow items or null</returns>
-    public Item addToStack(Item item) {
+    public Item addToStack(Item item, out Item successfullyAddedItem) {
       int leftoverStackCount = item.quantity + quantity - type.StackSize;
+      successfullyAddedItem = item.copy();
+
       if (leftoverStackCount > 0) {
         quantity = type.StackSize;
         item.quantity = (byte)leftoverStackCount;
+        successfullyAddedItem.quantity -= (byte)leftoverStackCount;
 
         return item;
       } else {
@@ -87,8 +101,16 @@ namespace SpiritWorld.Inventories.Items {
     /// </summary>
     /// <param name="quantity"></param>
     /// <returns></returns>
-    protected virtual Item copy(byte? quantity = null) {
+    public virtual Item copy(byte? quantity = null) {
       return new Item(type, quantity ?? this.quantity);
+    }
+
+    /// <summary>
+    /// Item basic deets
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() {
+      return $"I[{type.Name}:{quantity}]";
     }
   }
 }

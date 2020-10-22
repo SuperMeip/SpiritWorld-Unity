@@ -8,6 +8,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
   /// A hex tile board with rectangular grid chunks
   /// </summary>
   public class RectangularBoard : TileBoard {
+
     /// <summary>
     /// A chunks diameter in hex tiles
     /// </summary>
@@ -64,11 +65,18 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Remove the feature for the selected tile layer
+    /// </summary>
+    public override void remove(Tile tile, TileFeature.Layer layer) {
+      this[getChunkKeyFor(tile)]?.remove(tile, layer);
+    }
+
+    /// <summary>
     /// update the data for an existing tile and feature
     /// </summary>
     /// <param name="selectedTile"></param>
     /// <param name="resource"></param>
-    internal override void update(Tile tile, TileFeature feature) {
+    public override void update(Tile tile, TileFeature feature) {
       this[getChunkKeyFor(tile)]?.set(tile, feature);
     }
 

@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.Inventories.Items;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -32,18 +33,18 @@ namespace SpiritWorld.Inventories {
     /// Get if this pack is full
     /// </summary>
     public bool isFull
-      => usedStackCount <= stackLimit;
+      => usedStackCount >= stackLimit;
 
     /// <summary>
     /// The item stacks by 'stack slot id'
     /// </summary>
-    readonly List<Item> stacks
+    protected readonly List<Item> stacks
       = new List<Item>();
 
     /// <summary>
     /// the stack slot ids indexed by item types
     /// </summary>
-    readonly Dictionary<Item.Type, List<int>> stackIdsByItemType 
+    Dictionary<Item.Type, List<int>> stackIdsByItemType 
       = new Dictionary<Item.Type, List<int>>();
 
     /// <summary>
@@ -55,10 +56,11 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
-    /// Add an item stack
+    /// Add an item stack, returns items that didn't fit.
     /// </summary>
     /// <param name="item"></param>
-    public virtual Item tryToAdd(Item item) {
+    public virtual Item tryToAdd(Item item, out Item successfullyAddedItems) {
+      successfullyAddedItems = new Item(item.type, 0);
       if (stackIdsByItemType.TryGetValue(item.type, out List<int> stackSlotIds)) {
         Item itemToAdd = item;
         // go though each slot of this type and try to add the item to it
@@ -66,28 +68,39 @@ namespace SpiritWorld.Inventories {
           Item currentItemStack = stacks[stackSlotId];
           // if the current stack isn't full and matches the item completely, stack em
           if (!currentItemStack.isFull && currentItemStack.canStackWith(itemToAdd)) {
-            Item leftoverStack = currentItemStack.addToStack(itemToAdd);
-            // we still need to deal with the leftovers, loop again!
+            Item leftoverStack = currentItemStack.addToStack(itemToAdd, out Item successfullyAdded);
+            successfullyAddedItems.addToStack(successfullyAdded, out _);
+            // we can stop if there's no leftovers
+            if (leftoverStack == null) {
+              return null;
+            }
+            // if we still need to deal with the leftovers, loop again!
             itemToAdd = leftoverStack;
           }
         }
 
-        // if we still have leftovers, add them to a new stack
-        if (itemToAdd != null && !isFull) {
+        // if we still have leftovers, try to add them to a new stack
+        if (!isFull) {
           addNewStack(itemToAdd);
+          successfullyAddedItems.addToStack(itemToAdd, out _);
 
           return null;
-          // if there's no room return what doesn't fit
+        // if there's no room return what doesn't fit
         } else {
+          successfullyAddedItems = null;
+
           return itemToAdd;
         }
       // if there's no stacks of this type just add it
       } else if (!isFull) {
         addNewStack(item);
+        successfullyAddedItems = item;
 
         return null;
       // if there's no room return what doesn't fit
       } else {
+        successfullyAddedItems = null;
+
         return item;
       }
     }
@@ -111,6 +124,11 @@ namespace SpiritWorld.Inventories {
             // trim the removal count to max stack size
             byte stackRemoveCount = (byte)totalItemsToRemove;
             Item removedStack = currentItemStack.removeFromStack(stackRemoveCount);
+            // if the current stack is now empty, clear the slot
+            if (currentItemStack.quantity == 0) {
+              // TODO: does this work or will this break the foreach loop around it?
+              clearStack(stackSlotId);
+            }
             // trim the remaining count by what we removed
             totalItemsToRemove -= removedStack.quantity;
             removedStacks.Add(removedStack);
@@ -138,10 +156,29 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
+    /// empty into another inventory
+    /// TODO: make sure this deletes items that hit 0 from this inventory
+    /// </summary>
+    /// <returns>leftovers that don't fit</returns>
+    public virtual Item[] emptyInto(IInventory otherInventory, out Item[] successfullyAddedItems) {
+      List<Item> leftovers = new List<Item>();
+      List<Item> addedItems = new List<Item>();
+      foreach(Item stack in stacks) {
+        leftovers.Add(otherInventory.tryToAdd(stack, out Item successfullyAddedItem));
+        if (successfullyAddedItem != null) {
+          addedItems.Add(successfullyAddedItem);
+        }
+      }
+
+      successfullyAddedItems = addedItems.ToArray();
+      return leftovers.ToArray();
+    }
+
+    /// <summary>
     /// Add a new item stack to the collections
     /// </summary>
     /// <param name="itemStack"></param>
-    void addNewStack(Item itemStack) {
+    protected int addNewStack(Item itemStack) {
       /// add the stack
       int? freeStackId = getFirstFreeStackSlot();
       if (freeStackId != null) {
@@ -157,6 +194,18 @@ namespace SpiritWorld.Inventories {
       } else {
         stackIdsByItemType[itemStack.type] = new List<int> { (int)freeStackId };
       }
+
+      return (int)freeStackId;
+    }
+
+    /// <summary>
+    /// empty the stack with the given id
+    /// </summary>
+    /// <param name="stackId"></param>
+    protected void clearStack(int stackId) {
+      Item.Type stackType = stacks[stackId].type;
+      stackIdsByItemType[stackType].Remove(stackId);
+      stacks[stackId] = null;
     }
 
     /// <summary>
@@ -173,6 +222,51 @@ namespace SpiritWorld.Inventories {
       }
 
       return null;
+    }
+
+    /// <summary>
+    /// return a copy of the stacked inventory
+    /// </summary>
+    /// <returns></returns>
+    public virtual IInventory copy() {
+      StackedInventory copy = new StackedInventory(stackLimit) {
+        stackIdsByItemType = stackIdsByItemType
+      };
+      for (int index = 0; index < stacks.Count; index++) {
+        Item stack = stacks[index];
+        copy.stacks.Insert(index, stack);
+      }
+
+      return copy;
+    }
+
+    /// <summary>
+    /// Inventory Contents
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString() {
+      string text = "I{";
+      foreach (Item item in stacks) {
+        text += $"[{item.type.Name}:{item.quantity}], ";
+      }
+      text.Trim(new char[] { ' ', ',' });
+      return text + "}";
+    }
+
+    /// <summary>
+    /// search for items
+    /// </summary>
+    /// <param name="query"></param>
+    /// <returns></returns>
+    public Item[] search(Func<Item, bool> query) {
+      List<Item> matches = new List<Item>();
+      foreach (Item itemStack in stacks) {
+        if (query(itemStack)) {
+          matches.Add(itemStack);
+        }
+      }
+
+      return matches.ToArray();
     }
   }
 }

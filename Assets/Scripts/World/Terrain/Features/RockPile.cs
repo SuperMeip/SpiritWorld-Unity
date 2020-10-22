@@ -22,13 +22,83 @@ namespace SpiritWorld.World.Terrain.Features {
         true,
         2
       ) {
+        Drops = ParseDropDataJSON(@"
+          [
+            [
+              {
+                ""Tool"": ""Any"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                    ""Weight"": 1,
+                      ""Items"": ""5:1""
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                ""Tool"": ""Pickaxe"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 5,
+                      ""Items"": ""5:2""
+                    },
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""5:3""
+                    }
+                  ]
+                ]
+              },
+              {
+                ""Tool"": ""Any"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 5,
+                      ""Items"": ""5:1""
+                    }
+                  ]
+                ]
+              }
+            ],
+            [
+              {
+                ""Tool"": ""Pickaxe"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""5:3""
+                    }
+                  ]
+                ]
+              },
+              {
+                ""Tool"": ""Any"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 5,
+                      ""Items"": ""5:1""
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        ");
+        /*
         Drops = new Dictionary<Tool.Type, DropChanceCollection[]>[] {
           /// mode 0
           new Dictionary<Tool.Type, DropChanceCollection[]> {{
             Tool.Type.Any,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (1, new BasicInventory() {
                     {Item.Types.Stone, new Item(Item.Types.Stone, 1)}
                   })
@@ -41,9 +111,23 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Pickaxe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
-                  (1, new BasicInventory() {
+                new (int, IInventory)[] {
+                  (5, new BasicInventory() {
                     {Item.Types.Stone, new Item(Item.Types.Stone, 2)}
+                  }),
+                  (1, new BasicInventory() {
+                    {Item.Types.Stone, new Item(Item.Types.Stone, 3)}
+                  }),
+                }
+              )
+            }
+          },{
+            Tool.Type.Any,
+            new DropChanceCollection[] {
+              new DropChanceCollection(
+                new (int, IInventory)[] {
+                  (1, new BasicInventory() {
+                    {Item.Types.Stone, new Item(Item.Types.Stone, 1)}
                   })
                 }
               )
@@ -54,15 +138,26 @@ namespace SpiritWorld.World.Terrain.Features {
             Tool.Type.Pickaxe,
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (1, new BasicInventory() {
-                    {Item.Types.Stone, new Item(Item.Types.Stone, 2)}
+                    {Item.Types.Stone, new Item(Item.Types.Stone, 3)}
+                  })
+                }
+              )
+            }
+          },{
+            Tool.Type.Any,
+            new DropChanceCollection[] {
+              new DropChanceCollection(
+                new (int, IInventory)[] {
+                  (1, new BasicInventory() {
+                    {Item.Types.Stone, new Item(Item.Types.Stone, 1)}
                   })
                 }
               )
             }
           }}
-        };
+        };*/
       }
     }
   }

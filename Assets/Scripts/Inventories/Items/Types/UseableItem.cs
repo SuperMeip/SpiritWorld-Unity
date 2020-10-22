@@ -40,7 +40,7 @@ namespace SpiritWorld.Inventories.Items {
     /// </summary>
     /// <param name="quantity"></param>
     /// <returns></returns>
-    protected override Item copy(byte? quantity = null) {
+    public override Item copy(byte? quantity = null) {
       UseableItem newItem = new UseableItem(type as Type, quantity ?? this.quantity); ;
       newItem.usesRemaining = usesRemaining;
 

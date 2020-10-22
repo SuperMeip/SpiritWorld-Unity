@@ -76,6 +76,13 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     }
 
     /// <summary>
+    /// Remove the feature on the given layer for the given tile.
+    /// </summary>
+    /// <param name="selectedTile"></param>
+    /// <param name="layer"></param>
+    public abstract void remove(Tile tile, TileFeature.Layer layer);
+
+    /// <summary>
     /// Get the grid containing the tile at the given world position
     /// </summary>
     /// <param name="worldPosition"></param>
@@ -94,7 +101,7 @@ namespace SpiritWorld.World.Terrain.TileGrid {
     /// </summary>
     /// <param name="selectedTile"></param>
     /// <param name="resource"></param>
-    internal abstract void update(Tile selectedTile, TileFeature resource);
+    public abstract void update(Tile selectedTile, TileFeature resource);
 
     /// <summary>
     /// Populate a range of new grids.

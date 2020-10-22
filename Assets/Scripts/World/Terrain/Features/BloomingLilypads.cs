@@ -19,17 +19,49 @@ namespace SpiritWorld.World.Terrain.Features {
         true,
         1
       ) {
-        Drops = new Dictionary<Tool.Type, DropChanceCollection[]>[] {
+        Drops = ParseDropDataJSON(@"
+          [
+            [
+              {
+                ""Tool"": ""Any"",
+                ""DropPossibilities"" : []
+              }
+            ],
+            [
+              {
+                ""Tool"": ""Any"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 3,
+                      ""Items"": ""4:1""
+                    },
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""4:2""
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        ");
+          /*new Dictionary<Tool.Type, DropChanceCollection[]>[] {
+          // mode 0: empty
           new Dictionary<Tool.Type, DropChanceCollection[]> {{
             Tool.Type.Any,
             new DropChanceCollection[] {
-              // mode 0: empty
               new DropChanceCollection(
-                new (int, BasicInventory)[0]
-              ),
-              // mode 1: has flowers
+                new (int, IInventory)[0]
+              )
+            }
+          }},
+          // mode 1: has flowers
+          new Dictionary<Tool.Type, DropChanceCollection[]> {{
+            Tool.Type.Any,
+            new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (2, new BasicInventory{
                     {Item.Types.WaterLily, new Item(Item.Types.WaterLily, 1)},
                   }),
@@ -40,7 +72,7 @@ namespace SpiritWorld.World.Terrain.Features {
               )
             }
           }}
-        };
+        };*/
       }
     }
   }

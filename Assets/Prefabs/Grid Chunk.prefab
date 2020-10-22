@@ -46,6 +46,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ac329212d9fdfd42829381f7ccda78d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ItemDrop: {fileID: 1904678489728531420, guid: 15eebb2c4321f8c4b8a719cc30c809da,
+    type: 3}
 --- !u!64 &279279860570669445
 MeshCollider:
   m_ObjectHideFlags: 0

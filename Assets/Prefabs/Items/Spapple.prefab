@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6355409249627124479}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Spapple
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 6362258647003014653}
   - component: {fileID: 6883421205676505373}
   - component: {fileID: 1446870193319694251}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Fruit Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -1,4 +1,5 @@
-﻿using SpiritWorld.Inventories;
+﻿using Newtonsoft.Json.Linq;
+using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using System;
 using System.Collections.Generic;
@@ -77,19 +78,10 @@ namespace SpiritWorld.World.Terrain.Features {
       } = 1;
 
       /// <summary>
-      /// The drops, indexed by the mode they'll drop for.
-      /// If there's only one item in the list we'll use that for all modes.
-      /// If it's null there's no drops
-      /// </summary>
-      public DropChanceCollection[] DropsPerMode {
-        get;
-      } = null;
-
-      /// <summary>
       /// Drops for this tile type if there are any.
       /// Indexed by Moded first, then by tool type, then by the level of the tool.
       /// </summary>
-      public Dictionary<Tool.Type, DropChanceCollection[]>[] Drops {
+      public SortedDictionary<Tool.Type, DropChanceCollection[]>[] Drops {
         get;
         protected set;
       } = null;
@@ -138,19 +130,46 @@ namespace SpiritWorld.World.Terrain.Features {
       /// <summary>
       /// Check if the given tool can break this feature at the given mode
       /// </summary>
-      internal bool canBeMinedBy(ITool tool, int mode = 0) {
+      public bool CanBeMinedBy(ITool tool, int mode = 0) {
         var modeData = getModeSpecificData(mode);
         return modeData.ContainsKey(Tool.Type.Any) || modeData.ContainsKey(tool.ToolType);
       }
 
       /// <summary>
+      /// Check if the given tool can break this feature at the given mode
+      /// </summary>
+      public Tool.Requirement[] GetToolRequirements(int mode = 0) {
+        SortedDictionary<Tool.Type, DropChanceCollection[]> modeData = getModeSpecificData(mode);
+        Tool.Requirement[] toolRequirements = new Tool.Requirement[modeData.Keys.Count];
+        int toolTypeIndex = 0;
+        // foreach tool, find the minimum mode we get drops back for
+        foreach(KeyValuePair<Tool.Type, DropChanceCollection[]> keyValyePair in modeData) {
+          (Tool.Type toolType, DropChanceCollection[] dropChanceCollectionsByToolLevel) = keyValyePair;
+          int minimumToolLevelNeeded = 0;
+          foreach(DropChanceCollection dropChanceCollection in dropChanceCollectionsByToolLevel) {
+            if (dropChanceCollection != null) {
+              break;
+            }
+          }
+
+          toolRequirements[toolTypeIndex++] = new Tool.Requirement(toolType, minimumToolLevelNeeded);
+        }
+
+        return toolRequirements;
+      }
+
+      /// <summary>
       /// Get a random drop inventory for this type of tile when it's used up. Null if it has none
       /// </summary>
-      internal BasicInventory getRandomDrop(ITool toolUsed, int mode = 0) {
-        Dictionary<Tool.Type, DropChanceCollection[]> modeData = getModeSpecificData(mode);
+      public IInventory GetRandomDrops(ITool toolUsed, int mode = 0) {
+        SortedDictionary<Tool.Type, DropChanceCollection[]> modeData = getModeSpecificData(mode);
         DropChanceCollection potentialDrops = null;
         // first try to get the drop collection specific to the tool being used if there is one
         if (modeData.TryGetValue(toolUsed.ToolType, out DropChanceCollection[] dropsByToolLevel)) {
+          // if this mode's drops are empty, return null
+          if (dropsByToolLevel.Length == 0) {
+            return null;
+          }
           potentialDrops = dropsByToolLevel.Length <= toolUsed.UpgradeLevel
             ? dropsByToolLevel[0]
             : dropsByToolLevel[toolUsed.UpgradeLevel];
@@ -167,15 +186,50 @@ namespace SpiritWorld.World.Terrain.Features {
       }
 
       /// <summary>
+      /// Import the drops from a json
+      /// </summary>
+      /// <param name="dropJSON"></param>
+      /// <returns></returns>
+      protected static SortedDictionary<Tool.Type, DropChanceCollection[]>[] ParseDropDataJSON(string dropJSON) {
+        List<SortedDictionary<Tool.Type, DropChanceCollection[]>> dropDataByMode = new List<SortedDictionary<Tool.Type, DropChanceCollection[]>>();
+        JArray dropDataByModeJSON = JArray.Parse(dropJSON);
+        foreach (JArray modeDropData in dropDataByModeJSON.Children<JArray>()) {
+          SortedDictionary<Tool.Type, DropChanceCollection[]> modeData = new SortedDictionary<Tool.Type, DropChanceCollection[]>();
+          dropDataByMode.Add(modeData);
+          foreach(JObject toolDropData in modeDropData.Children<JObject>()) {
+            List<DropChanceCollection> dropChanceCollectionsByToolLevel = new List<DropChanceCollection>();
+            foreach(JArray dropPosibilitiesByToolLevel in toolDropData["DropPossibilities"].Values<JArray>()) {
+              DropChanceCollection dropChanceCollection = new DropChanceCollection();
+              dropChanceCollectionsByToolLevel.Add(dropChanceCollection);
+              foreach (JObject dropPosibility in dropPosibilitiesByToolLevel.Values<JObject>()) {
+                dropChanceCollection.add(
+                  dropPosibility["Weight"].Value<int>(),
+                  new BasicInventory(dropPosibility["Items"].Value<string>())
+                );
+              }
+            }
+
+            modeData.Add(
+              (Tool.Type)Enum.Parse(typeof(Tool.Type),toolDropData["Tool"].Value<string>()),
+              dropChanceCollectionsByToolLevel.ToArray()
+            );
+          }
+        }
+
+        return dropDataByMode.ToArray();
+      }
+
+      /// <summary>
       /// Helper func to get data for a mode's drops and tools
       /// </summary>
       /// <param name="mode"></param>
       /// <returns></returns>
-      Dictionary<Tool.Type, DropChanceCollection[]> getModeSpecificData(int mode) {
+      SortedDictionary<Tool.Type, DropChanceCollection[]> getModeSpecificData(int mode) {
         if (Drops == null) {
           return null;
         }
-        return mode > Drops.Length
+
+        return mode >= Drops.Length
           ? Drops[0]
           : Drops[mode];
       }

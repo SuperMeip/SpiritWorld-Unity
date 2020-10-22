@@ -6,7 +6,7 @@ namespace SpiritWorld.Events {
     /// <summary>
     /// How long to display each notification in seconds
     /// </summary>
-    public const float DefaultDisplayTime = 2;
+    public const float DefaultDisplayTime = 5f;
 
     /// <summary>
     /// How long we want to show the notification for

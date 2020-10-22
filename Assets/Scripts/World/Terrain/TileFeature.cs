@@ -1,4 +1,6 @@
-﻿using SpiritWorld.World.Terrain.TileGrid;
+﻿using SpiritWorld.Inventories;
+using SpiritWorld.Inventories.Items;
+using SpiritWorld.World.Terrain.TileGrid;
 using System;
 
 namespace SpiritWorld.World.Terrain.Features {
@@ -83,14 +85,15 @@ namespace SpiritWorld.World.Terrain.Features {
     /// <summary>
     /// Use this tile feature
     /// </summary>
-    /// <param name="totalTimeUsedForSoFar"></param>
-    /// <param name="deltaTimeUsedFor"></param>
-    public TileFeature interact(float totalTimeUsedForSoFar = 0) {
-      // if we still have normal interactions left, check if we're using one up.
-      // @todo: shovel as a tool should get around this when we add tool here, it can mine base level stuff off a tile.
-      if (remainingInteractions != 0) {
+    /// <returns>The updated feature, or null if the feature should be destroyed.</returns>
+    public TileFeature? interact(ITool toolUsed, float totalTimeUsedForSoFar, out IInventory drops) {
+      // record drops if we get any back from the feature
+      drops = null;
+      // if we still have normal interactions left and this tool is valid for this feature, check if we're using one up.
+      if (remainingInteractions != 0 && type.CanBeMinedBy(toolUsed, mode)) {
         if (type.IsInteractive && type.TryToUseOnce(totalTimeUsedForSoFar)) {
           remainingInteractions--;
+          drops = type.GetRandomDrops(toolUsed, mode);
           // if this is a transitional type, it's out of uses, and we've held use for long enough, transition to the next tile type
           if (remainingInteractions == 0 && type is TransitionalResourceType transitionalResourceType) {
             return new TileFeature(transitionalResourceType.NextFeatureType);
@@ -99,6 +102,10 @@ namespace SpiritWorld.World.Terrain.Features {
           // else update the mode
           updateModeBasedOnRemainingInteractions();
         }
+
+      //shovel works at 0 (except in the sky lol), it can mine base level stuff off a tile.
+      } else if (type.Layer != Layer.Sky && toolUsed.ToolType == Tool.Type.Shovel && type.TryToUseOnce(totalTimeUsedForSoFar)) {
+        return null;
       }
 
       return this;

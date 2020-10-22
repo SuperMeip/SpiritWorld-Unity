@@ -32,6 +32,17 @@ namespace SpiritWorld.Inventories.Items {
       }
 
       /// <summary>
+      /// The shape of this item in a shaped inventory,
+      /// determined by a 3D grid with 0,0 being bottom left
+      /// </summary>
+      public bool[,] Shape {
+        get;
+        protected set;
+      } = new bool[,] {
+        {true} 
+      };
+
+      /// <summary>
       /// For making new types
       /// </summary>
       /// <param name="id"></param>
@@ -59,6 +70,14 @@ namespace SpiritWorld.Inventories.Items {
       /// <returns></returns>
       public override int GetHashCode() {
         return Id;
+      }
+
+      /// <summary>
+      /// Item basic deets
+      /// </summary>
+      /// <returns></returns>
+      public override string ToString() {
+        return $"I.t[{Name}]";
       }
     }
 

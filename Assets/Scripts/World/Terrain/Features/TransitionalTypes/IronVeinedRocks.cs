@@ -24,13 +24,34 @@ namespace SpiritWorld.World.Terrain.Features {
         Types.RockPile,
         1
       ) {
-        Drops = new Dictionary<Tool.Type, DropChanceCollection[]>[] {
+        Drops = ParseDropDataJSON(@"
+          [
+            [
+              {
+                ""Tool"": ""Pickaxe"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 5,
+                      ""Items"": ""15:1""
+                    },
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""15:2""
+                    }
+                  ]
+                ]
+              }
+            ]
+          ]
+        ");
+          /*new SortedDictionary<Tool.Requirement, DropChanceCollection[]> {
           /// mode 0
-          new Dictionary<Tool.Type, DropChanceCollection[]> {{
-            Tool.Type.Any,
+          new SortedDictionary<Tool.Requirement, DropChanceCollection[]>() {{
+            new Tool.Requirement(Tool.Type.Pickaxe),
             new DropChanceCollection[] {
               new DropChanceCollection(
-                new (int, BasicInventory)[] {
+                new (int, IInventory)[] {
                   (5, new BasicInventory() {
                     {Item.Types.Iron, new Item(Item.Types.Iron, 1)}
                   }),
@@ -41,7 +62,7 @@ namespace SpiritWorld.World.Terrain.Features {
               )
             }
           }}
-        };
+        };*/
       }
     }
   }

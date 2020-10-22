@@ -11,7 +11,12 @@ namespace SpiritWorld.Inventories.Items {
     /// A wooden log
     /// </summary>
     public class Wood : Type {
-      internal Wood() : base(2, "Wood") { }
+      internal Wood() : base(2, "Wood") {
+        // slightly long
+        Shape = new bool[,] {
+          {true, true }
+        };
+      }
     }
   }
 }

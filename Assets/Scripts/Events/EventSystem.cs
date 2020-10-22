@@ -22,6 +22,11 @@ namespace SpiritWorld.Events {
 		List<IObserver>[] listenersByChannel;
 
 		/// <summary>
+		/// All the listeners who are subscribed every notification, even channel specific ones
+		/// </summary>
+		List<IObserver> superListeners;
+
+		/// <summary>
 		/// Debug Mode.
 		/// </summary>
 		bool debugMode = false;
@@ -31,6 +36,7 @@ namespace SpiritWorld.Events {
 		/// </summary>
 		public EventSystem() {
 			allListeners = new List<IObserver>();
+			superListeners = new List<IObserver>();
 			/// Set up the channels based on the enum
 			int channelCount = Enum.GetValues(typeof(ChannelList)).Length;
 			listenersByChannel = new List<IObserver>[channelCount];
@@ -50,6 +56,15 @@ namespace SpiritWorld.Events {
 			if (channelToSubscribeTo != null) {
 				subscribeToChannel(newListener, Convert.ToInt32(channelToSubscribeTo));
 			}
+		}
+
+		/// <summary>
+		/// Subscribe to the listener list.
+		/// If the channel is left null then just sibscribe to all.
+		/// </summary>
+		public void subscribeToAll(IObserver newListener) {
+			allListeners.Add(newListener);
+			superListeners.Add(newListener);
 		}
 
 		/// <summary>
@@ -126,6 +141,22 @@ namespace SpiritWorld.Events {
 					observer.notifyOf(@event);
 				}
 			} else ThrowMissingChannelException(channelNumber);
+
+			// also let superlisteners know
+			notifySuperListenersOf(@event);
+		}
+
+		/// <summary>
+		/// Notify all the super listeners
+		/// </summary>
+		/// <param name="event">The event to notify all listening observers of</param>
+		void notifySuperListenersOf(IEvent @event) {
+			if (debugMode) {
+				Debug.Log($"Notifiying Super-Listeners of {@event.name}");
+			}
+			foreach (IObserver observer in superListeners) {
+				observer.notifyOf(@event);
+			}
 		}
 
 		/// <summary>

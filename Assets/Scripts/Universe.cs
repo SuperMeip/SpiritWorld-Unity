@@ -2,6 +2,7 @@
 using SpiritWorld.Events;
 using SpiritWorld.Managers;
 using SpiritWorld.World;
+using SpiritWorld.World.Entities.Creatures;
 
 public class Universe {
 
@@ -44,4 +45,10 @@ public class Universe {
 	public static WorldScapeEventSystem EventSystem {
 		get;
 	} = new WorldScapeEventSystem();
+
+	/// <summary>
+	/// The local player
+	/// </summary>
+	public static Player LocalPlayer 
+		=> LocalPlayerController.getPlayer();
 }
