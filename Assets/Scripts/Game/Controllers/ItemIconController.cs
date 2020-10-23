@@ -62,12 +62,8 @@ namespace SpiritWorld.Game.Controllers {
       } else {
         iconScaler = icon.transform.Find("Model Icon Scaler").gameObject;
         GameObject itemModel = Instantiate(ItemDataMapper.GetModelFor(item), iconScaler.transform);
-        Renderer[] itemModelRenderers = itemModel.GetComponentsInChildren<Renderer>();
-        foreach(Renderer renderer in itemModelRenderers) {
-          renderer.material.shader = ItemDataMapper.ItemUIShader;
-        }
         iconController.itemModel = iconScaler;
-        iconController.itemModelRenderers = itemModelRenderers;
+        iconController.itemModelRenderers = itemModel.GetComponentsInChildren<Renderer>();
       }
 
       iconScaler.SetActive(true);

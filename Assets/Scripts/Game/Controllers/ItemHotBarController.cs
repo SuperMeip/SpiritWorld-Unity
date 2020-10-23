@@ -71,8 +71,6 @@ namespace SpiritWorld.Game.Controllers {
     => Universe.LocalPlayer.hotBarInventory;
 #endif
 
-
-
     /// <summary>
     /// Get the local player controller
     /// </summary>

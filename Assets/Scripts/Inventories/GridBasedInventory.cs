@@ -82,7 +82,9 @@ namespace SpiritWorld.Inventories {
       }
 
       // add the new item stack at the same ID, to preserve grid shapes, etc
-      addNewStack(newItem, stackId == EmptyGridSlot ? (int?)null : stackId);
+      stackId = addNewStack(newItem, stackId == EmptyGridSlot ? (int?)null : stackId);
+      addItemStackToSlot(stackId, location);
+
       return true;
     }
 

@@ -43,7 +43,7 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
      ShapedPack packInventory
 #if UNITY_EDITOR
-      = new ShapedPack((5, 7), new (Item, Coordinate)[] {
+      = new ShapedPack((4, 7), new (Item, Coordinate)[] {
         (new Item(Item.Types.Iron, 2), (0,0)),
         (new Item(Item.Types.Iron, 1), (2,2)),
         (new Item(Item.Types.Wood, 2), (3,2))
