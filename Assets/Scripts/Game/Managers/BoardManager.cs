@@ -1,4 +1,4 @@
-﻿using SpiritWorld.Controllers;
+﻿using SpiritWorld.Game.Controllers;
 using SpiritWorld.Events;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.World.Terrain.Features;

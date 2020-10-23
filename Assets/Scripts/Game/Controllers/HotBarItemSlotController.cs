@@ -1,7 +1,7 @@
 ﻿using SpiritWorld.Inventories.Items;
 using UnityEngine;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
   public class HotBarItemSlotController : MonoBehaviour {
 
     /// <summary>
@@ -12,12 +12,13 @@ namespace SpiritWorld.Controllers {
     /// <summary>
     /// Enlarged/selected icon size
     /// </summary>
-    const float DefaultSize = 50;
+    const float DefaultSize 
+      = ItemIconController.DefaultIconDiameter;
 
     /// <summary>
     /// Max distance at which faded items can be seen still
     /// </summary>
-    const int MaxVisibleDistance = 4;
+    const float MaxVisibleDistance = 4;
 
     /// <summary>
     /// if this the selected item
@@ -26,18 +27,6 @@ namespace SpiritWorld.Controllers {
       get;
       private set;
     }
-
-    /// <summary>
-    /// This's transform
-    /// </summary>
-    RectTransform rectTransform =>  _rectTransform ?? (_rectTransform = icon.GetComponent<RectTransform>());
-    RectTransform _rectTransform;
-
-    /// <summary>
-    /// The canvas group
-    /// </summary>
-    CanvasGroup canvasGroup => _canvasGroup ?? (_canvasGroup = GetComponent<CanvasGroup>());
-    CanvasGroup _canvasGroup;
 
     /// <summary>
     /// The icon currently being shown
@@ -60,7 +49,7 @@ namespace SpiritWorld.Controllers {
     /// </summary>
     public void markSelected() {
       isSelected = true;
-      rectTransform.sizeDelta = new Vector2(LargeSize, LargeSize);
+      icon.resize(LargeSize);
     }
 
     /// <summary>
@@ -68,7 +57,7 @@ namespace SpiritWorld.Controllers {
     /// </summary>
     public void markUnselected() {
       isSelected = false;
-      rectTransform.sizeDelta = new Vector2(DefaultSize, DefaultSize);
+      icon.resize(DefaultSize);
     }
 
     /// <summary>
@@ -82,7 +71,7 @@ namespace SpiritWorld.Controllers {
         if (!gameObject.activeSelf) {
           gameObject.SetActive(true);
         }
-        canvasGroup.alpha = 1 - distanceFromSelectedItem / MaxVisibleDistance;
+        icon.setOpacity(1f - (float)distanceFromSelectedItem / MaxVisibleDistance);
       }
     }
   }

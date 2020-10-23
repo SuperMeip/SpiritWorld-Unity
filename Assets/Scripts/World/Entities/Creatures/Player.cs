@@ -15,28 +15,6 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// </summary>
     public static ITool EmptyHand = new Hand();
 
-#if UNITY_EDITOR
-
-    /// <summary>
-    /// Test bar
-    /// </summary>
-    public static ItemBar TestStartingItemBar 
-      = new ItemBar(10, 1, new Item[] {
-        new Item(Item.Types.AutoToolShortcut),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.WaterLily, 2),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Iron, 2),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Stone, 2),
-        new Item(Item.Types.PineCone, 2),
-        new Item(Item.Types.Spapple, 2)
-    });
-
-#endif
-
     /// <summary>
     /// Inventory types the player has to store items
     /// </summary>

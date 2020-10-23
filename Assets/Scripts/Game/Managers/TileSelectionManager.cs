@@ -1,4 +1,4 @@
-﻿using SpiritWorld.Controllers;
+﻿using SpiritWorld.Game.Controllers;
 using SpiritWorld.Events;
 using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
@@ -10,6 +10,11 @@ using UnityEngine.UI;
 
 namespace SpiritWorld.Managers {
   public class TileSelectionManager : MonoBehaviour {
+
+    /// <summary>
+    /// The camera used to show the UI
+    /// </summary>
+    public Camera UICamera;
 
     /// <summary>
     /// The minimum time a key must be held down in order to get a hold action instead of a click action
@@ -260,7 +265,7 @@ namespace SpiritWorld.Managers {
         }
         float wheelPercentage = holdTimeSoFar / useTimeofFeature;
         workOnTileProgressCircle.fillAmount = wheelPercentage;
-        workOnTileIndicator.transform.position = Input.mousePosition;
+        workOnTileIndicator.transform.position = UICamera.ScreenToWorldPoint(Input.mousePosition);
       } else if (workOnTileIndicator.activeSelf == true) {
         workOnTileIndicator.SetActive(false);
       }

@@ -5,7 +5,7 @@ using SpiritWorld.World.Entities.Creatures;
 using System;
 using UnityEngine;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
   public class ItemHotBarController : MonoBehaviour {
 
     /// <summary>
@@ -47,8 +47,31 @@ namespace SpiritWorld.Controllers {
     /// The inventory this manages for the local player
     /// </summary>
     ItemBar barInventory
-      //=> Universe.LocalPlayer.hotBarInventory;
-      => Player.TestStartingItemBar;
+#if UNITY_EDITOR
+    => TestStartingItemBar;
+
+    /// <summary>
+    /// Test bar
+    /// </summary>
+    public static ItemBar TestStartingItemBar
+      = new ItemBar(10, 1, new Item[] {
+        new Item(Item.Types.AutoToolShortcut),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.WaterLily, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Iron, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Spapple, 2),
+        new Item(Item.Types.Stone, 2),
+        new Item(Item.Types.PineCone, 2),
+        new Item(Item.Types.Spapple, 2)
+    });
+#else
+    => Universe.LocalPlayer.hotBarInventory;
+#endif
+
+
 
     /// <summary>
     /// Get the local player controller

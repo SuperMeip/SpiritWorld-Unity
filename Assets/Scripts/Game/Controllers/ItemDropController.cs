@@ -4,7 +4,7 @@ using SpiritWorld.World.Entities.Creatures;
 using UnityEngine;
 using UnityEditor;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
 
   /// <summary>
   /// Controller for item drops

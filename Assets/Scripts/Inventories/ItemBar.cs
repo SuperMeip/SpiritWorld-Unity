@@ -68,8 +68,7 @@ namespace SpiritWorld.Inventories {
           return oldItem;
           // if we need to expand by one
         } else if (deepSlot < maxSlotDepth) {
-          int itemStackId = addNewStack(item);
-          addDeepSlot(itemStackId, barSlot);
+          addStack(item, (barSlot, deepSlot));
           successfullyAddedItem = item;
           return null;
         }
@@ -82,18 +81,6 @@ namespace SpiritWorld.Inventories {
 
     public override Item[] removeAt(Coordinate itemLocation) {
       throw new System.NotImplementedException();
-    }
-
-    /// <summary>
-    /// add a new slot to an expandable list.
-    /// </summary>
-    /// <param name="item1"></param>
-    /// <param name="item2"></param>
-    void addDeepSlot(int itemStackId, int barSlot) {
-      int[] oldItemBarDepthCollection = stackSlotGrid[barSlot];
-      int[] newItemBarDepthCollection = new int[oldItemBarDepthCollection.Length + 1];
-      stackSlotGrid[barSlot].CopyTo(newItemBarDepthCollection, 0);
-      newItemBarDepthCollection[oldItemBarDepthCollection.Length] = itemStackId;
     }
   }
 }

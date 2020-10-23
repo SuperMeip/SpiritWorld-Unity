@@ -1,4 +1,4 @@
-﻿using SpiritWorld.Controllers;
+﻿using SpiritWorld.Game.Controllers;
 using SpiritWorld.World;
 using SpiritWorld.World.Entities.Creatures;
 using SpiritWorld.World.Terrain.TileGrid;

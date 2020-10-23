@@ -13,8 +13,9 @@ namespace SpiritWorld.Inventories.Items {
     public class Wood : Type {
       internal Wood() : base(2, "Wood") {
         // slightly long
-        Shape = new bool[,] {
-          {true, true }
+        Shape = new ShapeBlocks[,] {
+          {ShapeBlocks.Pivot},
+          {ShapeBlocks.Solid}
         };
       }
     }

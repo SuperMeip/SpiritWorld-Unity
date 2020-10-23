@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SpiritWorld.Inventories.Items {
   public partial class Item {
@@ -9,6 +10,15 @@ namespace SpiritWorld.Inventories.Items {
     /// </summary>
     [System.Serializable]
     public abstract class Type : IEquatable<Type> {
+
+      /// <summary>
+      /// The shape blocks used to make up the item shape
+      /// </summary>
+      public enum ShapeBlocks {
+        Empty,
+        Pivot,
+        Solid
+      }
 
       /// <summary>
       /// The id of this tile type
@@ -34,13 +44,31 @@ namespace SpiritWorld.Inventories.Items {
       /// <summary>
       /// The shape of this item in a shaped inventory,
       /// determined by a 3D grid with 0,0 being bottom left
+      /// O is used to mark the center/pivot of the shaped icon, X is used for other parts. All other chars are ignored.
       /// </summary>
-      public bool[,] Shape {
+      public ShapeBlocks[,] Shape {
         get;
         protected set;
-      } = new bool[,] {
-        {true} 
+      } = new ShapeBlocks[,] {
+        {ShapeBlocks.Pivot} 
       };
+
+      /// <summary>
+      /// Get the center of the shape
+      /// </summary>
+      public Coordinate ShapePivot {
+        get {
+          for (int x = 0; x < Shape.GetLength(0); x++) {
+            for (int y = 0; y < Shape.GetLength(1); y++) {
+              if (Shape[x,y] == ShapeBlocks.Pivot) {
+                return (x, y);
+              }
+            }
+          }
+
+          return (0, 0);
+        }
+      }
 
       /// <summary>
       /// For making new types

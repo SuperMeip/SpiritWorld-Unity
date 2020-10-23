@@ -1,4 +1,4 @@
-﻿using SpiritWorld.Controllers;
+﻿using SpiritWorld.Game.Controllers;
 using SpiritWorld.Events;
 using SpiritWorld.Managers;
 using SpiritWorld.World;

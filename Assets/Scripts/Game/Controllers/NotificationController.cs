@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
 
   [RequireComponent(typeof(CanvasGroup))]
   public class NotificationController : MonoBehaviour {

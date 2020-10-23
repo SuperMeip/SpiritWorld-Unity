@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
   public class LocalNotificationController : MonoBehaviour, IObserver {
 
     /// <summary>

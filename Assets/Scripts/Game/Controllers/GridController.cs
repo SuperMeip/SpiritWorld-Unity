@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using SpiritWorld.Inventories.Items;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
 
   /// <summary>
   /// Controller for a grid chunk

@@ -3,7 +3,7 @@ using SpiritWorld.Inventories.Items;
 using System;
 using UnityEngine;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
   [RequireComponent(typeof(CharacterController))]
   [RequireComponent(typeof(CapsuleCollider))]
   public class LocalPlayerMovementController : PlayerController {

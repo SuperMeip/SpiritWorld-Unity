@@ -15,7 +15,7 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// The dimensions of this pack
     /// </summary>
-    protected (int x, int y) dimensions {
+    public (int x, int y) dimensions {
       get;
     }
 
@@ -51,8 +51,20 @@ namespace SpiritWorld.Inventories {
       }
     }
 
+    /// <summary>
+    /// Try to add an item to the first open slots of this inventory
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="location"></param>
+    /// <param name="successfullyAddedItem"></param>
+    /// <returns></returns>
     public abstract Item tryToAdd(Item item, Coordinate location, out Item successfullyAddedItem);
 
+    /// <summary>
+    /// Try to remove an item from the given grid slot
+    /// </summary>
+    /// <param name="itemLocation"></param>
+    /// <returns></returns>
     public abstract Item[] removeAt(Coordinate itemLocation);
 
     /// <summary>
@@ -64,16 +76,13 @@ namespace SpiritWorld.Inventories {
     protected virtual bool tryToSwapOut(Coordinate location, Item newItem, out Item oldItem) {
       // gather old item info and clear it out
       oldItem = getItemStackAt(location);
-      int oldStackId = stackSlotGrid[location.x][location.z];
-      if (oldStackId != EmptyGridSlot) {
-        clearStack(oldStackId);
+      int stackId = stackSlotGrid[location.x][location.y];
+      if (stackId != EmptyGridSlot) {
+        clearStack(stackId);
       }
 
-      // add the new item stack
-      int newItemStackId = addNewStack(newItem);
-
-      // set the new slot, yay!
-      stackSlotGrid[location.x][location.z] = newItemStackId;
+      // add the new item stack at the same ID, to preserve grid shapes, etc
+      addNewStack(newItem, stackId);
       return true;
     }
 
@@ -91,10 +100,44 @@ namespace SpiritWorld.Inventories {
     /// <param name="location"></param>
     /// <returns></returns>
     protected Item getItemStackAt(Coordinate location) {
-      int stackId = stackSlotGrid[location.x][location.z];
+      int stackId = stackSlotGrid[location.x][location.y];
       return stackId != EmptyGridSlot 
         ? stacks[stackId] 
         : null;
+    }
+
+    /// <summary>
+    /// Add the stack to the given slot
+    /// </summary>
+    /// <param name="stack"></param>
+    /// <param name="slot"></param>
+    protected int addStack(Item stack, Coordinate slot) {
+      int itemStackId = addNewStack(stack);
+      addItemStackToSlot(itemStackId, slot);
+
+      return itemStackId;
+    }
+
+    /// <summary>
+    /// add a new slot to an expandable list.
+    /// </summary>
+    /// <param name="item1"></param>
+    /// <param name="item2"></param>
+    protected void addItemStackToSlot(int itemStackId, Coordinate slot) {
+      int[] oldItemYList = stackSlotGrid[slot.x];
+      int[] newItemYList;
+      // if this is an extendable list in the depth dimension, extend it.
+      if (slot.y >= oldItemYList.Length && slot.y < dimensions.y) {
+        newItemYList = new int[oldItemYList.Length + 1];
+        stackSlotGrid[slot.x].CopyTo(newItemYList, 0);
+        newItemYList[oldItemYList.Length] = itemStackId;
+      // if not just add the stack where we want
+      } else {
+        newItemYList = oldItemYList;
+        newItemYList[slot.y] = itemStackId;
+      }
+
+      stackSlotGrid[slot.x] = newItemYList;
     }
   }
 }

@@ -178,9 +178,9 @@ namespace SpiritWorld.Inventories {
     /// Add a new item stack to the collections
     /// </summary>
     /// <param name="itemStack"></param>
-    protected int addNewStack(Item itemStack) {
+    protected int addNewStack(Item itemStack, int? stackId = null) {
       /// add the stack
-      int? freeStackId = getFirstFreeStackSlot();
+      int? freeStackId = stackId ?? getFirstFreeStackSlot();
       if (freeStackId != null) {
         stacks.Insert((int)freeStackId, itemStack);
       } else {

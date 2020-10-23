@@ -22,6 +22,11 @@ public struct Coordinate {
   public short z;
 
   /// <summary>
+  /// up down in 2D
+  /// </summary>
+  public short y => z;
+
+  /// <summary>
   /// Get this as a unity vector 2
   /// </summary>
   public Vector3 Vec3 {
@@ -72,6 +77,21 @@ public struct Coordinate {
     for (current.x = x; current.x < end.x; current.x += step) {
       for (current.z = z; current.z < end.z; current.z += step) {
         action(current);
+      }
+    }
+  }
+
+  /// <summary>
+  /// preform the acton on all coordinates between this one and the end coordinate
+  /// </summary>
+  /// <param name="end">The final point to run on, exclusive</param>
+  /// <param name="action">the function to run on each point</param>
+  /// <param name="step">the value by which the coordinate values are incrimented</param>
+  public void until(Coordinate end, Func<Coordinate, bool> action, short step = 1) {
+    Coordinate current = (x, z);
+    for (current.x = x; current.x < end.x; current.x += step) {
+      for (current.z = z; current.z < end.z; current.z += step) {
+        if (!action(current)) return;
       }
     }
   }

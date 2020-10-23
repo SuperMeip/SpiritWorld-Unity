@@ -1,18 +1,28 @@
 ﻿using SpiritWorld.Inventories.Items;
 using UnityEngine;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
   public class ItemIconController : MonoBehaviour {
+
+    /// <summary>
+    /// Default diameter of an icon
+    /// </summary>
+    public const float DefaultIconDiameter = 50f;
+
+    /// <summary>
+    /// Default scale of a model icon
+    /// </summary>
+    const float DefaultModelScale = 200f;
 
     /// <summary>
     /// Renderers used to modify model based icons
     /// </summary>
-    Renderer[] itemModelRenderers;
+    public Renderer[] itemModelRenderers;
 
     /// <summary>
-    /// The alpha of this item icon atm.
+    /// The model being used as an icon if there is one
     /// </summary>
-    float currentAlpha = 1.0f;
+    public GameObject itemModel;
 
     /// <summary>
     /// The canvas group
@@ -20,6 +30,13 @@ namespace SpiritWorld.Controllers {
     CanvasGroup canvasGroup 
       => _canvasGroup ?? (_canvasGroup = GetComponent<CanvasGroup>());
     CanvasGroup _canvasGroup;
+
+    /// <summary>
+    /// This's transform
+    /// </summary>
+    RectTransform rectTransform 
+      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
+    RectTransform _rectTransform;
 
     /// <summary>
     /// Make a new item icon for the given item
@@ -31,6 +48,7 @@ namespace SpiritWorld.Controllers {
         : Instantiate(ItemDataMapper.ItemIconPrefab);
 
       Sprite itemSprite = ItemDataMapper.GetIconFor(item);
+      ItemIconController iconController = icon.GetComponent<ItemIconController>();
 
       // if we found a sprite
       GameObject iconScaler;
@@ -48,10 +66,12 @@ namespace SpiritWorld.Controllers {
         foreach(Renderer renderer in itemModelRenderers) {
           renderer.material.shader = ItemDataMapper.ItemUIShader;
         }
+        iconController.itemModel = iconScaler;
+        iconController.itemModelRenderers = itemModelRenderers;
       }
 
       iconScaler.SetActive(true);
-      return icon.GetComponent<ItemIconController>();
+      return iconController;
     }
 
     /// <summary>
@@ -64,8 +84,20 @@ namespace SpiritWorld.Controllers {
         foreach (Renderer renderer in itemModelRenderers) {
           Color color = renderer.material.color;
           color.a = alpha;
-          renderer.material.color = color;
+          renderer.material.SetColor("_BaseColor", color);
         }
+      }
+    }
+
+    /// <summary>
+    /// Resize the icon. Base is set to the default.
+    /// </summary>
+    /// <param name="diameter"></param>
+    public void resize(float diameter = 50f) {
+      rectTransform.sizeDelta = new Vector2(diameter, diameter);
+      if (itemModel != null) {
+        float modelScale = (diameter / DefaultIconDiameter) * DefaultModelScale;
+        itemModel.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
       }
     }
   }

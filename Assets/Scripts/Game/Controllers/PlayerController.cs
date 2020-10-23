@@ -4,7 +4,7 @@ using SpiritWorld.Events;
 using UnityEngine;
 using SpiritWorld.Inventories;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
 
   /// <summary>
   /// Used to control players in the overworld

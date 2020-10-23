@@ -2,7 +2,7 @@
 using SpiritWorld.World.Entities.Creatures.AI;
 using UnityEngine;
 
-namespace SpiritWorld.Controllers {
+namespace SpiritWorld.Game.Controllers {
 
   /// <summary>
   /// Controls any combat capable entities, including players

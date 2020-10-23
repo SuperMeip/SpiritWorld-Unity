@@ -1,4 +1,4 @@
-﻿using SpiritWorld.Controllers;
+﻿using SpiritWorld.Game.Controllers;
 using SpiritWorld.Inventories.Items;
 using System.Collections.Generic;
 using System.Linq;
