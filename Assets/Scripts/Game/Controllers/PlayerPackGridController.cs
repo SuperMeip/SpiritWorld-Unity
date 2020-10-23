@@ -13,6 +13,11 @@ namespace SpiritWorld.Game.Controllers {
     public Texture2D GridTileTexture;
 
     /// <summary>
+    /// The background image for the item grid
+    /// </summary>
+    public AspectRatioFitter backgroundAspectRatio;
+
+    /// <summary>
     /// dimensions for the texture
     /// </summary>
     public Coordinate GridTileDimensions 
@@ -21,7 +26,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The background image for the item grid
     /// </summary>
-    Image gridBackground;
+    Image gridImage;
 
     /// <summary>
     /// The texture we use for the item grid
@@ -38,10 +43,10 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
      ShapedPack packInventory
 #if UNITY_EDITOR
-      = new ShapedPack((8, 10), new (Item, Coordinate)[] {
+      = new ShapedPack((5, 7), new (Item, Coordinate)[] {
         (new Item(Item.Types.Iron, 2), (0,0)),
-        (new Item(Item.Types.Iron, 1), (2,5)),
-        (new Item(Item.Types.Wood, 2), (4,2))
+        (new Item(Item.Types.Iron, 1), (2,2)),
+        (new Item(Item.Types.Wood, 2), (3,2))
     });
 #else
     => Universe.LocalPlayer.packInventory;
@@ -51,7 +56,7 @@ namespace SpiritWorld.Game.Controllers {
     /// consts and connections
     /// </summary>
     void Awake() {
-      gridBackground = GetComponent<Image>();
+      gridImage = GetComponent<Image>();
       aspectRatioFitter = GetComponent<AspectRatioFitter>();
     }
 
@@ -65,6 +70,7 @@ namespace SpiritWorld.Game.Controllers {
         GridTileTexture.height * packInventory.dimensions.y
       );
       aspectRatioFitter.aspectRatio = (float)packInventory.dimensions.x / (float)packInventory.dimensions.y;
+      backgroundAspectRatio.aspectRatio = aspectRatioFitter.aspectRatio;
       itemGridTexture.filterMode = FilterMode.Point;
 
       // add each slot to the texture's pixel collection.
@@ -84,7 +90,7 @@ namespace SpiritWorld.Game.Controllers {
       // set all the pixels we got and make a sprite out of it
       //itemGridTexture.SetPixels(flatten(pixels));
       itemGridTexture.Apply();
-      gridBackground.sprite = Sprite.Create(
+      gridImage.sprite = Sprite.Create(
         itemGridTexture,
         new Rect(
           0,
