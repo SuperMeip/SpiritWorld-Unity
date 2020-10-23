@@ -90,7 +90,7 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// An inventory to hold the hot bar items.
     /// </summary>
     public readonly ItemBar hotBarInventory
-      = TestStartingItemBar;
+      = new ItemBar(10, 1);
 
     /// <summary>
     /// Initialize a new player

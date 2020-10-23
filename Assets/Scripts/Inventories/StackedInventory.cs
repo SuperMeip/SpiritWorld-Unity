@@ -174,6 +174,7 @@ namespace SpiritWorld.Inventories {
       return leftovers.ToArray();
     }
 
+
     /// <summary>
     /// Add a new item stack to the collections
     /// </summary>

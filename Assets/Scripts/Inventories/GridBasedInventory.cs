@@ -82,7 +82,7 @@ namespace SpiritWorld.Inventories {
       }
 
       // add the new item stack at the same ID, to preserve grid shapes, etc
-      addNewStack(newItem, stackId);
+      addNewStack(newItem, stackId == EmptyGridSlot ? (int?)null : stackId);
       return true;
     }
 
@@ -94,6 +94,7 @@ namespace SpiritWorld.Inventories {
     protected bool isWithinGrid(Coordinate gridLocation) {
       return gridLocation.isWithin((0, 0), dimensions);
     }
+
     /// <summary>
     /// Get the item stack stored at the given grid spot
     /// </summary>

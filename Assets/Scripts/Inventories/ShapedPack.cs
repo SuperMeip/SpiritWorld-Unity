@@ -11,6 +11,16 @@ namespace SpiritWorld.Inventories {
     public ShapedPack((int x, int y) dimensions) : base(dimensions) {}
 
     /// <summary>
+    /// Make a shaped item pack of the given dimensions with starting items
+    /// </summary>
+    /// <param name="dimensions"></param>
+    public ShapedPack((int x, int y) dimensions, (Item, Coordinate)[] initialValues) : base(dimensions) {
+      foreach(var (item, addLocation) in initialValues) {
+        tryToAdd(item, addLocation, out _);
+      }
+    }
+
+    /// <summary>
     /// Try to add an item to the grid, centered on the given location
     /// </summary>
     /// <param name="item"></param>
