@@ -48,7 +48,6 @@ namespace SpiritWorld.World.Terrain.Features {
 
       /// <summary>
       /// The time it takes to use up one unit of this feature
-      /// TODO: this should be on the base
       /// </summary>
       public float TimeToUse {
         get;

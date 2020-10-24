@@ -40,17 +40,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The object controlling the icon
     /// </summary>
-    public Image icon;
-
-    /// <summary>
-    /// The object controlling the icon
-    /// </summary>
-    public GameObject modelIconScaler;
-
-    /// <summary>
-    /// The image background of the icon
-    /// </summary>
-    public Image iconBackground;
+    public Transform iconParent;
 
     /// <summary>
     /// The message text object
@@ -116,8 +106,9 @@ namespace SpiritWorld.Game.Controllers {
 
     /// <summary>
     /// The model icon we're using.
+    /// TODO make an interface for notification icons
     /// </summary>
-    GameObject currentModelIcon;
+    ItemIconController icon;
 
     /// <summary>
     /// The canvas renderer, for fade
@@ -164,15 +155,18 @@ namespace SpiritWorld.Game.Controllers {
             fadeTimer = 0;
             isFading = false;
             notificationCanvas.alpha = 1;
+            icon.setOpacity(1);
           } else {
             fadeTimer -= Time.deltaTime;
-            notificationCanvas.alpha = Mathf.Lerp(0, 1, 1 - fadeTimer / FadeInTime);
+            float alpha = Mathf.Lerp(0, 1, 1 - fadeTimer / FadeInTime);
+            notificationCanvas.alpha = alpha;
+            icon.setOpacity(alpha);
           }
         }
 
         // if we have an icon and it's not on yet, turn it on
-        if (currentModelIcon?.activeSelf == false) {
-          currentModelIcon.SetActive(true);
+        if (icon != null && icon.gameObject.activeSelf == false) {
+          icon.gameObject.SetActive(true);
         }
 
         /// slide
@@ -211,13 +205,12 @@ namespace SpiritWorld.Game.Controllers {
 
     /// <summary>
     /// Clear this notification from the list
-    /// TODO: before this is called, make a function to set a fade bool first that fades the notification out in update, then after the fade timer runs out we can destroy the object and call clear
     /// </summary>
     void clearNotification() {
       gameObject.SetActive(false);
-      if (currentModelIcon != null) {
-        Destroy(currentModelIcon);
-        currentModelIcon = null;
+      if (icon != null) {
+        Destroy(icon.gameObject);
+        icon = null;
       }
       notificationsController.notificationCleared(currentPosition);
 
@@ -236,18 +229,13 @@ namespace SpiritWorld.Game.Controllers {
       displayTimer = notification.displayTime;
       // set the icon and text
       messageText.text = notification.message;
-      Object notificationIcon = notification.icon;
-      if (notificationIcon is GameObject modelIcon) {
-        currentModelIcon = Instantiate(modelIcon, modelIconScaler.transform);
-        currentModelIcon.SetActive(false);
-      }
-      if (notificationIcon is Sprite spriteIcon) {
-        icon.sprite = spriteIcon;
-      }
+      icon = notification.icon as ItemIconController;
+      icon.parentTo(iconParent);
+      icon.resize(65);
+      icon.setBGColor(new Color(0, 131, 200));
       // set active and begin animating.
       beginFadeIn();
       beginSliding(BottomPositionIndex, position);
-      modelIconScaler.SetActive(true);
       gameObject.SetActive(true);
       isActive = true;
     }
@@ -263,6 +251,7 @@ namespace SpiritWorld.Game.Controllers {
     /// Begin the fade in process
     /// </summary>
     void beginFadeIn() {
+      icon.setOpacity(0);
       notificationCanvas.alpha = 0;
       isFading = true;
       fadeTimer = FadeInTime;

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using SpiritWorld.Game.Controllers;
+using UnityEngine;
 
 namespace SpiritWorld.Events {
   public struct Notification {
@@ -17,8 +18,7 @@ namespace SpiritWorld.Events {
     /// Get the icon to use.
     /// Either a gameobject model or sprite
     /// </summary>
-    public Object icon => imageIcon 
-      ?? (Object)modelIcon;
+    public Object icon => itemIcon;
 
     /// <summary>
     /// The message text of the notification
@@ -28,38 +28,18 @@ namespace SpiritWorld.Events {
     }
 
     /// <summary>
-    /// The object being used as an icon.
-    /// Can be a model or image.
+    /// The icon for the item;
     /// </summary>
-    Sprite imageIcon;
-
-    /// <summary>
-    /// The object being used as an icon.
-    /// Can be a model or image.
-    /// </summary>
-    GameObject modelIcon;
+    ItemIconController itemIcon;
 
     /// <summary>
     /// Make a new notification
     /// </summary>
     /// <param name="message"></param>
     /// <param name="icon"></param>
-    public Notification(string message, GameObject icon) {
+    public Notification(string message, ItemIconController icon) {
       this.message = message;
-      modelIcon = icon;
-      imageIcon = null;
-      displayTime = DefaultDisplayTime;
-    }
-
-    /// <summary>
-    /// Make a new notification
-    /// </summary>
-    /// <param name="message"></param>
-    /// <param name="icon"></param>
-    public Notification(string message, Sprite icon) {
-      this.message = message;
-      imageIcon = icon;
-      modelIcon = null;
+      itemIcon = icon;
       displayTime = DefaultDisplayTime;
     }
   }

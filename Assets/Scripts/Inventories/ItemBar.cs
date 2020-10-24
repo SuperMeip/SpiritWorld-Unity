@@ -1,5 +1,4 @@
 ﻿using SpiritWorld.Inventories.Items;
-using System;
 using System.Linq;
 
 namespace SpiritWorld.Inventories {
@@ -66,7 +65,7 @@ namespace SpiritWorld.Inventories {
         if (deepSlot == 0 || stackSlotGrid[barSlot].Length > deepSlot) {
           successfullyAddedItem = tryToSwapOut(barAndDeepSlot, item, out Item oldItem) ? item : null;
           return oldItem;
-          // if we need to expand by one
+        // if we need to expand by one
         } else if (deepSlot < maxSlotDepth) {
           addStack(item, (barSlot, deepSlot));
           successfullyAddedItem = item;

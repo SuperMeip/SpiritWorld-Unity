@@ -1,7 +1,6 @@
 ﻿using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.Managers;
-using SpiritWorld.World.Entities.Creatures;
 using System;
 using UnityEngine;
 
@@ -12,6 +11,12 @@ namespace SpiritWorld.Game.Controllers {
     /// The height of an item slot
     /// </summary>
     const float ItemSlotHeight = 75;
+
+    /// <summary>
+    /// The currently selected item of the local player via their hot bar.
+    /// </summary>
+    public Item selectedItem 
+      => getSelectedItem();
 
     /// <summary>
     /// The index in the item bar that's currently selected
@@ -164,7 +169,7 @@ namespace SpiritWorld.Game.Controllers {
     /// Get the item the player is currently selecting. This takes into account shortcuts.
     /// </summary>
     /// <returns></returns>
-    public Item getSelectedItem() {
+    Item getSelectedItem() {
       Item selectedItem = barInventory.getItemAt(currentlySelectedItemIndex);
       // if the item is a shortcut, use it to find the item we want from the inventory
       if (selectedItem is IHotBarItemShortcut itemBarUtility) {

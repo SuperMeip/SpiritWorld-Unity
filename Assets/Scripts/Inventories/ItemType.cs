@@ -71,6 +71,12 @@ namespace SpiritWorld.Inventories.Items {
       }
 
       /// <summary>
+      /// Get the size of the shape's dimensions
+      /// </summary>
+      public Coordinate ShapeSize
+        => (Shape.GetLength(0), Shape.GetLength(1));
+
+      /// <summary>
       /// For making new types
       /// </summary>
       /// <param name="id"></param>

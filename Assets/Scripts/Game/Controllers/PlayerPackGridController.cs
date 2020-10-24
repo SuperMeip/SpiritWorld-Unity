@@ -41,21 +41,18 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The inventory this manages for the local player
     /// </summary>
-     ShapedPack packInventory
-#if UNITY_EDITOR
-      = new ShapedPack((4, 7), new (Item, Coordinate)[] {
-        (new Item(Item.Types.Iron, 2), (0,0)),
-        (new Item(Item.Types.Iron, 1), (2,2)),
-        (new Item(Item.Types.Wood, 2), (3,2))
-    });
-#else
-    => Universe.LocalPlayer.packInventory;
-#endif
+    ShapedPack packInventory;
+    //=> Universe.LocalPlayer.packInventory;
 
     /// <summary>
     /// consts and connections
     /// </summary>
     void Awake() {
+      packInventory = new ShapedPack((5, 7), new (Item, Coordinate)[] {
+        (new Item(Item.Types.Iron, 2), (0,0)),
+        (new Item(Item.Types.Iron, 1), (2,2)),
+        (new Item(Item.Types.Wood, 2), (2,5))
+      });
       gridImage = GetComponent<Image>();
       aspectRatioFitter = GetComponent<AspectRatioFitter>();
     }
@@ -64,6 +61,11 @@ namespace SpiritWorld.Game.Controllers {
     /// Set up the grid based on player inventory
     /// </summary>
     void Start() {
+      updateGridSize();
+      populateGridFromPlayerInventory();
+    }
+
+    void updateGridSize() {
       // make the image texture
       itemGridTexture = new Texture2D(
         GridTileTexture.width * packInventory.dimensions.x,
@@ -74,7 +76,6 @@ namespace SpiritWorld.Game.Controllers {
       itemGridTexture.filterMode = FilterMode.Point;
 
       // add each slot to the texture's pixel collection.
-      //Color[,] pixels = new Color[itemGridTexture.width, itemGridTexture.height];
       // loop though each image spot in the grid
       Coordinate.Zero.until(packInventory.dimensions, textureGridLocation => {
         // loop though each pixel in that image.
@@ -82,13 +83,11 @@ namespace SpiritWorld.Game.Controllers {
           Coordinate test = localPixelOffset;
           (int x, int y) = (textureGridLocation * GridTileDimensions) + localPixelOffset;
           Color pixel = GridTileTexture.GetPixel(localPixelOffset.x, localPixelOffset.y);
-          /*pixels[x, y] = pixel;*/
           itemGridTexture.SetPixel(x, y, pixel);
         });
       });
 
       // set all the pixels we got and make a sprite out of it
-      //itemGridTexture.SetPixels(flatten(pixels));
       itemGridTexture.Apply();
       gridImage.sprite = Sprite.Create(
         itemGridTexture,
@@ -103,20 +102,32 @@ namespace SpiritWorld.Game.Controllers {
     }
 
     /// <summary>
-    /// Flatten a color aray
+    /// create and place each inventory item
     /// </summary>
-    /// <param name="colors"></param>
-    /// <returns></returns>
-    Color[] flatten(Color[,] colors) {
-      Color[] flattenedColors = new Color[colors.GetLength(0) * colors.GetLength(1)];
-      int index = 0;
-      for (int x = 0; x < colors.GetLength(0); x++) {
-        for (int y = 0; y < colors.GetLength(1); y++) {
-          flattenedColors[index++] = colors[x, y];
-        }
-      }
+    void populateGridFromPlayerInventory() {
+      packInventory.forEach((pivot, stack) => {
+        ItemIconController iconController = ItemIconController.Make(stack, transform, true);
+        iconController.setShaped(true);
+        placeIcon(iconController, pivot);
+      });
+    }
 
-      return flattenedColors;
+    /// <summary>
+    /// Place the given shaped item icon at the given grid location
+    /// </summary>
+    /// <param name="iconController"></param>
+    /// <param name="gridLocation"></param>
+    void placeIcon(ItemIconController iconController, Coordinate gridLocation) {
+      RectTransform iconTransform = iconController.GetComponent<RectTransform>();
+      float gridUnitWidth = (float)1 / (float)packInventory.dimensions.x;
+      float gridUnitHeight = (float)1 / (float)packInventory.dimensions.y;
+      iconTransform.anchorMin = new Vector2(
+        gridLocation.x * gridUnitWidth,
+        gridLocation.y * gridUnitHeight
+      );
+      iconTransform.anchorMax 
+        = iconTransform.anchorMin + new Vector2(gridUnitWidth, gridUnitHeight);
+      iconTransform.SetLTRB(0);
     }
   }
 }

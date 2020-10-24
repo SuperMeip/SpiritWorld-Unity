@@ -64,14 +64,11 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     /// <param name="event"></param>
     public void notifyOf(IEvent @event) {
-      // notifications are fired off in tasks
       switch (@event) {
         case PlayerController.PlayerObtainItemEvent pcPOI:
           // if it's the local player we show a notification
           if (pcPOI.player == Universe.LocalPlayer) {
-            new Task(() => {
-              pendingNotifications.Enqueue(getPlayerPickupItemNotification(pcPOI.item, pcPOI.player));
-            }).Start();
+            pendingNotifications.Enqueue(getPlayerPickupItemNotification(pcPOI.item, pcPOI.player));
           }
           break;
         default:
@@ -106,7 +103,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="player"></param>
     /// <returns></returns>
     Notification getPlayerPickupItemNotification(Item item, Player player) {
-      return new Notification(TimesSymbol + " " + item.quantity.ToString() + " " + item.type.Name, ItemDataMapper.GetModelFor(item));
+      return new Notification(TimesSymbol + " " + item.quantity.ToString() + " " + item.type.Name, ItemIconController.Make(item));
     }
 
     /// <summary>

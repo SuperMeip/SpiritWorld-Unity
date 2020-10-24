@@ -110,7 +110,7 @@ public struct Coordinate {
   /// <param name="bounds">The outer boundary to check for point inclusion. Exclusive</param>
   /// <returns></returns>
   public bool isWithin(Coordinate start, Coordinate bounds) {
-    return isWithin(bounds) && isBeyond(start);
+    return isWithin(bounds) && isAtLeastOrBeyond(start);
   }
 
   /// <summary>
@@ -120,14 +120,14 @@ public struct Coordinate {
   /// <returns></returns>
   public bool isWithin(Coordinate[] bounds) {
     if (bounds != null && bounds.Length == 2) {
-      return isWithin(bounds[1]) && isBeyond(bounds[0]);
+      return isWithin(bounds[1]) && isAtLeastOrBeyond(bounds[0]);
     } else throw new ArgumentOutOfRangeException("Coordinate.isWithin must take an array of size 2.");
   }
 
   /// <summary>
-  /// Checks if this coordinate is greater than a lower bounds coordinate (Inclusive)
+  /// Checks if this coordinate is greater than (or equal to) a lower bounds coordinate (Inclusive)
   /// </summary>
-  public bool isBeyond(Coordinate bounds) {
+  public bool isAtLeastOrBeyond(Coordinate bounds) {
     return x >= bounds.x
       && z >= bounds.z;
   }
@@ -256,6 +256,14 @@ public struct Coordinate {
       a.y,
       a.z + b.z
     );
+  }
+
+  public static bool operator >(Coordinate a, Coordinate b) {
+    return a.x > b.x || a.y > b.y;
+  }
+
+  public static bool operator <(Coordinate a, Coordinate b) {
+    return a.x < b.x && a.y < b.y;
   }
 
   /// <summary>

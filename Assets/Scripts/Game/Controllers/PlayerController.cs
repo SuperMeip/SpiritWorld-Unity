@@ -17,7 +17,7 @@ namespace SpiritWorld.Game.Controllers {
 
     /// <summary>
     /// The currently selected tool of the user
-    /// TODO: move this to ItemHotBarController
+    /// TODO: move this functionality to ItemHotBarController.selectedItem for the local player only
     /// </summary>
     public ITool selectedTool {
       get;

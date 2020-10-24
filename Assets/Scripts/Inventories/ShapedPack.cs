@@ -1,8 +1,15 @@
 ﻿using SpiritWorld.Inventories.Items;
 using System;
+using System.Collections.Generic;
 
 namespace SpiritWorld.Inventories {
   public class ShapedPack : GridBasedInventory {
+
+    /// <summary>
+    /// The pivot locations for each stack
+    /// </summary>
+    Dictionary<int, Coordinate> stackPivotLocations 
+      = new Dictionary<int, Coordinate>();
 
     /// <summary>
     /// Make a shaped item pack of the given dimensions
@@ -23,16 +30,16 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// Try to add an item to the grid, centered on the given location
     /// </summary>
-    /// <param name="item"></param>
+    /// <param name="item">The item we're trying to add</param>
     /// <param name="location">the place the center/pivot of the shaped item icon is placed on the grid</param>
-    /// <param name="successfullyAddedItem"></param>
-    /// <returns></returns>
+    /// <param name="successfullyAddedItem">Any items sucessfully added</param>
+    /// <returns>Leftovers/items not added or returned.</returns>
     public override Item tryToAdd(Item item, Coordinate location, out Item successfullyAddedItem) {
       Item leftoverStack = null;
       successfullyAddedItem = null;
 
       // check the placed center location stacks first
-      Item pivotStack =  getItemStackAt(location);
+      Item pivotStack = getItemStackAt(location);
       // if it's null, check to see if the whole shape worth of spaces are empty and add it if so
       if (pivotStack == null) {
         bool allStacksAreEmpty = true;
@@ -40,12 +47,19 @@ namespace SpiritWorld.Inventories {
         Coordinate itemPivot = item.type.ShapePivot;
         Coordinate.Zero.until((item.type.Shape.GetLength(0), item.type.Shape.GetLength(1)), offset => {
           // from bottom left => right top
-          // we can skip the middle one (pivot type) too because we already checked it.
           Coordinate currentGridLocation = location + (offset - itemPivot);
+          // make sure the grid location exists
+          if (!currentGridLocation.isWithin(Coordinate.Zero, dimensions)) {
+            leftoverStack = item;
+            allStacksAreEmpty = false;
+            return false;
+          }
+          // we can skip the middle one (pivot type) too because we already checked it.
           if (item.type.Shape[offset.x, offset.z] == Item.Type.ShapeBlocks.Solid) {
             Item blockStack = getItemStackAt(currentGridLocation);
-            // if the blockstat is null, abort.
+            // if the blockstack is occupied, abort.
             if (blockStack != null) {
+              leftoverStack = item;
               allStacksAreEmpty = false;
               return false;
             }
@@ -59,12 +73,10 @@ namespace SpiritWorld.Inventories {
           successfullyAddedItem = item;
           addShapedItemStack(item, location);
         }
-
-      // if it can stack, stack em
+      /// if it can stack, stack em
       } else if (item.canStackWith(pivotStack)) {
-        return pivotStack.addToStack(item, out successfullyAddedItem);
-      // try to swap it for the other item if they're the same shape
-
+        leftoverStack = pivotStack.addToStack(item, out successfullyAddedItem);
+      /// try to swap it for the other item if they're the same shape
       } else if (item.type.Shape == pivotStack.type.Shape) {
         successfullyAddedItem = tryToSwapOut(location, item, out leftoverStack) 
           ? item 
@@ -81,6 +93,18 @@ namespace SpiritWorld.Inventories {
     /// <returns></returns>
     public override Item[] removeAt(Coordinate itemLocation) {
       throw new System.NotImplementedException();
+    }
+
+    /// <summary>
+    /// Do something on each item stack given it's pivot location
+    /// </summary>
+    /// <param name="action"></param>
+    public void forEach(Action<Coordinate, Item> action) {
+      for(int stackId = 0; stackId < stacks.Count; stackId++) {
+        if (stacks[stackId] is Item stack && stack != null) {
+          action(stackPivotLocations[stackId], stack);
+        }
+      }
     }
 
     /// <summary>
@@ -104,6 +128,9 @@ namespace SpiritWorld.Inventories {
           }
         }
       });
+
+      // add the pivot
+      stackPivotLocations.Add((int)stackId, location);
     }
   }
 }

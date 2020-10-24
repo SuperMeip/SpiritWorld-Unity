@@ -50,6 +50,7 @@ namespace SpiritWorld.Game.Controllers {
     public void markSelected() {
       isSelected = true;
       icon.resize(LargeSize);
+      icon.setBGColor(new Color(0, 131, 255));
     }
 
     /// <summary>
@@ -58,6 +59,7 @@ namespace SpiritWorld.Game.Controllers {
     public void markUnselected() {
       isSelected = false;
       icon.resize(DefaultSize);
+      icon.setBGColor();
     }
 
     /// <summary>
