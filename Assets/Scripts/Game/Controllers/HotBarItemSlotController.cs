@@ -37,6 +37,12 @@ namespace SpiritWorld.Game.Controllers {
     }
 
     /// <summary>
+    /// If this slot is actie and being used to display an item
+    /// </summary>
+    public bool isInUse
+      => icon?.item != null;
+
+    /// <summary>
     /// The icon currently being shown
     /// </summary>
     ItemIconController icon;
@@ -45,12 +51,25 @@ namespace SpiritWorld.Game.Controllers {
     /// Set the item on this slot
     /// </summary>
     /// <param name="item"></param>
-    public void setItem(Item item, int barSlotIndex) {
+    public void setDisplayedItem(Item item, int barSlotIndex) {
       if (item != null) {
         gameObject.SetActive(true);
         icon = ItemIconController.Make(item, transform);
       }
       this.barSlotIndex = barSlotIndex;
+    }
+
+    /// <summary>
+    /// update the displayed item or it's data
+    /// </summary>
+    /// <param name="newItem"></param>
+    internal void updateDisplayedItemTo(Item newItem) {
+      // if the items are the same, just update the stack count
+      if (newItem.Equals(icon.item)) {
+        icon.updateStackCount();
+      } else {
+        icon = ItemIconController.Make(newItem, transform);
+      }
     }
 
     /// <summary>

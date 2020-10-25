@@ -38,29 +38,19 @@ namespace SpiritWorld.Game.Controllers {
     /// The inventory this manages for the local player
     /// </summary>
     ItemBar barInventory
-#if UNITY_EDITOR
-    => TestStartingItemBar;
+    => Universe.LocalPlayer.hotBarInventory;
 
     /// <summary>
     /// Test bar
     /// </summary>
     public static ItemBar TestStartingItemBar
-      = new ItemBar(10, 1, new Item[] {
+      = new ItemBar(7, 1, new Item[] {
         new Item(Item.Types.AutoToolShortcut),
         new Item(Item.Types.Spapple, 2),
         new Item(Item.Types.WaterLily, 2),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Spapple, 2),
         new Item(Item.Types.Iron, 2),
-        new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Spapple, 2),
         new Item(Item.Types.Stone, 2),
-        new Item(Item.Types.PineCone, 2),
-        new Item(Item.Types.Spapple, 2)
     });
-#else
-    => Universe.LocalPlayer.hotBarInventory;
-#endif
 
     /// <summary>
     /// Get the consts and associations
@@ -81,7 +71,7 @@ namespace SpiritWorld.Game.Controllers {
         HotBarItemSlotController itemController = itemSlotControllers[currentItemIndex];
         Item item = barInventory.getItemAt(currentItemIndex);
         if (item != null) {
-          itemController.setItem(item, currentItemIndex);
+          itemController.setDisplayedItem(item, currentItemIndex);
           if (currentItemIndex == currentlySelectedItemIndex) {
             itemController.markSelected();
           } else {
@@ -115,15 +105,17 @@ namespace SpiritWorld.Game.Controllers {
       if (currentlySelectedItemIndex != previousSelectedItemIndex) {
         int itemSlotControllerIndex = 0;
         foreach(HotBarItemSlotController itemSlotController in itemSlotControllers) {
-          // size
-          if (itemSlotControllerIndex == currentlySelectedItemIndex) {
-            itemSlotController.markSelected();
-          } else if (itemSlotController.isSelected) {
-            itemSlotController.markUnselected();
-          }
+          if (itemSlotController.isInUse) {
+            // size
+            if (itemSlotControllerIndex == currentlySelectedItemIndex) {
+              itemSlotController.markSelected();
+            } else if (itemSlotController.isSelected) {
+              itemSlotController.markUnselected();
+            }
 
-          // fade
-          itemSlotController.setFadeDistance(Math.Abs(itemSlotControllerIndex++ - currentlySelectedItemIndex));
+            // fade
+            itemSlotController.setFadeDistance(Math.Abs(itemSlotControllerIndex++ - currentlySelectedItemIndex));
+          }
         }
       }
     }
@@ -167,9 +159,28 @@ namespace SpiritWorld.Game.Controllers {
     }
 
     /// <summary>
-    /// Not yet implimented
+    /// Receive notifications
     /// </summary>
     /// <param name="event"></param>
-    public void notifyOf(IEvent @event) {}
+    public void notifyOf(IEvent @event) {
+      switch (@event) {
+        case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
+          if (pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.HotBar) {
+            foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
+              HotBarItemSlotController slotController = itemSlotControllers[updatedItemPivot.x];
+              // if the slot is being used, we need to update it
+              if (slotController.isInUse) {
+                itemSlotControllers[updatedItemPivot.x].updateDisplayedItemTo(barInventory.getItemAt(updatedItemPivot.x));
+              // if the slot isn't being used, lets nab it and set it.
+              } else {
+                slotController.setDisplayedItem(barInventory.getItemAt(updatedItemPivot.x), updatedItemPivot.x);
+              }
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    }
   }
 }

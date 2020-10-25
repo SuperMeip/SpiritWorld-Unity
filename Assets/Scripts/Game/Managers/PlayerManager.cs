@@ -3,6 +3,7 @@ using SpiritWorld.World.Entities.Creatures;
 using SpiritWorld.Events;
 using UnityEngine;
 using SpiritWorld.Inventories;
+using System;
 
 namespace SpiritWorld.Managers {
 
@@ -60,7 +61,7 @@ namespace SpiritWorld.Managers {
     /// <param name="inventory"></param>
     /// <returns></returns>
     public virtual Item[] tryToEmpty(IInventory inventory) {
-      return tryToEmpty(inventory, out _);
+      return tryToLoot(inventory, out _);
     }
 
     /// <summary>
@@ -77,8 +78,9 @@ namespace SpiritWorld.Managers {
     /// </summary>
     /// <param name="inventory"></param>
     /// <returns></returns>
-    public virtual Item[] tryToEmpty(IInventory inventory, out Item[] succesfullyAddedUpItems) {
-      return inventory.emptyInto(player.packInventory, out succesfullyAddedUpItems);
+    public virtual Item[] tryToLoot(IInventory inventory, out Item[] succesfullyAddedUpItems) {
+      Item[] barLeftovers = player.hotBarInventory.tryToLoot(inventory, out succesfullyAddedUpItems, out _);
+      return barLeftovers.Length > 0 ? player.packInventory.tryToLoot(inventory, out succesfullyAddedUpItems, out _) : barLeftovers;
     }
 
     /// <summary>
@@ -127,13 +129,18 @@ namespace SpiritWorld.Managers {
         get;
       }
 
+      public Player.InventoryTypes updatedInventoryType {
+        get;
+      }
+
       /// <summary>
       /// Make an event of this kind
       /// </summary>
       /// <param name="player"></param>
       /// <param name="item"></param>
-      public PackInventoryItemsUpdatedEvent(Coordinate[] modifiedPivots) {
+      public PackInventoryItemsUpdatedEvent(Coordinate[] modifiedPivots, Player.InventoryTypes updatedInventoryType) {
         this.modifiedPivots = modifiedPivots;
+        this.updatedInventoryType = updatedInventoryType;
       }
     }
   }

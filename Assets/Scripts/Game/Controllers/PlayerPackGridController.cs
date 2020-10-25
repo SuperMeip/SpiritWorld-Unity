@@ -147,18 +147,20 @@ namespace SpiritWorld.Game.Controllers {
     public void notifyOf(IEvent @event) {
       switch (@event) {
         case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
-          foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
-            if (itemsByPivot.TryGetValue(updatedItemPivot, out ItemIconController iconController)) {
-              iconController.updateStackCount();
-            } else {
-              iconController = ItemIconController.Make(
-                packInventory.getItemStackAt(updatedItemPivot, out int stackId),
-                transform,
-                stackId,
-                true
-              );
-              iconController.setShaped(true);
-              placeIcon(iconController, updatedItemPivot);
+          if (pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.GridPack) {
+            foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
+              if (itemsByPivot.TryGetValue(updatedItemPivot, out ItemIconController iconController)) {
+                iconController.updateStackCount();
+              } else {
+                iconController = ItemIconController.Make(
+                  packInventory.getItemStackAt(updatedItemPivot, out int stackId),
+                  transform,
+                  stackId,
+                  true
+                );
+                iconController.setShaped(true);
+                placeIcon(iconController, updatedItemPivot);
+              }
             }
           }
           break;

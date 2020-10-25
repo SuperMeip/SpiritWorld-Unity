@@ -1,5 +1,6 @@
 ﻿using SpiritWorld.Inventories.Items;
 using System;
+using System.Collections.Generic;
 
 namespace SpiritWorld.Inventories {
 
@@ -89,6 +90,35 @@ namespace SpiritWorld.Inventories {
     public abstract Item[] removeAt(Coordinate itemLocation);
 
     /// <summary>
+    /// try to empty another inventory into this shaped one with important deets added
+    /// </summary>
+    /// <param name="inventory"></param>
+    /// <param name="succesfullyAddedUpItems"></param>
+    /// <param name="modifiedPivots"></param>
+    /// <returns></returns>
+    public Item[] tryToLoot(IInventory inventory, out Item[] succesfullyAddedUpItems, out Coordinate[] modifiedPivots) {
+      List<Item> itemsSuccessfullyAdded = new List<Item>();
+      List<Coordinate> pivotsModified = new List<Coordinate>();
+      List<Item> leftovers = new List<Item>();
+      // for each item in the emptied other inventory
+      foreach (Item item in inventory.empty()) {
+        // try to add each one to the inventory and collect the changes
+        Item leftoverItemStack = tryToAdd(item, out Item addedItems, out Coordinate[] updatedPivots);
+        if (leftoverItemStack != null) {
+          leftovers.Add(leftoverItemStack);
+        }
+        if (addedItems != null) {
+          itemsSuccessfullyAdded.Add(addedItems);
+        }
+        pivotsModified.AddRange(updatedPivots);
+      }
+
+      succesfullyAddedUpItems = itemsSuccessfullyAdded.ToArray();
+      modifiedPivots = pivotsModified.ToArray();
+      return leftovers.ToArray();
+    }
+
+    /// <summary>
     /// Try to swap an item at a given location with another
     /// </summary>
     /// <param name="location"></param>
@@ -155,7 +185,7 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// add items to a stack at a given location
     /// </summary>
-    /// <returns>leftovers</returns>
+    /// <returns>leftovers or null</returns>
     protected Item addToStack(Item stack, Coordinate slot, out Item succesfullyAddedItems) {
       Item currentStack = getItemStackAt(slot);
       return currentStack.addToStack(stack, out succesfullyAddedItems);

@@ -86,7 +86,7 @@ namespace SpiritWorld.Inventories {
     /// </summary>
     /// <param name="item"></param>
     /// <param name="successfullyAddedItems"></param>
-    /// <returns></returns>
+    /// <returns>leftovers or null</returns>
     public override Item tryToAdd(Item item, out Item successfullyAddedItems, out Coordinate[] modifiedStackPivots) {
       int barSlotIndex = 0;
       int firstEmptyBarSlotIndex = EmptyGridSlot;
@@ -95,9 +95,10 @@ namespace SpiritWorld.Inventories {
       successfullyAddedItems = null;
       foreach(int[] barSlotStack in stackSlotGrid) {
         // if this slot is empty, mark it for if we dont' find an existing stack
-        if (barSlotStack[0] == EmptyGridSlot && firstEmptyBarSlotIndex == EmptyGridSlot) {
-          firstEmptyBarSlotIndex = barSlotIndex;
-
+        if (barSlotStack[0] == EmptyGridSlot) {
+          if (firstEmptyBarSlotIndex == EmptyGridSlot) {
+            firstEmptyBarSlotIndex = barSlotIndex;
+          }
         // if the slot is full but matches the item
         } else if (!stacks[barSlotStack[0]].isFull && stacks[barSlotStack[0]].canStackWith(itemsLeftToAdd)) {
           Coordinate slotLocation = (barSlotIndex, 0);
@@ -111,7 +112,7 @@ namespace SpiritWorld.Inventories {
         }
 
         // stop when we run out
-        if (itemsLeftToAdd.quantity == 0) {
+        if (itemsLeftToAdd == null) {
           break;
         }
 

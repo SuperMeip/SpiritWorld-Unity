@@ -5,7 +5,7 @@ namespace SpiritWorld.Inventories.Items {
   /// <summary>
   /// An item, or stack of multiple of the same items
   /// </summary>
-  public partial class Item {
+  public partial class Item : IEquatable<Item> {
 
     /// <summary>
     /// The type of tile
@@ -111,6 +111,15 @@ namespace SpiritWorld.Inventories.Items {
     /// <returns></returns>
     public override string ToString() {
       return $"I[{type.Name}:{quantity}]";
+    }
+
+    /// <summary>
+    /// an Item = an Item if they can stack and have the same quantity.
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
+    public bool Equals(Item other) {
+      return canStackWith(other) && quantity == other.quantity;
     }
   }
 }

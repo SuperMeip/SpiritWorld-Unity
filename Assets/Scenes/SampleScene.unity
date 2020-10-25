@@ -3299,8 +3299,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   headObject: {fileID: 392769610}
-  moveSpeed: 10
-  jumpHeight: 0.33
+  moveSpeed: 2
+  jumpHeight: 0.2
   sprintMultiplier: 1.5
   gravityStrength: -9.81
 --- !u!1 &1433427022

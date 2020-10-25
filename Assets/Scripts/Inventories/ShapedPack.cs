@@ -8,7 +8,7 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// The pivot locations for each stack
     /// </summary>
-    Dictionary<int, Coordinate> stackPivotLocations 
+    readonly Dictionary<int, Coordinate> stackPivotLocations 
       = new Dictionary<int, Coordinate>();
 
     /// <summary>

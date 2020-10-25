@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.Events;
+using SpiritWorld.Game.Controllers;
 using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.Stats;
@@ -18,10 +19,10 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// <summary>
     /// Inventory types the player has to store items
     /// </summary>
-    public enum InventorySlots {
-      Pouch,
+    public enum InventoryTypes {
+      HotBar,
       Pockets,
-      Backpack
+      GridPack
     }
 
     /// <summary>
@@ -90,7 +91,7 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// An inventory to hold the hot bar items.
     /// </summary>
     public readonly ItemBar hotBarInventory
-      = new ItemBar(10, 1);
+      = ItemHotBarController.TestStartingItemBar;
 
     /// <summary>
     /// Initialize a new player

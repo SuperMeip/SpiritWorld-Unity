@@ -23,5 +23,11 @@ namespace SpiritWorld.Inventories {
     /// </summary>
     /// <returns>removed items</returns>
     Item[] removeAt(Coordinate itemLocation);
+
+    /// <summary>
+    /// Try to empty the given inventory into this one, and get modified pivot data
+    /// </summary>
+    /// <returns></returns>
+    Item[] tryToLoot(IInventory inventory, out Item[] succesfullyAddedUpItems, out Coordinate[] modifiedPivots);
   }
 }
