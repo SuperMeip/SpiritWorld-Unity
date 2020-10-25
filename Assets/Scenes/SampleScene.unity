@@ -1324,7 +1324,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 0, y: 3.381e-41, z: 0, w: 0}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -2240,6 +2240,21 @@ MonoBehaviour:
     OverworldModel: {fileID: 0}
     SmallIcon: {fileID: 21300000, guid: 3e617719401289244beadb88101fe1ed, type: 3}
     ShapedInventoryIcon: {fileID: 0}
+  ShapedItemSpriteBackgroundDataMaps:
+  - ShapeMap:
+      Map:
+      - Map: 010000
+      - Map: 000000
+      - Map: 000000
+    ShapedBackgroundSprite: {fileID: 21300000, guid: 425cdfd672861ff4da7cf91957c958ef,
+      type: 3}
+  - ShapeMap:
+      Map:
+      - Map: 010100
+      - Map: 000000
+      - Map: 000000
+    ShapedBackgroundSprite: {fileID: 21300000, guid: 08adb33c2395abd48ba82c1416308005,
+      type: 3}
 --- !u!114 &1133174707
 MonoBehaviour:
   m_ObjectHideFlags: 0

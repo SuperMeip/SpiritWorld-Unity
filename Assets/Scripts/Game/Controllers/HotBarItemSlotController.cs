@@ -29,6 +29,14 @@ namespace SpiritWorld.Game.Controllers {
     }
 
     /// <summary>
+    /// The index of this in the bar
+    /// </summary>
+    public int barSlotIndex {
+      get;
+      private set;
+    }
+
+    /// <summary>
     /// The icon currently being shown
     /// </summary>
     ItemIconController icon;
@@ -37,11 +45,12 @@ namespace SpiritWorld.Game.Controllers {
     /// Set the item on this slot
     /// </summary>
     /// <param name="item"></param>
-    public void setItem(Item item) {
+    public void setItem(Item item, int barSlotIndex) {
       if (item != null) {
         gameObject.SetActive(true);
         icon = ItemIconController.Make(item, transform);
       }
+      this.barSlotIndex = barSlotIndex;
     }
 
     /// <summary>

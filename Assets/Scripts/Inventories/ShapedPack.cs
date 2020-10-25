@@ -98,11 +98,11 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// Do something on each item stack given it's pivot location
     /// </summary>
-    /// <param name="action"></param>
-    public void forEach(Action<Coordinate, Item> action) {
+    /// <param name="action">item pivot location, item stack, stack id</param>
+    public void forEach(Action<Coordinate, Item, int> action) {
       for(int stackId = 0; stackId < stacks.Count; stackId++) {
         if (stacks[stackId] is Item stack && stack != null) {
-          action(stackPivotLocations[stackId], stack);
+          action(stackPivotLocations[stackId], stack, stackId);
         }
       }
     }

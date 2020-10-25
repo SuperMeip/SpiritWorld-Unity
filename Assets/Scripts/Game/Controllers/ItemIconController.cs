@@ -1,4 +1,5 @@
-﻿using SpiritWorld.Inventories.Items;
+﻿using SpiritWorld.Inventories;
+using SpiritWorld.Inventories.Items;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,6 +28,14 @@ namespace SpiritWorld.Game.Controllers {
     /// If this is currently a shaped icon
     /// </summary>
     public bool isShaped {
+      get;
+      private set;
+    }
+
+    /// <summary>
+    /// The id of the stack if this is being used in an inventory
+    /// </summary>
+    public int stackIndex {
       get;
       private set;
     }
@@ -71,6 +80,16 @@ namespace SpiritWorld.Game.Controllers {
     RectTransform _rectTransform;
 
     /// <summary>
+    /// The indicator object for stacksize
+    /// </summary>
+    RectTransform itemStackSizeIndicator;
+
+    /// <summary>
+    /// The text object for the stack size
+    /// </summary>
+    Text itemStackSizeIndicatorText;
+
+    /// <summary>
     /// If this uses a model as it's icon
     /// </summary>
     bool hasAModelIcon 
@@ -80,7 +99,12 @@ namespace SpiritWorld.Game.Controllers {
     /// Make a new item icon for the given item
     /// </summary>
     /// <returns></returns>
-    public static ItemIconController Make(Item item, Transform parent = null, bool loadShapedIcon = false) {
+    public static ItemIconController Make(
+      Item item,
+      Transform parent = null,
+      int stackIndex = GridBasedInventory.EmptyGridSlot,
+      bool loadShapedIcon = false
+    ) {
       // make the icon under the given parent, or alone if we want
       GameObject icon = parent != null
         ? Instantiate(ItemDataMapper.ItemIconPrefab, parent)
@@ -89,6 +113,7 @@ namespace SpiritWorld.Game.Controllers {
       Sprite itemSprite = ItemDataMapper.GetIconFor(item);
       ItemIconController iconController = icon.GetComponent<ItemIconController>();
       iconController.item = item;
+      iconController.stackIndex = stackIndex;
       iconController.backgroundImage = icon.transform.Find("Icon Background").GetComponent<Image>();
 
       /// if we found a sprite
@@ -107,26 +132,45 @@ namespace SpiritWorld.Game.Controllers {
       }
 
       /// if we're also loading the shaped icon:
-      if (loadShapedIcon && item.type.ShapeSize > (1, 1)) {
-        Sprite shapedIcon = ItemDataMapper.GetIconFor(item, true);
-        if (shapedIcon != null) {
-          // make a new image for the shaped sprite
-          iconController.shapedIconScaler = icon.transform.Find("Shaped Icon Scaler").gameObject;
-          GameObject image = Instantiate(new GameObject(), iconController.shapedIconScaler.transform);
-          image.layer = 5;
-          Image imageComponent = image.AddComponent<Image>();
-          // resize the sprite according to it's shape size.
-          RectTransform rectTransform = image.GetComponent<RectTransform>();
-          imageComponent.sprite = shapedIcon;
-          // TODO add pivot offset math to max and min for ones with pivots in the middle
-          rectTransform.anchorMax = (item.type.ShapeSize - item.type.ShapePivot).Vec2;
-          rectTransform.anchorMin = ((0, 0) - item.type.ShapePivot).Vec2;
-          rectTransform.SetLTRB(0);
+      if (loadShapedIcon) {
+        // get the shaped scaler
+        iconController.shapedIconScaler = icon.transform.Find("Shaped Icon Scaler").gameObject;
+
+        // make the prototype image object
+        GameObject imageObject = new GameObject {
+          layer = 5
+        };
+        imageObject.AddComponent<Image>();
+        // resize the sprite according to it's shape size.
+        RectTransform rectTransform = imageObject.GetComponent<RectTransform>();
+        rectTransform.anchorMax = (item.type.ShapeSize - item.type.ShapePivot).Vec2;
+        rectTransform.anchorMin = ((0, 0) - item.type.ShapePivot).Vec2;
+        rectTransform.SetLTRB(0);
+
+        // if we need a new icon for the shaped icon than the basic square icon, get it
+        if (item.type.ShapeSize > (1, 1)) {
+          Sprite shapedIcon = ItemDataMapper.GetIconFor(item, true);
+          Image shapedIconImage = Instantiate(imageObject, iconController.shapedIconScaler.transform).GetComponent<Image>();
+          shapedIconImage.sprite = shapedIcon;
         }
+
+        // add the outline
+        Image outline = Instantiate(imageObject, iconController.shapedIconScaler.transform).GetComponent<Image>();
+        outline.sprite = ItemDataMapper.GetShapedOutlineFor(item);
+        outline.color = new Color(1, 1, 0);
       }
 
-      // set the correct icon scaler active and return the icon
+      // set the correct icon scaler active
       iconController.defaultIconScaler.SetActive(true);
+
+      /// set up the stack indicator
+      if (item.type.StackSize > 1) {
+        iconController.itemStackSizeIndicator = icon.transform.Find("Stack Quantity Indicator").GetComponent<RectTransform>();
+        iconController.itemStackSizeIndicator.gameObject.SetActive(true);
+        iconController.itemStackSizeIndicatorText = iconController.itemStackSizeIndicator.GetComponentInChildren<Text>();
+        iconController.updateStackCount();
+      }
+
       return iconController;
     }
 
@@ -163,20 +207,52 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="setShaped"></param>
     public void setShaped(bool isShaped = true) {
       this.isShaped = isShaped;
-      if (shapedIconScaler != null && item.type.ShapeSize > (1, 1)) {
+      if (shapedIconScaler != null) {
+        bool itemUsesSeperateShapedIcon
+          = item.type.ShapeSize > (1, 1);
+
+        /// toggle shaped on
         if (isShaped) {
           shapedIconScaler.SetActive(true);
-          defaultIconScaler.SetActive(false);
-        } else {
-          defaultIconScaler.SetActive(true);
-          shapedIconScaler.SetActive(false);
-        }
-      }
+          backgroundImage.gameObject.SetActive(false);
+          if (itemUsesSeperateShapedIcon) {
+            defaultIconScaler.SetActive(false);
 
-      if (isShaped) {
-        backgroundImage.gameObject.SetActive(false);
-      } else {
-        backgroundImage.gameObject.SetActive(true);
+            // Move the stack qty icon if nessisary
+            if (item.type.StackSize > 1) {
+              itemStackSizeIndicator.anchorMax = new Vector2(
+                itemStackSizeIndicator.anchorMax.x + item.type.ShapeSize.x - 1,
+                itemStackSizeIndicator.anchorMax.y
+              );
+              itemStackSizeIndicator.anchorMin = new Vector2(
+                itemStackSizeIndicator.anchorMin.x + item.type.ShapeSize.x - 1,
+                itemStackSizeIndicator.anchorMin.y
+              );
+              itemStackSizeIndicator.SetLTRB(0);
+            }
+          }
+
+        /// toggle shaped icon off
+        } else {
+          shapedIconScaler.SetActive(false);
+          backgroundImage.gameObject.SetActive(true);
+          if (itemUsesSeperateShapedIcon) {
+            defaultIconScaler.SetActive(true);
+
+            // Move the stack qty icon if nessisary
+            if (item.type.StackSize > 1) {
+              itemStackSizeIndicator.anchorMax = new Vector2(
+                itemStackSizeIndicator.anchorMax.x - item.type.ShapeSize.x - 1,
+                itemStackSizeIndicator.anchorMax.y
+              );
+              itemStackSizeIndicator.anchorMin = new Vector2(
+                itemStackSizeIndicator.anchorMin.x - item.type.ShapeSize.x - 1,
+                itemStackSizeIndicator.anchorMin.y
+              );
+              itemStackSizeIndicator.SetLTRB(0);
+            }
+          }
+        }
       }
     }
 
@@ -185,9 +261,18 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     /// <param name="parent"></param>
     public void parentTo(Transform parent) {
-      transform.parent = parent;
-      rectTransform.localPosition = Vector3.zero;
-      rectTransform.localScale = new Vector3(1, 1, 1);
+      transform.SetParent(parent, false);
+    }
+
+    /// <summary>
+    /// update the stack count of this item
+    /// </summary>
+    public void updateStackCount() {
+      if (item.type.StackSize > 1) {
+        itemStackSizeIndicatorText.text = item.quantity != 100 
+          ? item.quantity.ToString() 
+          : "C";
+      }
     }
 
     /// <summary>
@@ -199,32 +284,12 @@ namespace SpiritWorld.Game.Controllers {
       previousBGColor = backgroundImage.color;
       backgroundImage.color = colorToSet;
     }
-
-    /// <summary>
-    /// block types for building the outline for an item
-    /// </summary>
-    enum OutlineBlockTypes {
-      Empty, //
-      Wall1, //  |
-      Pathway2, // | |
-      Corner2, //   _|
-      Open3,  // |_|
-      Solid4 // []
-    };
-
-    /// <summary>
-    /// Go through each tile and place the correct background tile of the given type.
-    /// TODO just make a texture, turn it into a sprite, and set an image at the right size on the pivot, just like we do the item image.
-    /// </summary>
-    void buildShapedBackground() {
-      Coordinate.Zero.until(item.type.ShapeSize, blockLocation => {
-        Item.Type.ShapeBlocks shapeBlock = item.type.Shape[blockLocation.x, blockLocation.y];
-
-      });
-    }
   }
 }
 
+/// <summary>
+/// rectangle transform extentions
+/// </summary>
 public static class RectTransformExtensions {
   public static void SetLeft(this RectTransform rt, float left) {
     rt.offsetMin = new Vector2(left, rt.offsetMin.y);

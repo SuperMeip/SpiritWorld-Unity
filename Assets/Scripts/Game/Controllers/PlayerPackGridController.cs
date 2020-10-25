@@ -105,8 +105,8 @@ namespace SpiritWorld.Game.Controllers {
     /// create and place each inventory item
     /// </summary>
     void populateGridFromPlayerInventory() {
-      packInventory.forEach((pivot, stack) => {
-        ItemIconController iconController = ItemIconController.Make(stack, transform, true);
+      packInventory.forEach((pivot, stack, stackId) => {
+        ItemIconController iconController = ItemIconController.Make(stack, transform, stackId, true);
         iconController.setShaped(true);
         placeIcon(iconController, pivot);
       });

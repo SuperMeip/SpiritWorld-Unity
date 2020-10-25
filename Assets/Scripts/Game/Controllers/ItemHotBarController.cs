@@ -98,7 +98,7 @@ namespace SpiritWorld.Game.Controllers {
         HotBarItemSlotController itemController = itemSlotControllers[currentItemIndex];
         Item item = barInventory.getItemAt(currentItemIndex);
         if (item != null) {
-          itemController.setItem(item);
+          itemController.setItem(item, currentItemIndex);
           if (currentItemIndex == currentlySelectedItemIndex) {
             itemController.markSelected();
           } else {
