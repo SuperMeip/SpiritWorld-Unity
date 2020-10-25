@@ -51,23 +51,36 @@ namespace SpiritWorld.Game.Controllers {
     ShapedPack packInventory
       => Universe.LocalPlayer.packInventory;
 
-    /// <summary>
-    /// consts and connections
-    /// </summary>
-    void Awake() {
-      gridImage = GetComponent<Image>();
-      aspectRatioFitter = GetComponent<AspectRatioFitter>();
-    }
+    #region Initalization
 
-    #region Update Loop
+    /// <summary>
+    /// If this has been initalized yet.
+    /// </summary>
+    bool isInitalized = false;
 
     /// <summary>
     /// Set up the grid based on player inventory
     /// </summary>
     void Start() {
+      if (!isInitalized) {
+        initalize();
+      }
+    }
+
+    /// <summary>
+    /// Initalize the grid
+    /// </summary>
+    public void initalize() {
+      gridImage = GetComponent<Image>();
+      aspectRatioFitter = GetComponent<AspectRatioFitter>();
       updateGridSize();
       populateGridFromPlayerInventory();
+      isInitalized = true;
     }
+
+    #endregion
+
+    #region Update Loop
 
     void updateGridSize() {
       // make the image texture
@@ -147,7 +160,7 @@ namespace SpiritWorld.Game.Controllers {
     public void notifyOf(IEvent @event) {
       switch (@event) {
         case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
-          if (pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.GridPack) {
+          if (isInitalized && pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.GridPack) {
             foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
               if (itemsByPivot.TryGetValue(updatedItemPivot, out ItemIconController iconController)) {
                 iconController.updateStackCount();

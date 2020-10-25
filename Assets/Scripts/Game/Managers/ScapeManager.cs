@@ -36,6 +36,8 @@ namespace SpiritWorld.Managers {
         Universe.LocalPlayerManager.ItemHotBarController,
         Events.WorldScapeEventSystem.Channels.LocalPlayerUpdates
       );
+      // build the inventory pack grid early
+      Universe.LocalPlayerManager.PackGridController.initalize();
 
       // set up the scape, 
       WorldScape testScape = new WorldScape();

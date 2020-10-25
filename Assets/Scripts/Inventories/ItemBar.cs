@@ -16,6 +16,12 @@ namespace SpiritWorld.Inventories {
       => stackSlotGrid.Count(barSlot => barSlot[0] != EmptyGridSlot);
 
     /// <summary>
+    /// how many slots are in the item bar
+    /// </summary>
+    public int barSize
+      => dimensions.x;
+
+    /// <summary>
     /// How many expandable slots can one bar slot hold
     /// </summary>
     int maxSlotDepth {
@@ -23,10 +29,12 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
-    /// how many slots are in the item bar
+    /// The current size of the bar / # of active bar slots. set by the player usually
     /// </summary>
-    public int barSize
-      => dimensions.x;
+    public int activeBarSlotCount {
+      get;
+      private set;
+    }
 
     /// <summary>
     /// 
@@ -34,6 +42,7 @@ namespace SpiritWorld.Inventories {
     /// <param name="size"></param>
     public ItemBar(int slotCount, int maxSlotDepth = 1, Item[] items = null) : base(slotCount) {
       this.maxSlotDepth = maxSlotDepth;
+      activeBarSlotCount = barSize / 2;
       if (items != null) {
         int slotIndex = 0;
         foreach(Item item in items) {
@@ -53,6 +62,22 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
+    /// try to add or remove an available slot from the bar
+    /// </summary>
+    /// <param name="slotCountModifier"></param>
+    /// <returns></returns>
+    public Item[] changeBarSize(int slotCountModifier = 1) {
+      if (slotCountModifier < 0 && activeBarSlotCount > 0) {
+        activeBarSlotCount--;
+        return removeAt((activeBarSlotCount, 0));
+      } else if (slotCountModifier > 0 && activeBarSlotCount < barSize) {
+        activeBarSlotCount++;
+      }
+
+      return null;
+    }
+
+    /// <summary>
     /// Try to add an item to the bar at the given slot
     /// </summary>
     /// <param name="item">Item to add</param>
@@ -62,8 +87,8 @@ namespace SpiritWorld.Inventories {
     public override Item tryToAdd(Item item, Coordinate barAndDeepSlot, out Item successfullyAddedItem) {
       (int barSlot, int deepSlot) = barAndDeepSlot;
 
-      /// if it's within the bar
-      if (barSlot < barSize) {
+      /// if it's within the current bar
+      if (barSlot < activeBarSlotCount) {
         // if it's the main bar slot or we've expanded this far already into the deep spots, just swap out the item.
         if (deepSlot == 0 || stackSlotGrid[barSlot].Length > deepSlot) {
           successfullyAddedItem = tryToSwapOut(barAndDeepSlot, item, out Item oldItem) ? item : null;
@@ -94,6 +119,10 @@ namespace SpiritWorld.Inventories {
       List<Coordinate> modifiedPivots = new List<Coordinate>();
       successfullyAddedItems = null;
       foreach(int[] barSlotStack in stackSlotGrid) {
+        /// stop if we've run out of active bar
+        if (barSlotIndex >= activeBarSlotCount) {
+          break;
+        }
         // if this slot is empty, mark it for if we dont' find an existing stack
         if (barSlotStack[0] == EmptyGridSlot) {
           if (firstEmptyBarSlotIndex == EmptyGridSlot) {

@@ -28,7 +28,6 @@ public class ItemPackMenuController : MonoBehaviour {
     if (menuIsVisible) {
       BackpackButton.gameObject.SetActive(false);
       PackMenu.SetActive(true);
-
     } else {
       PackMenu.SetActive(false);
       BackpackButton.gameObject.SetActive(true);

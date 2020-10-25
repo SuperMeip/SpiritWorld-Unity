@@ -47,9 +47,7 @@ namespace SpiritWorld.Game.Controllers {
       = new ItemBar(7, 1, new Item[] {
         new Item(Item.Types.AutoToolShortcut),
         new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.WaterLily, 2),
-        new Item(Item.Types.Iron, 2),
-        new Item(Item.Types.Stone, 2),
+        new Item(Item.Types.Iron, 2)
     });
 
     /// <summary>
@@ -67,7 +65,7 @@ namespace SpiritWorld.Game.Controllers {
       currentlySelectedItemIndex = 0;
 
       /// initialize all the slots
-      for (int currentItemIndex = 0; currentItemIndex < barInventory.barSize; currentItemIndex++) {
+      for (int currentItemIndex = 0; currentItemIndex < barInventory.activeBarSlotCount; currentItemIndex++) {
         HotBarItemSlotController itemController = itemSlotControllers[currentItemIndex];
         Item item = barInventory.getItemAt(currentItemIndex);
         if (item != null) {

@@ -13,12 +13,12 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The move speed of the player
     /// </summary>
-    public float moveSpeed = 10;
+    public float moveSpeed = 2;
 
     /// <summary>
     /// The jump speed of the player
     /// </summary>
-    public float jumpHeight = 1;
+    public float jumpHeight = 0.25f;
 
     /// <summary>
     /// How much to multiply the walk speed for for sprinting
