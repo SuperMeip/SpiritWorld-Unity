@@ -74,10 +74,10 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// <summary>
     /// The players back pack inventory
     /// </summary>
-    public StackedInventory packInventory {
+    public ShapedPack packInventory {
       get;
       protected set;
-    } = new StackedInventory(10);
+    } = new ShapedPack((4, 7));
 
     /// <summary>
     /// The players inventories

@@ -87,6 +87,64 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
+    /// Try to add the given items to the first free spots
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="successfullyAddedItems"></param>
+    /// <returns></returns>
+    public override Item tryToAdd(Item item, out Item successfullyAddedItems, out Coordinate[] modifiedStackPivots) {
+      Item itemsLeftToAdd = item;
+      Item itemsSuccessfullyAdded = null;
+      List<Coordinate> modifiedPivots = new List<Coordinate>();
+      // first go through and try to stack everything we can
+      forEach((pivot, existingItemStack, stackId) => {
+        if (!existingItemStack.isFull && existingItemStack.canStackWith(itemsLeftToAdd)) {
+          modifiedPivots.Add(pivot);
+          itemsLeftToAdd = existingItemStack.addToStack(itemsLeftToAdd, out Item itemsAdded);
+          if (itemsAdded != null) {
+            itemsSuccessfullyAdded = itemsSuccessfullyAdded == null
+              ? itemsAdded
+              : itemsSuccessfullyAdded.addToStack(itemsAdded, out _);
+          }
+        }
+
+        /// stop if it's empty
+        if (itemsLeftToAdd == null) {
+          return false;
+        }
+
+        return true;
+      });
+
+      // next try to find an open spot this fits in if we still need to
+      if (itemsLeftToAdd != null && itemsLeftToAdd.quantity > 0) {
+        Coordinate.Zero.until(dimensions, gridSlotLocation => {
+          int initalStackSize = itemsLeftToAdd.quantity;
+          if (getItemStackAt(gridSlotLocation) == null) {
+            itemsLeftToAdd = tryToAdd(itemsLeftToAdd, gridSlotLocation, out Item itemsAdded);
+            if (itemsAdded != null) {
+              itemsSuccessfullyAdded = itemsSuccessfullyAdded == null
+                ? itemsAdded
+                : itemsSuccessfullyAdded.addToStack(itemsAdded, out _);
+            }
+          }
+          if (initalStackSize != itemsLeftToAdd?.quantity) {
+            modifiedPivots.Add(gridSlotLocation);
+          }
+          if (itemsLeftToAdd == null) {
+            return false;
+          }
+
+          return true;
+        });
+      }
+
+      modifiedStackPivots = modifiedPivots.ToArray();
+      successfullyAddedItems = itemsSuccessfullyAdded;
+      return itemsLeftToAdd;
+    }
+
+    /// <summary>
     /// Remove the item at the given coordinate location
     /// </summary>
     /// <param name="itemLocation"></param>
@@ -103,6 +161,19 @@ namespace SpiritWorld.Inventories {
       for(int stackId = 0; stackId < stacks.Count; stackId++) {
         if (stacks[stackId] is Item stack && stack != null) {
           action(stackPivotLocations[stackId], stack, stackId);
+        }
+      }
+    }
+
+    /// <summary>
+    /// Do something on each item stack given it's pivot location
+    /// </summary>
+    /// <param name="action">item pivot location, item stack, stack id</param>
+    public void forEach(Func<Coordinate, Item, int, bool> action) {
+      for(int stackId = 0; stackId < stacks.Count; stackId++) {
+        if (stacks[stackId] is Item stack && stack != null) {
+          if (!action(stackPivotLocations[stackId], stack, stackId))
+            return;
         }
       }
     }

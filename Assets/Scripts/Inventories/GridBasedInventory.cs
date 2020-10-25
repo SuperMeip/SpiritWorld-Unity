@@ -53,13 +53,33 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
-    /// Try to add an item to the first open slots of this inventory
+    /// Try to add an item to a specific place in this inventory
     /// </summary>
     /// <param name="item"></param>
     /// <param name="location"></param>
     /// <param name="successfullyAddedItem"></param>
     /// <returns></returns>
     public abstract Item tryToAdd(Item item, Coordinate location, out Item successfullyAddedItem);
+
+    /// <summary>
+    /// Try to add an item to a specific place in this inventory
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="location"></param>
+    /// <param name="successfullyAddedItem"></param>
+    /// <param name="modifiedStackPivots"></param>
+    /// <returns></returns>
+    public abstract Item tryToAdd(Item item, out Item successfullyAddedItem, out Coordinate[] modifiedStackPivots);
+
+    /// <summary>
+    /// override shortcut
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="successfullyAddedItem"></param>
+    /// <returns></returns>
+    public override Item tryToAdd(Item item, out Item successfullyAddedItem) {
+      return tryToAdd(item, out successfullyAddedItem, out _);
+    }
 
     /// <summary>
     /// Try to remove an item from the given grid slot
@@ -99,12 +119,24 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
-    /// Get the item stack stored at the given grid spot
+    /// Get the item stack stored at the given grid spot.
+    /// NOT USED TO REMOVE
     /// </summary>
-    /// <param name="location"></param>
     /// <returns></returns>
-    protected Item getItemStackAt(Coordinate location) {
+    public Item getItemStackAt(Coordinate location) {
       int stackId = stackSlotGrid[location.x][location.y];
+      return stackId != EmptyGridSlot 
+        ? stacks[stackId] 
+        : null;
+    }
+
+    /// <summary>
+    /// Get the item stack stored at the given grid spot
+    /// NOT USED TO REMOVE
+    /// </summary>
+    /// <returns></returns>
+    public Item getItemStackAt(Coordinate location, out int stackId) {
+      stackId = stackSlotGrid[location.x][location.y];
       return stackId != EmptyGridSlot 
         ? stacks[stackId] 
         : null;
@@ -113,13 +145,20 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// Add the stack to the given slot
     /// </summary>
-    /// <param name="stack"></param>
-    /// <param name="slot"></param>
     protected int addStack(Item stack, Coordinate slot) {
       int itemStackId = addNewStack(stack);
       addItemStackToSlot(itemStackId, slot);
 
       return itemStackId;
+    }
+
+    /// <summary>
+    /// add items to a stack at a given location
+    /// </summary>
+    /// <returns>leftovers</returns>
+    protected Item addToStack(Item stack, Coordinate slot, out Item succesfullyAddedItems) {
+      Item currentStack = getItemStackAt(slot);
+      return currentStack.addToStack(stack, out succesfullyAddedItems);
     }
 
     /// <summary>

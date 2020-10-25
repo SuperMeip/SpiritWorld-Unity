@@ -1,5 +1,4 @@
-﻿using SpiritWorld.Game.Controllers;
-using SpiritWorld.World;
+﻿using SpiritWorld.World;
 using SpiritWorld.World.Entities.Creatures;
 using SpiritWorld.World.Terrain.TileGrid;
 using SpiritWorld.World.Terrain.TileGrid.Generation;
@@ -16,22 +15,27 @@ namespace SpiritWorld.Managers {
     /// <summary>
     /// The active player
     /// </summary>
-    public LocalPlayerMovementController localPlayerController;
-
-    /// <summary>
-    /// The notification controller
-    /// </summary>
-    public LocalNotificationController notificationController;
+    public LocalPlayerManager localPlayerController;
 
     // set up our scape
     void Start() {
       // set up the local player and notification managers
       Player localPlayer = new Player("Meep");
-      Universe.LocalPlayerController = localPlayerController;
+      Universe.LocalPlayerManager = localPlayerController;
       localPlayerController.setPlayer(localPlayer);
 
       // subscribe this to all channels
-      Universe.EventSystem.subscribeToAll(notificationController);
+      Universe.EventSystem.subscribeToAll(Universe.LocalPlayerManager.NotificationsManager);
+
+      // listen for inventory changes
+      Universe.EventSystem.subscribe(
+        Universe.LocalPlayerManager.PackGridController,
+        Events.WorldScapeEventSystem.Channels.LocalPlayerUpdates
+      );
+      Universe.EventSystem.subscribe(
+        Universe.LocalPlayerManager.ItemHotBarController,
+        Events.WorldScapeEventSystem.Channels.LocalPlayerUpdates
+      );
 
       // set up the scape, 
       WorldScape testScape = new WorldScape();

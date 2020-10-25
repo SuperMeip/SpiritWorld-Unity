@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.Inventories.Items;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace SpiritWorld.Inventories {
@@ -43,6 +44,7 @@ namespace SpiritWorld.Inventories {
 
     /// <summary>
     /// Check the item at the given index of the item bar without changing it
+    /// NOT USED TO REMOVE
     /// </summary>
     /// <param name="index"></param>
     /// <returns></returns>
@@ -59,6 +61,7 @@ namespace SpiritWorld.Inventories {
     /// <returns>Any items replaced or removed from the slot in order to place the new one</returns>
     public override Item tryToAdd(Item item, Coordinate barAndDeepSlot, out Item successfullyAddedItem) {
       (int barSlot, int deepSlot) = barAndDeepSlot;
+
       /// if it's within the bar
       if (barSlot < barSize) {
         // if it's the main bar slot or we've expanded this far already into the deep spots, just swap out the item.
@@ -76,6 +79,57 @@ namespace SpiritWorld.Inventories {
       /// failed to add the item, return it as leftover
       successfullyAddedItem = null;
       return item;
+    }
+
+    /// <summary>
+    /// try to add an item stack, return false if it doesn't fit.
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="successfullyAddedItems"></param>
+    /// <returns></returns>
+    public override Item tryToAdd(Item item, out Item successfullyAddedItems, out Coordinate[] modifiedStackPivots) {
+      int barSlotIndex = 0;
+      int firstEmptyBarSlotIndex = EmptyGridSlot;
+      Item itemsLeftToAdd = item;
+      List<Coordinate> modifiedPivots = new List<Coordinate>();
+      successfullyAddedItems = null;
+      foreach(int[] barSlotStack in stackSlotGrid) {
+        // if this slot is empty, mark it for if we dont' find an existing stack
+        if (barSlotStack[0] == EmptyGridSlot && firstEmptyBarSlotIndex == EmptyGridSlot) {
+          firstEmptyBarSlotIndex = barSlotIndex;
+
+        // if the slot is full but matches the item
+        } else if (!stacks[barSlotStack[0]].isFull && stacks[barSlotStack[0]].canStackWith(itemsLeftToAdd)) {
+          Coordinate slotLocation = (barSlotIndex, 0);
+          modifiedPivots.Add(slotLocation);
+          itemsLeftToAdd = addToStack(itemsLeftToAdd, slotLocation, out Item itemsAdded);
+          if (itemsAdded != null) {
+            successfullyAddedItems = successfullyAddedItems == null
+              ? itemsAdded
+              : successfullyAddedItems.addToStack(itemsAdded, out _);
+          }
+        }
+
+        // stop when we run out
+        if (itemsLeftToAdd.quantity == 0) {
+          break;
+        }
+
+        barSlotIndex++;
+      }
+
+      // if we have leftovers and found an empty slot stick it there
+      if (firstEmptyBarSlotIndex != EmptyGridSlot) {
+        Coordinate slotLocation = (firstEmptyBarSlotIndex, 0);
+        modifiedPivots.Add(slotLocation);
+        addStack(itemsLeftToAdd, slotLocation);
+        successfullyAddedItems = item;
+
+        itemsLeftToAdd = null;
+      }
+
+      modifiedStackPivots = modifiedPivots.ToArray();
+      return itemsLeftToAdd;
     }
 
     public override Item[] removeAt(Coordinate itemLocation) {

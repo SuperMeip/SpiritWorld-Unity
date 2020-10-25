@@ -1,8 +1,7 @@
-﻿using SpiritWorld.Events;
-using SpiritWorld.Inventories.Items;
-using SpiritWorld.World.Entities.Creatures;
+﻿using SpiritWorld.Inventories.Items;
 using UnityEngine;
 using UnityEditor;
+using SpiritWorld.Managers;
 
 namespace SpiritWorld.Game.Controllers {
 
@@ -95,7 +94,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="collision"></param>
     void OnCollisionEnter(Collision collision) {
       if (item != null && item.quantity > 0 && collision.gameObject.CompareTag("Player")) {
-        tryToGetPickedUpBy(collision.gameObject.GetComponent<PlayerController>());
+        tryToGetPickedUpBy(collision.gameObject.GetComponent<PlayerManager>());
       }
     }
 
@@ -103,14 +102,14 @@ namespace SpiritWorld.Game.Controllers {
     /// If the local player clicks, have them try to pick up the item
     /// </summary>
     private void OnMouseDown() {
-      tryToGetPickedUpBy(Universe.LocalPlayerController);
+      tryToGetPickedUpBy(Universe.LocalPlayerManager);
     }
 
     /// <summary>
     /// Try to get picked up by the given player
     /// </summary>
     /// <param name="player"></param>
-    void tryToGetPickedUpBy(PlayerController player) {
+    void tryToGetPickedUpBy(PlayerManager player) {
       if (player != null) {
         // set the item to the leftover stack when the player tries to pick it up
         item = player.tryToPickUp(item);

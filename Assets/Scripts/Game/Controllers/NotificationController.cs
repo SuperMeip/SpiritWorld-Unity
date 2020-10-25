@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.Events;
+using SpiritWorld.Managers;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -71,7 +72,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The parent controller for callbacks
     /// </summary>
-    LocalNotificationController notificationsController;
+    LocalNotificationsManager manager;
 
     /// <summary>
     /// The display timer for the notification
@@ -132,8 +133,7 @@ namespace SpiritWorld.Game.Controllers {
       isLockedForUse = false;
       rectTransform = GetComponent<RectTransform>();
       notificationCanvas = notificationCanvas ?? GetComponent<CanvasGroup>();
-      notificationsController 
-        = GameObject.FindWithTag("Local Notification Controller").GetComponent<LocalNotificationController>();
+      manager = Universe.LocalPlayerManager.NotificationsManager;
     }
 
     /// <summary>
@@ -212,7 +212,7 @@ namespace SpiritWorld.Game.Controllers {
         Destroy(icon.gameObject);
         icon = null;
       }
-      notificationsController.notificationCleared(currentPosition);
+      manager.notificationCleared(currentPosition);
 
       isActive = false;
       isLockedForUse = false;

@@ -1,11 +1,12 @@
-﻿using SpiritWorld.Inventories;
+﻿using SpiritWorld.Events;
+using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.Managers;
 using System;
 using UnityEngine;
 
 namespace SpiritWorld.Game.Controllers {
-  public class ItemHotBarController : MonoBehaviour {
+  public class ItemHotBarController : MonoBehaviour, IObserver {
 
     /// <summary>
     /// The height of an item slot
@@ -27,21 +28,6 @@ namespace SpiritWorld.Game.Controllers {
     /// The item slot controllers for each item slot
     /// </summary>
     HotBarItemSlotController[] itemSlotControllers;
-
-    /// <summary>
-    /// Local player controller
-    /// </summary>
-    LocalPlayerMovementController playerController;
-
-    /// <summary>
-    /// The camera used to render the item bar ui
-    /// </summary>
-    Camera uiCamera;
-
-    /// <summary>
-    /// Help us manage what tile is being selected
-    /// </summary>
-    TileSelectionManager tileSelectionManager;
 
     /// <summary>
     /// The transform of the item bar
@@ -77,12 +63,9 @@ namespace SpiritWorld.Game.Controllers {
 #endif
 
     /// <summary>
-    /// Get the local player controller
+    /// Get the consts and associations
     /// </summary>
     private void Awake() {
-      playerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerMovementController>();
-      uiCamera = GameObject.FindWithTag("Item Bar UI Camera").GetComponent<Camera>();
-      tileSelectionManager = GameObject.FindWithTag("Tile Selection Manager").GetComponent<TileSelectionManager>();
       itemSlotControllers = GetComponentsInChildren<HotBarItemSlotController>(true);
       rectTransform = GetComponent<RectTransform>();
     }
@@ -175,12 +158,18 @@ namespace SpiritWorld.Game.Controllers {
       if (selectedItem is IHotBarItemShortcut itemBarUtility) {
         selectedItem = itemBarUtility.tryToFindMatchIn(
           Universe.LocalPlayer.inventories,
-          (tileSelectionManager.selectedTile, tileSelectionManager.selectedTileFeatures),
+          (Universe.LocalPlayerManager.TileSelectionManager.selectedTile, Universe.LocalPlayerManager.TileSelectionManager.selectedTileFeatures),
           out Item matchingItem
         ) ? matchingItem : null;
       }
 
       return selectedItem;
     }
+
+    /// <summary>
+    /// Not yet implimented
+    /// </summary>
+    /// <param name="event"></param>
+    public void notifyOf(IEvent @event) {}
   }
 }

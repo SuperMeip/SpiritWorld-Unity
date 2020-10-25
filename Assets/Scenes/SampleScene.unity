@@ -3165,6 +3165,7 @@ GameObject:
   - component: {fileID: 1421255078}
   - component: {fileID: 1421255082}
   - component: {fileID: 1421255077}
+  - component: {fileID: 1421255083}
   m_Layer: 0
   m_Name: Local Player
   m_TagString: Local Player
@@ -3262,11 +3263,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 446510fe72a53944696cabfc0934b543, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  headObject: {fileID: 392769610}
-  moveSpeed: 2
-  jumpHeight: 0.25
-  sprintMultiplier: 1.5
-  gravityStrength: -9.81
+  ItemHotBarController: {fileID: 759198350}
+  PackGridController: {fileID: 3190918008084170012}
+  NotificationsManager: {fileID: 1919468607}
+  TileSelectionManager: {fileID: 1851377696}
+  MotionController: {fileID: 1421255083}
 --- !u!143 &1421255082
 CharacterController:
   m_ObjectHideFlags: 0
@@ -3285,6 +3286,23 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1421255083
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1421255076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ce393e283604544d97e4c1624e06b0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  headObject: {fileID: 392769610}
+  moveSpeed: 10
+  jumpHeight: 0.33
+  sprintMultiplier: 1.5
+  gravityStrength: -9.81
 --- !u!1 &1433427022
 GameObject:
   m_ObjectHideFlags: 0
@@ -3331,7 +3349,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   boardManager: {fileID: 419381705}
   localPlayerController: {fileID: 1421255081}
-  notificationController: {fileID: 1721446767}
 --- !u!1 &1507382248
 GameObject:
   m_ObjectHideFlags: 0
@@ -3895,7 +3912,6 @@ GameObject:
   - component: {fileID: 1721446766}
   - component: {fileID: 1721446765}
   - component: {fileID: 1721446764}
-  - component: {fileID: 1721446767}
   m_Layer: 5
   m_Name: Local Notifications
   m_TagString: Local Notification Controller
@@ -3983,19 +3999,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &1721446767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1721446762}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d00294f138ba06c41a2fb6d84f0b5f23, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  DefaultSprite: {fileID: 21300000, guid: d1cce5c3d784a6a45b93daa82eff5340, type: 3}
 --- !u!1 &1726549261
 GameObject:
   m_ObjectHideFlags: 0
@@ -5012,7 +5015,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d00294f138ba06c41a2fb6d84f0b5f23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DefaultSprite: {fileID: 0}
+  DefaultSprite: {fileID: 21300000, guid: d1cce5c3d784a6a45b93daa82eff5340, type: 3}
 --- !u!222 &1919468608
 CanvasRenderer:
   m_ObjectHideFlags: 0

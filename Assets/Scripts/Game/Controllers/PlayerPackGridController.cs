@@ -1,11 +1,12 @@
-﻿using SpiritWorld.Inventories;
-using SpiritWorld.Inventories.Items;
-using System.Linq;
+﻿using SpiritWorld.Events;
+using SpiritWorld.Inventories;
+using SpiritWorld.Managers;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SpiritWorld.Game.Controllers {
-  public class PlayerPackGridController : MonoBehaviour {
+  public class PlayerPackGridController : MonoBehaviour, IObserver {
 
     /// <summary>
     /// The tile texture for the grid.
@@ -13,7 +14,7 @@ namespace SpiritWorld.Game.Controllers {
     public Texture2D GridTileTexture;
 
     /// <summary>
-    /// The background image for the item grid
+    /// The background image aspect ratio filter
     /// </summary>
     public AspectRatioFitter backgroundAspectRatio;
 
@@ -22,6 +23,12 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     public Coordinate GridTileDimensions 
       => (GridTileTexture.width, GridTileTexture.height);
+
+    /// <summary>
+    /// Items based on pivot point
+    /// </summary>
+    Dictionary<Coordinate, ItemIconController> itemsByPivot
+      = new Dictionary<Coordinate, ItemIconController>();
 
     /// <summary>
     /// The background image for the item grid
@@ -41,21 +48,18 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The inventory this manages for the local player
     /// </summary>
-    ShapedPack packInventory;
-    //=> Universe.LocalPlayer.packInventory;
+    ShapedPack packInventory
+      => Universe.LocalPlayer.packInventory;
 
     /// <summary>
     /// consts and connections
     /// </summary>
     void Awake() {
-      packInventory = new ShapedPack((5, 7), new (Item, Coordinate)[] {
-        (new Item(Item.Types.Iron, 2), (0,0)),
-        (new Item(Item.Types.Iron, 1), (2,2)),
-        (new Item(Item.Types.Wood, 2), (2,5))
-      });
       gridImage = GetComponent<Image>();
       aspectRatioFitter = GetComponent<AspectRatioFitter>();
     }
+
+    #region Update Loop
 
     /// <summary>
     /// Set up the grid based on player inventory
@@ -112,13 +116,19 @@ namespace SpiritWorld.Game.Controllers {
       });
     }
 
+    #endregion
+
     /// <summary>
     /// Place the given shaped item icon at the given grid location
     /// </summary>
     /// <param name="iconController"></param>
     /// <param name="gridLocation"></param>
     void placeIcon(ItemIconController iconController, Coordinate gridLocation) {
+      // create and store the new icon
+      // TODO: one day i'll replacve all the instantiates with pools
       RectTransform iconTransform = iconController.GetComponent<RectTransform>();
+      itemsByPivot[gridLocation] = iconController;
+
       float gridUnitWidth = (float)1 / (float)packInventory.dimensions.x;
       float gridUnitHeight = (float)1 / (float)packInventory.dimensions.y;
       iconTransform.anchorMin = new Vector2(
@@ -128,6 +138,33 @@ namespace SpiritWorld.Game.Controllers {
       iconTransform.anchorMax 
         = iconTransform.anchorMin + new Vector2(gridUnitWidth, gridUnitHeight);
       iconTransform.SetLTRB(0);
+    }
+
+    /// <summary>
+    /// Receive notifications
+    /// </summary>
+    /// <param name="event"></param>
+    public void notifyOf(IEvent @event) {
+      switch (@event) {
+        case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
+          foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
+            if (itemsByPivot.TryGetValue(updatedItemPivot, out ItemIconController iconController)) {
+              iconController.updateStackCount();
+            } else {
+              iconController = ItemIconController.Make(
+                packInventory.getItemStackAt(updatedItemPivot, out int stackId),
+                transform,
+                stackId,
+                true
+              );
+              iconController.setShaped(true);
+              placeIcon(iconController, updatedItemPivot);
+            }
+          }
+          break;
+        default:
+          break;
+      }
     }
   }
 }

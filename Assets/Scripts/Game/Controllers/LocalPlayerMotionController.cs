@@ -1,12 +1,9 @@
-﻿using SpiritWorld.Inventories;
-using SpiritWorld.Inventories.Items;
-using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace SpiritWorld.Game.Controllers {
   [RequireComponent(typeof(CharacterController))]
   [RequireComponent(typeof(CapsuleCollider))]
-  public class LocalPlayerMovementController : PlayerController {
+  public class LocalPlayerMotionController : MonoBehaviour {
 
     /// <summary>
     /// The character's head, for mouselook
@@ -93,6 +90,9 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     bool lockCursor;
 
+    /// <summary>
+    /// consts and associations
+    /// </summary>
     void Awake() {
       movementController = GetComponent<CharacterController>();
       startingSlopeLimit = movementController.slopeLimit;
@@ -194,43 +194,6 @@ namespace SpiritWorld.Game.Controllers {
       } else if (lockCursor == true) {
         lockCursor = false;
       }
-    }
-
-    /// <summary>
-    /// Try to pick up the given item stack
-    /// </summary>
-    /// <param name="itemStack"></param>
-    /// <returns></returns>
-    public override Item tryToPickUp(Item itemStack, out Item succesfullyPickedUpItem) {
-      var leftovers = player.packInventory.tryToAdd(itemStack, out succesfullyPickedUpItem);
-
-      if (succesfullyPickedUpItem != null) {
-        Universe.EventSystem.notifyChannelOf(
-          new PlayerObtainItemEvent(player, succesfullyPickedUpItem),
-          Events.WorldScapeEventSystem.Channels.LocalPlayerUpdates
-        );
-      }
-
-      return leftovers;
-    }
-
-    /// <summary>
-    /// Try to take all the items from the given inventory
-    /// </summary>
-    /// <param name="inventory"></param>
-    /// <returns></returns>
-    public override Item[] tryToEmpty(IInventory inventory, out Item[] succesfullyAddedUpItems) {
-      Item[] leftovers = base.tryToEmpty(inventory, out succesfullyAddedUpItems);
-
-      // send the local player picked up items notification
-      foreach (Item item in succesfullyAddedUpItems) {
-        Universe.EventSystem.notifyChannelOf(
-          new PlayerObtainItemEvent(player, item),
-          Events.WorldScapeEventSystem.Channels.LocalPlayerUpdates
-        );
-      }
-
-      return leftovers;
     }
   }
 }

@@ -35,11 +35,6 @@ namespace SpiritWorld.Managers {
     float tickTimer = 0;
 
     /// <summary>
-    /// The controller of the local player
-    /// </summary>
-    LocalPlayerMovementController localPlayerController;
-
-    /// <summary>
     /// Controllers currently being used, indexed by which chunk they're being used for
     /// </summary>
     Dictionary<Coordinate, GridController> inUseControllers
@@ -50,7 +45,6 @@ namespace SpiritWorld.Managers {
     /// </summary>
     void Awake() {
       chunkControllerPool = gameObject.GetComponentsInChildren<GridController>(true);
-      localPlayerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerMovementController>();
     }
 
     /// <summary>
@@ -108,7 +102,7 @@ namespace SpiritWorld.Managers {
     /// used for polling player location and updating the loaded chunks
     /// </summary>
     void checkAndUpdateChunksAroundLocalPlayer() {
-      Coordinate[] chunkLocationsThatShouldBeLoaded = getLiveChunksAround(localPlayerController.transform.position);
+      Coordinate[] chunkLocationsThatShouldBeLoaded = getLiveChunksAround(Universe.LocalPlayerManager.MotionController.transform.position);
       // if the chunks that should be loaded don't match the current in use chunk controllers
       IEnumerable<Coordinate> chunksToLoad = chunkLocationsThatShouldBeLoaded.Except(inUseControllers.Keys.ToArray());
       IEnumerable<Coordinate> chunksToUnload = inUseControllers.Keys.ToArray().Except(chunkLocationsThatShouldBeLoaded);

@@ -22,7 +22,7 @@ public class Universe {
 	/// <summary>
 	/// The current local player
 	/// </summary>
-	public static PlayerController LocalPlayerController;
+	public static LocalPlayerManager LocalPlayerManager;
 
 	/// <summary>
 	/// The current board id we're on for the given scape
@@ -50,5 +50,5 @@ public class Universe {
 	/// The local player
 	/// </summary>
 	public static Player LocalPlayer 
-		=> LocalPlayerController.getPlayer();
+		=> LocalPlayerManager.getPlayer();
 }

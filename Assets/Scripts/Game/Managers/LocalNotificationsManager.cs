@@ -1,12 +1,12 @@
 ﻿using SpiritWorld.Events;
+using SpiritWorld.Game.Controllers;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.World.Entities.Creatures;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SpiritWorld.Game.Controllers {
-  public class LocalNotificationController : MonoBehaviour, IObserver {
+namespace SpiritWorld.Managers {
+  public class LocalNotificationsManager : MonoBehaviour, IObserver {
 
     /// <summary>
     /// The times symbol used by notifications
@@ -65,7 +65,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="event"></param>
     public void notifyOf(IEvent @event) {
       switch (@event) {
-        case PlayerController.PlayerObtainItemEvent pcPOI:
+        case PlayerManager.PlayerObtainItemEvent pcPOI:
           // if it's the local player we show a notification
           if (pcPOI.player == Universe.LocalPlayer) {
             pendingNotifications.Enqueue(getPlayerPickupItemNotification(pcPOI.item, pcPOI.player));

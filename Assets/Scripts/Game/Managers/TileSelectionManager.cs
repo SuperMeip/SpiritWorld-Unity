@@ -7,6 +7,7 @@ using SpiritWorld.World.Terrain.TileGrid;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using SpiritWorld.World.Entities.Creatures;
 
 namespace SpiritWorld.Managers {
   public class TileSelectionManager : MonoBehaviour {
@@ -74,17 +75,6 @@ namespace SpiritWorld.Managers {
     /// A timer for performing an action
     /// </summary>
     float actionTimer = 0.0f;
-
-    /// <summary>
-    /// Local player controller
-    /// </summary>
-    LocalPlayerMovementController playerController;
-    /// <summary>
-    /// Get the local player controller
-    /// </summary>
-    private void Awake() {
-      playerController = GameObject.FindWithTag("Local Player").GetComponent<LocalPlayerMovementController>();
-    }
 
     // Update is called once per frame
     void Update() {
@@ -157,13 +147,15 @@ namespace SpiritWorld.Managers {
       IInventory drops = null;
       // check if the tile has a resource. If it does, we'll try to mine it
       FeaturesByLayer features = selectedTileFeatures;
+      Item selectedItem = Universe.LocalPlayerManager.ItemHotBarController.selectedItem;
+      ITool selectedTool = selectedItem is ITool tool ? tool : Player.EmptyHand;
       // try to mine a resource feature.
       if (features != null) {
-        if (features.TryGetValue(TileFeature.Layer.Resource, out TileFeature resource) 
-          && resource.type.CanBeMinedBy(playerController.selectedTool, resource.mode)
+        if (features.TryGetValue(TileFeature.Layer.Resource, out TileFeature resource)
+          && resource.type.CanBeMinedBy(selectedTool, resource.mode)
         ) {
           TileFeature beforeResourceValues = resource;
-          TileFeature? workedResource = resource.interact(playerController.selectedTool, actionTimer, out drops);
+          TileFeature? workedResource = resource.interact(selectedTool, actionTimer, out drops);
           // if the tile resource was null, destroy it.
           if (workedResource == null) {
             updateTileProgressBar(0, resource.type.TimeToUse);
@@ -194,9 +186,9 @@ namespace SpiritWorld.Managers {
             }
           }
         // shovels can break decorations
-        } else if (playerController.selectedTool.ToolType == Tool.Type.Shovel && features.TryGetValue(TileFeature.Layer.Decoration, out TileFeature decoration)) {
+        } else if (selectedTool.ToolType == Tool.Type.Shovel && features.TryGetValue(TileFeature.Layer.Decoration, out TileFeature decoration)) {
           TileFeature beforeShoveledValues = decoration;
-          TileFeature? shoveledDecoration = decoration.interact(playerController.selectedTool, actionTimer, out drops);
+          TileFeature? shoveledDecoration = decoration.interact(selectedTool, actionTimer, out drops);
           if (shoveledDecoration == null) {
             updateTileProgressBar(0, resource.type.TimeToUse);
 
@@ -213,7 +205,7 @@ namespace SpiritWorld.Managers {
 
       // If the tile feature or decoration had drops, give them to the player or drop them
       if (drops != null) {
-        Item[] leftoverDrops = playerController.tryToEmpty(drops);
+        Item[] leftoverDrops = Universe.LocalPlayerManager.tryToEmpty(drops);
         Universe.EventSystem.notifyChannelOf(
           new TileFeatureDropsLeftover(selectedTile, leftoverDrops),
           WorldScapeEventSystem.Channels.TileUpdates

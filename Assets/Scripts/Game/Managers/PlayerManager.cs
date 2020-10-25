@@ -4,12 +4,12 @@ using SpiritWorld.Events;
 using UnityEngine;
 using SpiritWorld.Inventories;
 
-namespace SpiritWorld.Game.Controllers {
+namespace SpiritWorld.Managers {
 
   /// <summary>
   /// Used to control players in the overworld
   /// </summary>
-  public class PlayerController : MonoBehaviour {
+  public class PlayerManager : MonoBehaviour {
 
     /// <summary>
     /// The player this controller is for
@@ -81,6 +81,9 @@ namespace SpiritWorld.Game.Controllers {
       return inventory.emptyInto(player.packInventory, out succesfullyAddedUpItems);
     }
 
+    /// <summary>
+    /// event for player picking up an item
+    /// </summary>
     public struct PlayerObtainItemEvent : IEvent {
       public string name
         => "Player picked up item";
@@ -107,6 +110,30 @@ namespace SpiritWorld.Game.Controllers {
       public PlayerObtainItemEvent(Player player, Item item) {
         this.item = item;
         this.player = player;
+      }
+    }
+
+    /// <summary>
+    /// Event for adding items to their pack
+    /// </summary>
+    public struct PackInventoryItemsUpdatedEvent : IEvent {
+      public string name
+        => "Player picked up item";
+
+      /// <summary>
+      /// The item that was picked up
+      /// </summary>
+      public Coordinate[] modifiedPivots {
+        get;
+      }
+
+      /// <summary>
+      /// Make an event of this kind
+      /// </summary>
+      /// <param name="player"></param>
+      /// <param name="item"></param>
+      public PackInventoryItemsUpdatedEvent(Coordinate[] modifiedPivots) {
+        this.modifiedPivots = modifiedPivots;
       }
     }
   }
