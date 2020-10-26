@@ -98,6 +98,7 @@ namespace SpiritWorld.Game.Controllers {
           if (Input.mousePosition.x > screenCenter && parentController.isShaped) {
             parentController.setShaped(false);
             containingInventory = Player.InventoryTypes.HotBar;
+            // TODO: give the item grab pannel it's own canvas, so you can put the icons to it's own scale while being dragged.
             parentController.rectTransform.SetParent(Universe.LocalPlayerManager.ItemHotBarController.transform);
           } else if (Input.mousePosition.x < screenCenter && !parentController.isShaped) {
             parentController.setShaped(true);
@@ -121,7 +122,7 @@ namespace SpiritWorld.Game.Controllers {
         isBeingDragged = AnItemIsBeingDragged = true;
         originalOpacity = parentController.currentOpacity;
         parentController.setOpacity(1);
-        parentController.resize();
+        //parentController.resize();
         wasShapedOriginally = containingInventory == Player.InventoryTypes.GridPack 
           ? true 
           : false;
@@ -146,7 +147,9 @@ namespace SpiritWorld.Game.Controllers {
       transform.position = originalLocation;
       parentController.rectTransform.SetParent(originalParent);
       parentController.setOpacity(originalOpacity);
-      parentController.resize(originalScale.x);
+      if (originalContainerInventory == Player.InventoryTypes.HotBar) {
+        parentController.resize(originalScale.x);
+      }
       containingInventory = originalContainerInventory;
       if (wasShapedOriginally != parentController.isShaped) {
         parentController.setShaped(wasShapedOriginally);
