@@ -250,6 +250,14 @@ public struct Coordinate {
     );
   }
 
+  public static Vector3 operator *(Coordinate a, Vector3 b) {
+    return new Vector3(
+      (float)a.x * b.x,
+      b.y,
+      (float)a.z * b.z
+    );
+  }
+
   public static Vector3 operator +(Vector3 a, Coordinate b) {
     return new Vector3(
       a.x + b.x,

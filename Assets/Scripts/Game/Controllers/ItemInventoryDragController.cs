@@ -46,6 +46,16 @@ namespace SpiritWorld.Game.Controllers {
     Vector2 originalScale;
 
     /// <summary>
+    /// original max anchor
+    /// </summary>
+    Vector2 originalMaxAnchor;
+
+    /// <summary>
+    /// original min anchor
+    /// </summary>
+    Vector2 originalMinAnchor;
+
+    /// <summary>
     /// The opacity before we started dragging the icon
     /// </summary>
     float originalOpacity;
@@ -97,13 +107,9 @@ namespace SpiritWorld.Game.Controllers {
           // on the right side of the screen
           if (Input.mousePosition.x > screenCenter && parentController.isShaped) {
             parentController.setShaped(false);
-            containingInventory = Player.InventoryTypes.HotBar;
             // TODO: give the item grab pannel it's own canvas, so you can put the icons to it's own scale while being dragged.
-            parentController.rectTransform.SetParent(Universe.LocalPlayerManager.ItemHotBarController.transform);
           } else if (Input.mousePosition.x < screenCenter && !parentController.isShaped) {
             parentController.setShaped(true);
-            containingInventory = Player.InventoryTypes.GridPack;
-            parentController.rectTransform.SetParent(Universe.LocalPlayerManager.PackGridController.gridTransform);
           }
         }
       }
@@ -115,17 +121,33 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="eventData"></param>
     public override void OnPointerDown(PointerEventData eventData) {
       if (!AnItemIsBeingDragged) {
+        // record original values
         originalParent = transform.parent;
         originalLocation = transform.position;
         originalScale = parentController.currentSize;
         originalContainerInventory = containingInventory;
         isBeingDragged = AnItemIsBeingDragged = true;
         originalOpacity = parentController.currentOpacity;
-        parentController.setOpacity(1);
-        //parentController.resize();
         wasShapedOriginally = containingInventory == Player.InventoryTypes.GridPack 
           ? true 
           : false;
+
+        /// update for dragging
+        parentController.setOpacity(1);
+        // if the pack menu is open it can manage all of the dragging
+        if (Universe.LocalPlayerManager.PackGridController.packMenuIsOpen && containingInventory != Player.InventoryTypes.GridPack) {
+          parentController.resize();
+          // save and replace the anchor values
+          originalMaxAnchor = parentController.rectTransform.anchorMax;
+          originalMinAnchor = parentController.rectTransform.anchorMin;
+          Vector2 gridSize = Universe.LocalPlayerManager.PackGridController.getGridSquareSize();
+          parentController.rectTransform.anchorMin = Vector2.zero;
+          parentController.rectTransform.anchorMax = gridSize + gridSize;
+
+          // re-parent to the open grid
+          containingInventory = Player.InventoryTypes.GridPack;
+          parentController.rectTransform.SetParent(Universe.LocalPlayerManager.PackGridController.gridTransform);
+        }
       }
     }
 
@@ -144,13 +166,18 @@ namespace SpiritWorld.Game.Controllers {
     /// Reset the location to when we started dragging
     /// </summary>
     void resetToOriginalPosition() {
-      transform.position = originalLocation;
-      parentController.rectTransform.SetParent(originalParent);
-      parentController.setOpacity(originalOpacity);
-      if (originalContainerInventory == Player.InventoryTypes.HotBar) {
+      containingInventory = originalContainerInventory;
+      // if we have to switch the grid back, make sure to re-size and scale
+      if (originalContainerInventory != Player.InventoryTypes.GridPack && originalParent != parentController.rectTransform.parent) {
+        parentController.rectTransform.SetParent(originalParent);
+        parentController.rectTransform.anchorMax = originalMaxAnchor;
+        parentController.rectTransform.anchorMin = originalMinAnchor;
         parentController.resize(originalScale.x);
       }
-      containingInventory = originalContainerInventory;
+
+      // reset other values
+      transform.position = originalLocation;
+      parentController.setOpacity(originalOpacity);
       if (wasShapedOriginally != parentController.isShaped) {
         parentController.setShaped(wasShapedOriginally);
       }

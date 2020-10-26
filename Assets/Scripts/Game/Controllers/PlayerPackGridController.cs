@@ -168,6 +168,17 @@ namespace SpiritWorld.Game.Controllers {
     #endregion
 
     /// <summary>
+    /// Get the current diameter of a grid square
+    /// </summary>
+    /// <returns></returns>
+    public Vector2 getGridSquareSize() {
+      return new Vector2(
+        (float)1 / (float)packInventory.dimensions.x,
+        (float)1 / (float)packInventory.dimensions.y
+      );
+    }
+
+    /// <summary>
     /// Place the given shaped item icon at the given grid location
     /// </summary>
     /// <param name="iconController"></param>
@@ -178,14 +189,9 @@ namespace SpiritWorld.Game.Controllers {
       RectTransform iconTransform = iconController.GetComponent<RectTransform>();
       itemsByPivot[gridLocation] = iconController;
 
-      float gridUnitWidth = (float)1 / (float)packInventory.dimensions.x;
-      float gridUnitHeight = (float)1 / (float)packInventory.dimensions.y;
-      iconTransform.anchorMin = new Vector2(
-        gridLocation.x * gridUnitWidth,
-        gridLocation.y * gridUnitHeight
-      );
-      iconTransform.anchorMax 
-        = iconTransform.anchorMin + new Vector2(gridUnitWidth, gridUnitHeight);
+      Vector2 gridSize = getGridSquareSize();
+      iconTransform.anchorMin = new Vector2(gridLocation.x * gridSize.x, gridLocation.y * gridSize.y);
+      iconTransform.anchorMax = iconTransform.anchorMin + gridSize;
       iconTransform.SetLTRB(0);
     }
 
