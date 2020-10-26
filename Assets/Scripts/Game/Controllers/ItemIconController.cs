@@ -1,10 +1,19 @@
 ﻿using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
+using SpiritWorld.World.Entities.Creatures;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SpiritWorld.Game.Controllers {
   public class ItemIconController : MonoBehaviour {
+
+    /// <summary>
+    /// The type of icon being displayed
+    /// </summary>
+    public enum IconType {
+      Square,
+      Shaped
+    }
 
     /// <summary>
     /// Default diameter of an icon
@@ -33,17 +42,35 @@ namespace SpiritWorld.Game.Controllers {
     }
 
     /// <summary>
-    /// The id of the stack if this is being used in an inventory
+    /// Get the current opacity
     /// </summary>
-    public int stackIndex {
+    public float currentOpacity {
       get;
       private set;
-    }
+    } = 1;
+
+    /// <summary>
+    /// The current icon size
+    /// </summary>
+    public Vector2 currentSize
+      => rectTransform.sizeDelta;
+
+    /// <summary>
+    /// This's transform
+    /// </summary>
+    public RectTransform rectTransform
+      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
+    RectTransform _rectTransform;
 
     /// <summary>
     /// Renderers used to modify model based icons
     /// </summary>
     Renderer[] itemModelRenderers;
+
+    /// <summary>
+    /// The drag controller if one exists
+    /// </summary>
+    ItemInventoryDragController dragController;
 
     /// <summary>
     /// default icon scaler. This is the item model if it's a model, or the small icon sprite's container.
@@ -73,13 +100,6 @@ namespace SpiritWorld.Game.Controllers {
     CanvasGroup _canvasGroup;
 
     /// <summary>
-    /// This's transform
-    /// </summary>
-    RectTransform rectTransform 
-      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
-    RectTransform _rectTransform;
-
-    /// <summary>
     /// The indicator object for stacksize
     /// </summary>
     RectTransform itemStackSizeIndicator;
@@ -102,8 +122,10 @@ namespace SpiritWorld.Game.Controllers {
     public static ItemIconController Make(
       Item item,
       Transform parent = null,
+      bool loadShapedIcon = false,
+      bool isDraggable = false,
       int stackIndex = GridBasedInventory.EmptyGridSlot,
-      bool loadShapedIcon = false
+      Player.InventoryTypes parentInventory = Player.InventoryTypes.None
     ) {
       // make the icon under the given parent, or alone if we want
       GameObject icon = parent != null
@@ -113,8 +135,13 @@ namespace SpiritWorld.Game.Controllers {
       Sprite itemSprite = ItemDataMapper.GetIconFor(item);
       ItemIconController iconController = icon.GetComponent<ItemIconController>();
       iconController.item = item;
-      iconController.stackIndex = stackIndex;
       iconController.backgroundImage = icon.transform.Find("Icon Background").GetComponent<Image>();
+
+      /// add the drag controller.
+      if (isDraggable) {
+        iconController.dragController = icon.AddComponent<ItemInventoryDragController>();
+        iconController.dragController.initialize(iconController, stackIndex, parentInventory);
+      }
 
       /// if we found a sprite
       if (itemSprite != null) {
@@ -179,6 +206,7 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     /// <param name="alpha"></param>
     public void setOpacity(float alpha = 1.0f) {
+      currentOpacity = alpha;
       canvasGroup.alpha = alpha;
       if (hasAModelIcon) {
         foreach (Renderer renderer in itemModelRenderers) {
@@ -241,14 +269,8 @@ namespace SpiritWorld.Game.Controllers {
 
             // Move the stack qty icon if nessisary
             if (item.type.StackSize > 1) {
-              itemStackSizeIndicator.anchorMax = new Vector2(
-                itemStackSizeIndicator.anchorMax.x - item.type.ShapeSize.x - 1,
-                itemStackSizeIndicator.anchorMax.y
-              );
-              itemStackSizeIndicator.anchorMin = new Vector2(
-                itemStackSizeIndicator.anchorMin.x - item.type.ShapeSize.x - 1,
-                itemStackSizeIndicator.anchorMin.y
-              );
+              itemStackSizeIndicator.anchorMax = new Vector2(1.15f, 0.15f);
+              itemStackSizeIndicator.anchorMin = new Vector2(0.85f, -0.15f);
               itemStackSizeIndicator.SetLTRB(0);
             }
           }

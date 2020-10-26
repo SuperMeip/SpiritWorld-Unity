@@ -3,15 +3,38 @@ using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.Managers;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace SpiritWorld.Game.Controllers {
   public class ItemHotBarController : MonoBehaviour, IObserver {
 
+    #region Constants
+
+    /// <summary>
+    /// The item bar camera
+    /// </summary>
+    public Camera UICamera;
+
+    #endregion
+
     /// <summary>
     /// The height of an item slot
     /// </summary>
-    const float ItemSlotHeight = 75;
+    const float ItemSlotHeight 
+      = HotBarItemSlotController.LargeSize;
+
+    /// <summary>
+    /// The unit height of the item bar per slot
+    /// </summary>
+    const float ItemBarUnitHeight 
+      = ItemSlotHeight + HotBarItemSlotController.DefaultSize / 2;
+
+    /// <summary>
+    /// Prefab for a slot in the item hot bar
+    /// </summary>
+    public GameObject HotBarSlotPrefab;
 
     /// <summary>
     /// The currently selected item of the local player via their hot bar.
@@ -27,12 +50,15 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The item slot controllers for each item slot
     /// </summary>
-    HotBarItemSlotController[] itemSlotControllers;
+    List<HotBarItemSlotController> itemSlotControllers
+      = new List<HotBarItemSlotController>();
 
     /// <summary>
-    /// The transform of the item bar
+    /// This's transform
     /// </summary>
-    RectTransform rectTransform;
+    RectTransform rectTransform
+      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
+    RectTransform _rectTransform;
 
     /// <summary>
     /// The inventory this manages for the local player
@@ -44,42 +70,30 @@ namespace SpiritWorld.Game.Controllers {
     /// Test bar
     /// </summary>
     public static ItemBar TestStartingItemBar
-      = new ItemBar(7, 1, new Item[] {
+      = new ItemBar(8, 1, new Item[] {
         new Item(Item.Types.AutoToolShortcut),
         new Item(Item.Types.Spapple, 2),
         new Item(Item.Types.Iron, 2)
     });
 
-    /// <summary>
-    /// Get the consts and associations
-    /// </summary>
-    private void Awake() {
-      itemSlotControllers = GetComponentsInChildren<HotBarItemSlotController>(true);
-      rectTransform = GetComponent<RectTransform>();
-    }
+    #region Initialization
 
     /// <summary>
     /// Populate the bar with our initial items, hide ones too far away.
     /// </summary>
     void Start() {
+      // build the background of the bar based on the number of items to show
       currentlySelectedItemIndex = 0;
-
+      updateBarSlotCount(barInventory.activeBarSlotCount);
       /// initialize all the slots
       for (int currentItemIndex = 0; currentItemIndex < barInventory.activeBarSlotCount; currentItemIndex++) {
-        HotBarItemSlotController itemController = itemSlotControllers[currentItemIndex];
-        Item item = barInventory.getItemAt(currentItemIndex);
-        if (item != null) {
-          itemController.setDisplayedItem(item, currentItemIndex);
-          if (currentItemIndex == currentlySelectedItemIndex) {
-            itemController.markSelected();
-          } else {
-            itemController.markUnselected();
-          }
-
-          itemController.setFadeDistance(Math.Abs(currentItemIndex - currentlySelectedItemIndex));
-        }
+        addItemSlotFor(currentItemIndex);
       }
     }
+
+    #endregion
+
+    #region Update Loop
 
     // Update is called once per frame
     void Update() {
@@ -90,29 +104,31 @@ namespace SpiritWorld.Game.Controllers {
     /// Check if we should scroll and do so
     /// </summary>
     void scroll() {
-      float scrollDelta = Input.GetAxis("Mouse ScrollWheel");
-      int previousSelectedItemIndex = currentlySelectedItemIndex;
-      // data value change and actual movement of the bar
-      if (scrollDelta > 0) {
-        tryToScrollUp();
-      } else if (scrollDelta < 0) {
-        tryToScrollDown();
-      }
+      if (!ItemInventoryDragController.AnItemIsBeingDragged && !Input.GetButton("Rotate Camera Lock")) {
+        float scrollDelta = Input.GetAxis("Mouse ScrollWheel");
+        int previousSelectedItemIndex = currentlySelectedItemIndex;
+        // data value change and actual movement of the bar
+        if (scrollDelta > 0) {
+          tryToScrollUp();
+        } else if (scrollDelta < 0) {
+          tryToScrollDown();
+        }
 
-      /// visual changes to item slots
-      if (currentlySelectedItemIndex != previousSelectedItemIndex) {
-        int itemSlotControllerIndex = 0;
-        foreach(HotBarItemSlotController itemSlotController in itemSlotControllers) {
-          if (itemSlotController.isInUse) {
-            // size
-            if (itemSlotControllerIndex == currentlySelectedItemIndex) {
-              itemSlotController.markSelected();
-            } else if (itemSlotController.isSelected) {
-              itemSlotController.markUnselected();
+        /// visual changes to item slots
+        if (currentlySelectedItemIndex != previousSelectedItemIndex) {
+          int itemSlotControllerIndex = 0;
+          foreach (HotBarItemSlotController itemSlotController in itemSlotControllers) {
+            if (itemSlotController.isInUse) {
+              // size
+              if (itemSlotControllerIndex == currentlySelectedItemIndex) {
+                itemSlotController.markSelected();
+              } else if (itemSlotController.isSelected) {
+                itemSlotController.markUnselected();
+              }
+
+              // fade
+              itemSlotController.updateFadeDistance(Math.Abs(itemSlotControllerIndex++ - currentlySelectedItemIndex));
             }
-
-            // fade
-            itemSlotController.setFadeDistance(Math.Abs(itemSlotControllerIndex++ - currentlySelectedItemIndex));
           }
         }
       }
@@ -138,6 +154,93 @@ namespace SpiritWorld.Game.Controllers {
       }
     }
 
+    #endregion
+
+    #region Modify and Control Slots
+
+    /// <summary>
+    /// add an item slot from the bottom
+    /// </summary>
+    void incrementBarSlotsFromBottom() {
+      updateBarSlotCount(barInventory.activeBarSlotCount);
+      // arange the existing ones
+      for(int currentItemIndex = 0; currentItemIndex < barInventory.activeBarSlotCount - 1; currentItemIndex++) {
+         HotBarItemSlotController slotController = itemSlotControllers[currentItemIndex];
+        slotController.updateDisplayedItemTo(currentItemIndex, barInventory.activeBarSlotCount);
+      }
+      // add the new one at the bottom
+      addItemSlotFor(barInventory.activeBarSlotCount - 1);
+    }
+
+    /// <summary>
+    /// Stretch the item bar and space it around the given index, used for inserting items in the bar
+    /// </summary>
+    /// <param name="spaceIndex"></param>
+    void spaceItemsAroundIndex(int spaceIndex) {
+      updateBarSlotCount(barInventory.activeBarSlotCount + 1);
+      for (int currentItemIndex = 0; currentItemIndex < barInventory.activeBarSlotCount; currentItemIndex++) {
+          HotBarItemSlotController slotController = itemSlotControllers[currentItemIndex];
+        if (currentItemIndex > spaceIndex) {
+          slotController.updateDisplayedItemTo(currentItemIndex, barInventory.activeBarSlotCount + 1);
+        } else {
+          slotController.updateDisplayedItemTo(currentItemIndex + 1, barInventory.activeBarSlotCount + 1);
+        }
+      }
+    }
+
+    /// <summary>
+    /// Realign the items, fixing any stretching etc
+    /// </summary>
+    /// <param name="spaceIndex"></param>
+    void realignItemSlots() {
+      updateBarSlotCount(barInventory.activeBarSlotCount);
+      for (int currentItemIndex = 0; currentItemIndex < barInventory.activeBarSlotCount; currentItemIndex++) {
+        HotBarItemSlotController slotController = itemSlotControllers[currentItemIndex];
+        slotController.updateDisplayedItemTo(currentItemIndex, barInventory.activeBarSlotCount);
+      }
+    }
+
+    /// <summary>
+    /// resize the bar for a new slot count
+    /// </summary>
+    /// <param name="newSlotCount"></param>
+    void updateBarSlotCount(int newSlotCount) {
+      rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, (newSlotCount - 1) * ItemBarUnitHeight);
+    }
+
+    /// <summary>
+    /// Add a slot for the current index.
+    /// </summary>
+    /// <param name="currentItemIndex"></param>
+    void addItemSlotFor(int currentItemIndex) {
+      itemSlotControllers.Add(Instantiate(HotBarSlotPrefab, transform).GetComponent<HotBarItemSlotController>());
+      HotBarItemSlotController slotController = itemSlotControllers[currentItemIndex];
+      Item item = barInventory.getItemAt(currentItemIndex);
+      if (item != null) {
+        slotController.setDisplayedItem(item, currentItemIndex, barInventory.activeBarSlotCount);
+        if (currentItemIndex == currentlySelectedItemIndex) {
+          slotController.markSelected();
+        } else {
+          slotController.markUnselected();
+        }
+
+        slotController.updateFadeDistance(Math.Abs(currentItemIndex - currentlySelectedItemIndex));
+      }
+    }
+
+    /// <summary>
+    /// Try to get the item slot controller at the given slot
+    /// </summary>
+    /// <param name="slotIndex"></param>
+    /// <param name="itemSlotController"></param>
+    /// <returns></returns>
+    bool tryToGetSlot(int slotIndex, out HotBarItemSlotController itemSlotController) {
+      itemSlotController = slotIndex < itemSlotControllers.Count
+        ? itemSlotControllers[slotIndex]
+        : null;
+      return itemSlotController == null;
+    }
+
     /// <summary>
     /// Get the item the player is currently selecting. This takes into account shortcuts.
     /// </summary>
@@ -156,6 +259,10 @@ namespace SpiritWorld.Game.Controllers {
       return selectedItem;
     }
 
+    #endregion
+
+    #region IObserver
+
     /// <summary>
     /// Receive notifications
     /// </summary>
@@ -165,13 +272,22 @@ namespace SpiritWorld.Game.Controllers {
         case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
           if (pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.HotBar) {
             foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
-              HotBarItemSlotController slotController = itemSlotControllers[updatedItemPivot.x];
-              // if the slot is being used, we need to update it
-              if (slotController.isInUse) {
-                itemSlotControllers[updatedItemPivot.x].updateDisplayedItemTo(barInventory.getItemAt(updatedItemPivot.x));
-              // if the slot isn't being used, lets nab it and set it.
-              } else {
-                slotController.setDisplayedItem(barInventory.getItemAt(updatedItemPivot.x), updatedItemPivot.x);
+              // this is for hot bar, not pockets
+              if (!barInventory.isInPockets(updatedItemPivot)) {
+                // if it's an empty slot, just toss it in
+                if (updatedItemPivot.x >= itemSlotControllers.Count) {
+                  incrementBarSlotsFromBottom();
+                }
+                HotBarItemSlotController slotController = itemSlotControllers[updatedItemPivot.x];
+                // if the slot is being used, we need to update it
+                if (slotController.isInUse) {
+                  itemSlotControllers[updatedItemPivot.x].updateDisplayedItemTo(updatedItemPivot.x, barInventory.activeBarSlotCount, barInventory.getItemAt(updatedItemPivot.x));
+                  // if the slot isn't being used, lets nab it and set it.
+                } else {
+                  slotController.setDisplayedItem(barInventory.getItemAt(updatedItemPivot.x), updatedItemPivot.x, barInventory.activeBarSlotCount);
+                  slotController.updateFadeDistance(Math.Abs(updatedItemPivot.x - currentlySelectedItemIndex));
+                  slotController.markUnselected();
+                }
               }
             }
           }
@@ -180,5 +296,7 @@ namespace SpiritWorld.Game.Controllers {
           break;
       }
     }
+
+    #endregion
   }
 }

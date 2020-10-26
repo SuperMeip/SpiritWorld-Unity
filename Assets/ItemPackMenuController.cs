@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class ItemPackMenuController : MonoBehaviour {
 
+  #region Constants
+
   /// <summary>
   /// The menu we're toggling
   /// </summary>
@@ -15,10 +17,15 @@ public class ItemPackMenuController : MonoBehaviour {
   /// </summary>
   public Button BackpackButton;
 
+  #endregion
+
   /// <summary>
   /// if the menu is hidden
   /// </summary>
-  bool menuIsVisible = true;
+  public bool menuIsVisible {
+    get;
+    private set;
+  } = false;
 
   /// <summary>
   /// Toggle the menu on and off

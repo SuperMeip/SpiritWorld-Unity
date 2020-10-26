@@ -3,6 +3,7 @@ using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.World.Entities.Creatures;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace SpiritWorld.Managers {
 
@@ -11,7 +12,7 @@ namespace SpiritWorld.Managers {
   /// </summary>
   public class LocalPlayerManager : PlayerManager {
 
-    #region consts
+    #region Constants
     ///// SET VIA UNITY
 
     /// <summary>

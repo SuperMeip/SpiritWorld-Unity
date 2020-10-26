@@ -1,8 +1,11 @@
 ﻿using SpiritWorld.Events;
 using SpiritWorld.Game.Controllers;
 using SpiritWorld.Inventories.Items;
+using SpiritWorld.Managers;
 using SpiritWorld.World.Entities.Creatures;
 using System.Collections.Concurrent;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace SpiritWorld.Managers {
@@ -55,7 +58,8 @@ namespace SpiritWorld.Managers {
         && pendingNotifications.TryDequeue(out Notification notification)
         && getFreeController(out NotificationController freeController)
       ) {
-        displayNotification(freeController, notification, currentlyDisplayedNotificationCount++);
+        displayNotification(freeController, notification, currentlyDisplayedNotificationCount);
+        Interlocked.Increment(ref currentlyDisplayedNotificationCount);
       }
     }
 
@@ -81,9 +85,9 @@ namespace SpiritWorld.Managers {
     /// </summary>
     /// <param name="clearedPosition"></param>
     public void notificationCleared(int clearedPosition) {
-      currentlyDisplayedNotificationCount--;
-      foreach(NotificationController notificationController in notificationPool) {
-        if (notificationController.isActive && notificationController.currentPosition >= clearedPosition) {
+      Interlocked.Decrement(ref currentlyDisplayedNotificationCount);
+      foreach (NotificationController notificationController in notificationPool) {
+        if (notificationController.isActive && notificationController.currentPosition > clearedPosition) {
           notificationController.slideUp();
         }
       }
@@ -114,7 +118,7 @@ namespace SpiritWorld.Managers {
     bool getFreeController(out NotificationController freeController) {
       foreach(NotificationController notificationController in notificationPool) {
         lock (notificationController) {
-          if (notificationController.tryToGetLock()) {
+          if (!notificationController.isActive) {
             freeController = notificationController;
             return true;
           }

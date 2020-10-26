@@ -56,10 +56,8 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// If this notification controller is being used
     /// </summary>
-    public bool isActive {
-      get;
-      private set;
-    } = false;
+    public bool isActive 
+      => icon != null;
 
     /// <summary>
     /// The position this notification is currently in
@@ -207,15 +205,12 @@ namespace SpiritWorld.Game.Controllers {
     /// Clear this notification from the list
     /// </summary>
     void clearNotification() {
-      gameObject.SetActive(false);
       if (icon != null) {
         Destroy(icon.gameObject);
         icon = null;
       }
+      gameObject.SetActive(false);
       manager.notificationCleared(currentPosition);
-
-      isActive = false;
-      isLockedForUse = false;
     }
 
     /// <summary>
@@ -224,12 +219,12 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="notification">The notification</param>
     /// <param name="position">Which position to show it in, top is 0</param>
     public void displayNotification(Notification notification, int position) {
+      icon = notification.icon as ItemIconController;
       // set timer
       notificationCanvas = notificationCanvas ?? GetComponent<CanvasGroup>();
       displayTimer = notification.displayTime;
       // set the icon and text
       messageText.text = notification.message;
-      icon = notification.icon as ItemIconController;
       icon.parentTo(iconParent);
       icon.resize(65);
       icon.setBGColor(new Color(0, 131, 200));
@@ -237,7 +232,6 @@ namespace SpiritWorld.Game.Controllers {
       beginFadeIn();
       beginSliding(BottomPositionIndex, position);
       gameObject.SetActive(true);
-      isActive = true;
     }
 
     /// <summary>

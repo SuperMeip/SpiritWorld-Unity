@@ -86,8 +86,10 @@ namespace SpiritWorld.Managers {
     /// Select and hilight the tile the mouse is hovering over
     /// </summary>
     void selectHoveredTile() {
-      // we only want to change the selected tile when we're not acting on a tile atm
-      if (!Input.GetButton("Act")) {
+      // we only want to change the selected tile when we're not acting on a tile atm.
+      //Also select tiles if we're dragging an item
+      // TODO add a way to check if we're holding an item over an inventory vs a tile.
+      if (!Input.GetButton("Act") || (ItemInventoryDragController.AnItemIsBeingDragged/* && !ItemIsHoveredOverInventoryBackgroundOfSomeKind*/)) {
         /// if the mouse is pointing at the tileboard, use a ray get data about the tile
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         Debug.DrawRay(ray.origin, ray.direction * 25, Color.red);
@@ -115,27 +117,34 @@ namespace SpiritWorld.Managers {
     /// Act on the selected tile when appropriate
     /// </summary>
     void tryToActOnSelectedTile() {
-      /// if we just pressed the button, investigate the newly selected tile
-      if (Input.GetButtonDown("Act")) {
-        investigate(selectedTile);
-      }
-      // if we're holding the button
-      if (Input.GetButton("Act")) {
-        actionTimer += Time.deltaTime;
-        // if we've been holding it for the minimum hold time at least, act via hold action
-        if (actionTimer >= MinimumHoldDownTime) {
-          holdDownActionOnSelectedTile();
+      if (!ItemInventoryDragController.AnItemIsBeingDragged) {
+        /// if we just pressed the button, investigate the newly selected tile
+        if (Input.GetButtonDown("Act")) {
+          investigate(selectedTile);
+        }
+        // if we're holding the button
+        if (Input.GetButton("Act")) {
+          actionTimer += Time.deltaTime;
+          // if we've been holding it for the minimum hold time at least, act via hold action
+          if (actionTimer >= MinimumHoldDownTime) {
+            holdDownActionOnSelectedTile();
+          }
         }
       }
       // if we've let go of the button
       if (Input.GetButtonUp("Act")) {
-        // if we haven't gone over minimum hold time, do the single click action on the tile
-        if (actionTimer < MinimumHoldDownTime) {
-          clickActionOnSelectedTile();
+        // if we were holding an item and release it on a tile, check if that does something special:
+        if (ItemInventoryDragController.AnItemIsBeingDragged) {
+          // TODO: try to use the item on the tile
+        } else {
+          // if we haven't gone over minimum hold time, do the single click action on the tile
+          if (actionTimer < MinimumHoldDownTime) {
+            clickActionOnSelectedTile();
+          }
+          // reset the action timer and progress wheel
+          actionTimer = 0;
+          workOnTileIndicator.SetActive(false);
         }
-        // reset the action timer and progress wheel
-        actionTimer = 0;
-        workOnTileIndicator.SetActive(false);
       }
     }
 
@@ -159,6 +168,7 @@ namespace SpiritWorld.Managers {
           // if the tile resource was null, destroy it.
           if (workedResource == null) {
             updateTileProgressBar(0, resource.type.TimeToUse);
+            workOnTileIndicator.SetActive(false);
 
             // remove the tile feature and sent the update to the board to update the feature
             Universe.ActiveBoardManager.activeBoard.remove(selectedTile, beforeResourceValues.type.Layer);
@@ -167,10 +177,13 @@ namespace SpiritWorld.Managers {
               new TileFeatureDestroyed(selectedTile, beforeResourceValues.type.Layer),
               WorldScapeEventSystem.Channels.TileUpdates
             );
-            // if it wasn't we need to update it.
+          // if it wasn't we need to update it.
           } else {
             TileFeature updatedResource = (TileFeature)workedResource;
-            updateTileProgressBar(updatedResource.remainingInteractions == 0 ? 0 : actionTimer, resource.type.TimeToUse);
+            updateTileProgressBar(updatedResource.remainingInteractions == 0 || !updatedResource.type.CanBeMinedBy(selectedTool, updatedResource.mode) 
+              ? 0 
+              : actionTimer, resource.type.TimeToUse
+            );
 
             // if the updated resource doesn't match the old one, we need to update it
             if (!beforeResourceValues.Equals(updatedResource)) {

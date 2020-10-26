@@ -1,4 +1,5 @@
 ﻿using SpiritWorld.Inventories.Items;
+using SpiritWorld.World.Entities.Creatures;
 using UnityEngine;
 
 namespace SpiritWorld.Game.Controllers {
@@ -7,12 +8,12 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// Enlarged/selected icon size
     /// </summary>
-    const float LargeSize = 75;
+    public const float LargeSize = 75;
 
     /// <summary>
     /// Enlarged/selected icon size
     /// </summary>
-    const float DefaultSize 
+    public const float DefaultSize 
       = ItemIconController.DefaultIconDiameter;
 
     /// <summary>
@@ -43,32 +44,59 @@ namespace SpiritWorld.Game.Controllers {
       => icon?.item != null;
 
     /// <summary>
+    /// This's transform
+    /// </summary>
+    RectTransform rectTransform 
+      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
+    RectTransform _rectTransform;
+
+    /// <summary>
     /// The icon currently being shown
     /// </summary>
     ItemIconController icon;
 
     /// <summary>
+    /// The number of slots this is adjusted for
+    /// </summary>
+    int barSlotCount;
+
+    /// <summary>
     /// Set the item on this slot
     /// </summary>
     /// <param name="item"></param>
-    public void setDisplayedItem(Item item, int barSlotIndex) {
+    public void setDisplayedItem(Item item, int barSlotIndex, int barSlotCount) {
       if (item != null) {
         gameObject.SetActive(true);
-        icon = ItemIconController.Make(item, transform);
+        icon = ItemIconController.Make(
+          item,
+          transform,
+          true,
+          true,
+          barSlotIndex,
+          World.Entities.Creatures.Player.InventoryTypes.HotBar
+        );
       }
       this.barSlotIndex = barSlotIndex;
+      this.barSlotCount = barSlotCount;
+      updateLocation();
     }
 
     /// <summary>
     /// update the displayed item or it's data
     /// </summary>
     /// <param name="newItem"></param>
-    internal void updateDisplayedItemTo(Item newItem) {
+    internal void updateDisplayedItemTo(int barSlotIndex, int barSlotCount, Item newItem = null) {
       // if the items are the same, just update the stack count
-      if (newItem.Equals(icon.item)) {
+      if (newItem != null && newItem.Equals(icon.item)) {
         icon.updateStackCount();
       } else {
-        icon = ItemIconController.Make(newItem, transform);
+        Destroy(icon.gameObject);
+        icon = ItemIconController.Make(newItem, transform, true, true, barSlotIndex, Player.InventoryTypes.HotBar);
+      }
+      if (barSlotIndex != this.barSlotIndex || barSlotCount != this.barSlotCount) {
+        this.barSlotIndex = barSlotIndex;
+        this.barSlotCount = barSlotCount;
+        updateLocation();
       }
     }
 
@@ -94,7 +122,7 @@ namespace SpiritWorld.Game.Controllers {
     /// Set the fade for the distance from the selected item
     /// </summary>
     /// <param name="distanceFromSelectedItem"></param>
-    public void setFadeDistance(int distanceFromSelectedItem) {
+    public void updateFadeDistance(int distanceFromSelectedItem) {
       if (distanceFromSelectedItem >= MaxVisibleDistance) {
         gameObject.SetActive(false);
       } else {
@@ -103,6 +131,18 @@ namespace SpiritWorld.Game.Controllers {
         }
         icon.setOpacity(1f - (float)distanceFromSelectedItem / MaxVisibleDistance);
       }
+    }
+
+    /// <summary>
+    /// Set the location based on the index and bar size
+    /// </summary>
+    /// <param name="index"></param>
+    /// <param name="barSize"></param>
+    void updateLocation() {
+      float newYAnchor = 1 - (float)barSlotIndex / (float)barSlotCount;
+      rectTransform.anchorMin = new Vector2(rectTransform.anchorMin.x, newYAnchor);
+      rectTransform.anchorMax = new Vector2(rectTransform.anchorMax.x, newYAnchor);
+      rectTransform.anchoredPosition = new Vector3(0, 0, rectTransform.localPosition.z);
     }
   }
 }

@@ -1,12 +1,20 @@
 ﻿using SpiritWorld.Events;
 using SpiritWorld.Inventories;
 using SpiritWorld.Managers;
+using SpiritWorld.World.Entities.Creatures;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace SpiritWorld.Game.Controllers {
   public class PlayerPackGridController : MonoBehaviour, IObserver {
+
+    #region Constants
+
+    /// <summary>
+    /// The item bar camera
+    /// </summary>
+    public Camera UICamera;
 
     /// <summary>
     /// The tile texture for the grid.
@@ -16,7 +24,13 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The background image aspect ratio filter
     /// </summary>
-    public AspectRatioFitter backgroundAspectRatio;
+    public AspectRatioFitter BackgroundAspectRatio;
+
+    /// <summary>
+    /// The menu controller that controls the local player grid menu
+    /// TODO: eventually make this a manager probably and attach all the grid parts to it.
+    /// </summary>
+    public ItemPackMenuController MenuController;
 
     /// <summary>
     /// dimensions for the texture
@@ -29,6 +43,20 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     Dictionary<Coordinate, ItemIconController> itemsByPivot
       = new Dictionary<Coordinate, ItemIconController>();
+
+    #endregion
+
+    /// <summary>
+    /// If the menu is currently open
+    /// </summary>
+    public bool packMenuIsOpen
+      => MenuController.menuIsVisible;
+
+    /// <summary>
+    /// The transform of the grid
+    /// </summary>
+    public Transform gridTransform
+      => gridImage.gameObject.transform;
 
     /// <summary>
     /// The background image for the item grid
@@ -50,6 +78,7 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     ShapedPack packInventory
       => Universe.LocalPlayer.packInventory;
+
 
     #region Initalization
 
@@ -89,7 +118,7 @@ namespace SpiritWorld.Game.Controllers {
         GridTileTexture.height * packInventory.dimensions.y
       );
       aspectRatioFitter.aspectRatio = (float)packInventory.dimensions.x / (float)packInventory.dimensions.y;
-      backgroundAspectRatio.aspectRatio = aspectRatioFitter.aspectRatio;
+      BackgroundAspectRatio.aspectRatio = aspectRatioFitter.aspectRatio;
       itemGridTexture.filterMode = FilterMode.Point;
 
       // add each slot to the texture's pixel collection.
@@ -123,7 +152,14 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     void populateGridFromPlayerInventory() {
       packInventory.forEach((pivot, stack, stackId) => {
-        ItemIconController iconController = ItemIconController.Make(stack, transform, stackId, true);
+        ItemIconController iconController = ItemIconController.Make(
+          stack,
+          transform,
+          true,
+          true,
+          stackId,
+          Player.InventoryTypes.GridPack
+        );
         iconController.setShaped(true);
         placeIcon(iconController, pivot);
       });
@@ -153,6 +189,8 @@ namespace SpiritWorld.Game.Controllers {
       iconTransform.SetLTRB(0);
     }
 
+    #region IObserver
+
     /// <summary>
     /// Receive notifications
     /// </summary>
@@ -168,8 +206,10 @@ namespace SpiritWorld.Game.Controllers {
                 iconController = ItemIconController.Make(
                   packInventory.getItemStackAt(updatedItemPivot, out int stackId),
                   transform,
+                  true,
+                  true,
                   stackId,
-                  true
+                  Player.InventoryTypes.GridPack
                 );
                 iconController.setShaped(true);
                 placeIcon(iconController, updatedItemPivot);
@@ -181,5 +221,8 @@ namespace SpiritWorld.Game.Controllers {
           break;
       }
     }
+
+    #endregion
+
   }
 }

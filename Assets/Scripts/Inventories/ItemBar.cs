@@ -8,6 +8,13 @@ namespace SpiritWorld.Inventories {
   /// A linear bar of items, capable of expanding slots like folders
   /// </summary>
   public class ItemBar : GridBasedInventory {
+    /// <summary>
+    /// The current size of the bar / # of active bar slots. set by the player usually
+    /// </summary>
+    public int activeBarSlotCount {
+      get;
+      private set;
+    }
 
     /// <summary>
     /// Count the in use stacks
@@ -22,18 +29,16 @@ namespace SpiritWorld.Inventories {
       => dimensions.x;
 
     /// <summary>
+    /// How many available pocket slots there are
+    /// </summary>
+    public int pocketSlotCount
+      => barSize - activeBarSlotCount;
+
+    /// <summary>
     /// How many expandable slots can one bar slot hold
     /// </summary>
     int maxSlotDepth {
       get;
-    }
-
-    /// <summary>
-    /// The current size of the bar / # of active bar slots. set by the player usually
-    /// </summary>
-    public int activeBarSlotCount {
-      get;
-      private set;
     }
 
     /// <summary>
@@ -62,23 +67,64 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
-    /// try to add or remove an available slot from the bar
+    /// try to add or remove an available slot from the bar, and add it to the pocket size
     /// </summary>
-    /// <param name="slotCountModifier"></param>
-    /// <returns></returns>
-    public Item[] changeBarSize(int slotCountModifier = 1) {
-      if (slotCountModifier < 0 && activeBarSlotCount > 0) {
-        activeBarSlotCount--;
-        return removeAt((activeBarSlotCount, 0));
+    /// <returns>the items moved to the pockets or bar depending on size change direction</returns>
+    public Item[] incrementBarSize(bool increase = true) {
+      int slotCountModifier = increase ? 1 : -1;
+      int originalBarSize = activeBarSlotCount;
+      activeBarSlotCount += slotCountModifier;
+
+      // if we're adding slots to the pockets
+      if (slotCountModifier < 0 && activeBarSlotCount > 1) {
+        List<Item> itemsMovedToPockets = new List<Item>();
+        for (int index = originalBarSize - 1; index > activeBarSlotCount; index--) {
+          Item currentItem = getItemStackAt((index, 0));
+          if (currentItem != null) {
+            itemsMovedToPockets.Add(currentItem);
+          }
+        }
+
+        return itemsMovedToPockets.ToArray();
+      // if we're adding slots to the bar
       } else if (slotCountModifier > 0 && activeBarSlotCount < barSize) {
-        activeBarSlotCount++;
+        List<Item> itemsMovedToBar = new List<Item>();
+        for (int index = originalBarSize - 1; index < activeBarSlotCount; index++) {
+          Item currentItem = getItemStackAt((index, 0));
+          if (currentItem != null) {
+            itemsMovedToBar.Add(currentItem);
+          }
+        }
+
+        return itemsMovedToBar.ToArray();
+      // if we can't go down or up anymore, reset and return
+      } else {
+        activeBarSlotCount = originalBarSize;
       }
 
       return null;
     }
 
     /// <summary>
-    /// Try to add an item to the bar at the given slot
+    /// Get if the location is in the pockets
+    /// </summary>
+    /// <param name="gridLocation"></param>
+    /// <returns></returns>
+    public bool isInPockets(Coordinate gridLocation) {
+      return gridLocation.x >= activeBarSlotCount;
+    }
+
+    /// <summary>
+    /// Try to put an item in the first free pocket slot
+    /// </summary>
+    /// <returns></returns>
+    public Item tryToAddToPockets(Item item, out Item successfullyAddedItem, out Coordinate[] modifiedStackPivots) {
+      return tryToAdd(item, out successfullyAddedItem, out modifiedStackPivots, true);
+    }
+
+    /// <summary>
+    /// Try to add an item to the bar at the given slot.
+    /// TODO: doesn't work for pockets, add functionality
     /// </summary>
     /// <param name="item">Item to add</param>
     /// <param name="barAndDeepSlot">bar slot, and depth slot to add it to (0 base)</param>
@@ -107,28 +153,42 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
+    /// try to add an item stack
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="successfullyAddedItems"></param>
+    /// <param name="modifiedStackPivots"></param>
+    /// <returns>leftovers, null, or the un-added item</returns>
+    public override Item tryToAdd(Item item, out Item successfullyAddedItems, out Coordinate[] modifiedStackPivots) {
+      return tryToAdd(item, out successfullyAddedItems, out modifiedStackPivots);
+    }
+
+    /// <summary>
     /// try to add an item stack, return false if it doesn't fit.
     /// </summary>
     /// <param name="item"></param>
     /// <param name="successfullyAddedItems"></param>
     /// <returns>leftovers or null</returns>
-    public override Item tryToAdd(Item item, out Item successfullyAddedItems, out Coordinate[] modifiedStackPivots) {
+    Item tryToAdd(Item item, out Item successfullyAddedItems, out Coordinate[] modifiedStackPivots, bool addToPocketSlot = false) {
       int barSlotIndex = 0;
-      int firstEmptyBarSlotIndex = EmptyGridSlot;
+      int firstEmptySlot = EmptyGridSlot;
       Item itemsLeftToAdd = item;
       List<Coordinate> modifiedPivots = new List<Coordinate>();
       successfullyAddedItems = null;
-      foreach(int[] barSlotStack in stackSlotGrid) {
+      foreach (int[] barSlotStack in stackSlotGrid) {
         /// stop if we've run out of active bar
-        if (barSlotIndex >= activeBarSlotCount) {
+        if (!addToPocketSlot && barSlotIndex >= activeBarSlotCount) {
           break;
         }
         // if this slot is empty, mark it for if we dont' find an existing stack
         if (barSlotStack[0] == EmptyGridSlot) {
-          if (firstEmptyBarSlotIndex == EmptyGridSlot) {
-            firstEmptyBarSlotIndex = barSlotIndex;
+          if (firstEmptySlot == EmptyGridSlot
+            // if we're not looking for a pocket slot, or we are looking for a pocket slot and we're passed the active bar slots
+            && (!addToPocketSlot || (addToPocketSlot && barSlotIndex >= activeBarSlotCount))
+          ) {
+            firstEmptySlot = barSlotIndex;
           }
-        // if the slot is full but matches the item
+          // if the slot is full but matches the item
         } else if (!stacks[barSlotStack[0]].isFull && stacks[barSlotStack[0]].canStackWith(itemsLeftToAdd)) {
           Coordinate slotLocation = (barSlotIndex, 0);
           modifiedPivots.Add(slotLocation);
@@ -149,8 +209,8 @@ namespace SpiritWorld.Inventories {
       }
 
       // if we have leftovers and found an empty slot stick it there
-      if (firstEmptyBarSlotIndex != EmptyGridSlot) {
-        Coordinate slotLocation = (firstEmptyBarSlotIndex, 0);
+      if (firstEmptySlot != EmptyGridSlot) {
+        Coordinate slotLocation = (firstEmptySlot, 0);
         modifiedPivots.Add(slotLocation);
         addStack(itemsLeftToAdd, slotLocation);
         successfullyAddedItems = item;
@@ -162,6 +222,11 @@ namespace SpiritWorld.Inventories {
       return itemsLeftToAdd;
     }
 
+    /// <summary>
+    /// Remove the item from the inventory at
+    /// </summary>
+    /// <param name="itemLocation"></param>
+    /// <returns></returns>
     public override Item[] removeAt(Coordinate itemLocation) {
       throw new System.NotImplementedException();
     }

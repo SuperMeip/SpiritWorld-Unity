@@ -20,6 +20,7 @@ namespace SpiritWorld.World.Entities.Creatures {
     /// Inventory types the player has to store items
     /// </summary>
     public enum InventoryTypes {
+      None,
       HotBar,
       Pockets,
       GridPack

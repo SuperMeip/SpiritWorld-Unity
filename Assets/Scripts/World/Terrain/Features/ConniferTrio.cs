@@ -79,8 +79,27 @@ namespace SpiritWorld.World.Terrain.Features {
                     }
                   ]
                 ]
+              },
+              {
+                ""Tool"": ""Any"",
+                ""DropPossibilities"" : [
+                  [
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""2:1""
+                    },
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""3:1""
+                    },
+                    {
+                      ""Weight"": 1,
+                      ""Items"": ""1:1""
+                    }
+                  ]
+                ]
               }
-            ],
+            ]
           ]
         ");
         /*
