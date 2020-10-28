@@ -17,6 +17,11 @@ namespace SpiritWorld.Game.Controllers {
     public Camera UICamera;
 
     /// <summary>
+    /// The canvas for this
+    /// </summary>
+    public Canvas Canvas;
+
+    /// <summary>
     /// The tile texture for the grid.
     /// </summary>
     public Texture2D GridTileTexture;
@@ -38,13 +43,20 @@ namespace SpiritWorld.Game.Controllers {
     public Coordinate GridTileDimensions 
       => (GridTileTexture.width, GridTileTexture.height);
 
-    /// <summary>
-    /// Items based on pivot point
-    /// </summary>
-    Dictionary<Coordinate, ItemIconController> itemsByPivot
-      = new Dictionary<Coordinate, ItemIconController>();
-
     #endregion
+
+    /// <summary>
+    /// The target object for items to be dropped into for this inventory
+    /// </summary>
+    public GameObject dropTarget
+      => gameObject;
+
+    /// <summary>
+    /// This's transform
+    /// </summary>
+    public RectTransform rectTransform
+      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
+    RectTransform _rectTransform;
 
     /// <summary>
     /// If the menu is currently open
@@ -57,6 +69,12 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     public Transform gridTransform
       => gridImage.gameObject.transform;
+
+    /// <summary>
+    /// Items based on pivot point
+    /// </summary>
+    Dictionary<Coordinate, ItemIconController> itemsByPivot
+      = new Dictionary<Coordinate, ItemIconController>();
 
     /// <summary>
     /// The background image for the item grid

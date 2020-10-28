@@ -87,11 +87,13 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="newItem"></param>
     internal void updateDisplayedItemTo(int barSlotIndex, int barSlotCount, Item newItem = null) {
       // if the items are the same, just update the stack count
-      if (newItem != null && newItem.Equals(icon.item)) {
-        icon.updateStackCount();
-      } else {
-        Destroy(icon.gameObject);
-        icon = ItemIconController.Make(newItem, transform, true, true, barSlotIndex, Player.InventoryTypes.HotBar);
+      if (newItem != null) {
+        if (newItem.Equals(icon.item)) {
+          icon.updateStackCount();
+        } else {
+          Destroy(icon.gameObject);
+          icon = ItemIconController.Make(newItem, transform, true, true, barSlotIndex, Player.InventoryTypes.HotBar);
+        }
       }
       if (barSlotIndex != this.barSlotIndex || barSlotCount != this.barSlotCount) {
         this.barSlotIndex = barSlotIndex;

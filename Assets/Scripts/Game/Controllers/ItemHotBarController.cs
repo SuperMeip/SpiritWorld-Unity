@@ -5,19 +5,13 @@ using SpiritWorld.Managers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 namespace SpiritWorld.Game.Controllers {
   public class ItemHotBarController : MonoBehaviour, IObserver {
 
     #region Constants
-
-    /// <summary>
-    /// The item bar camera
-    /// </summary>
-    public Camera UICamera;
-
-    #endregion
 
     /// <summary>
     /// The height of an item slot
@@ -32,15 +26,60 @@ namespace SpiritWorld.Game.Controllers {
       = ItemSlotHeight + HotBarItemSlotController.DefaultSize / 2;
 
     /// <summary>
+    /// The item bar camera
+    /// </summary>
+    public Camera UICamera;
+
+    /// <summary>
+    /// The canvas for this
+    /// </summary>
+    public Canvas Canvas;
+
+    /// <summary>
     /// Prefab for a slot in the item hot bar
     /// </summary>
     public GameObject HotBarSlotPrefab;
+
+    #endregion
+
+#if UNITY_EDITOR
+
+    /// <summary>
+    /// For testing expanding item slots on the bar
+    /// </summary>
+    public Vector2 testMouseLocation;
+
+    /// <summary>
+    /// For testing expanding item slots on the bar
+    /// </summary>
+    public bool testSlotIsExpanded;
+
+#endif
+
+    /// <summary>
+    /// The target object for items to be dropped into for this inventory
+    /// </summary>
+    public GameObject dropTarget
+      => transform.parent.gameObject;
 
     /// <summary>
     /// The currently selected item of the local player via their hot bar.
     /// </summary>
     public Item selectedItem 
       => getSelectedItem();
+
+    /// <summary>
+    /// This's transform
+    /// </summary>
+    public RectTransform rectTransform
+      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
+    RectTransform _rectTransform;
+
+    /// <summary>
+    /// how many item slots are currently visible
+    /// </summary>
+    public int visibleItemSlots
+      => itemSlotControllers.Select(c => c.isInUse).Count();
 
     /// <summary>
     /// The index in the item bar that's currently selected
@@ -54,26 +93,27 @@ namespace SpiritWorld.Game.Controllers {
       = new List<HotBarItemSlotController>();
 
     /// <summary>
-    /// This's transform
-    /// </summary>
-    RectTransform rectTransform
-      => _rectTransform ?? (_rectTransform = GetComponent<RectTransform>());
-    RectTransform _rectTransform;
-
-    /// <summary>
     /// The inventory this manages for the local player
     /// </summary>
     ItemBar barInventory
     => Universe.LocalPlayer.hotBarInventory;
 
     /// <summary>
+    /// the expanded bar slot if we have one atm
+    /// </summary>
+    int expandedBarSlot = GridBasedInventory.EmptyGridSlot;
+
+    /// <summary>
     /// Test bar
     /// </summary>
     public static ItemBar TestStartingItemBar
-      = new ItemBar(8, 1, new Item[] {
+      = new ItemBar(12, 1, new Item[] {
         new Item(Item.Types.AutoToolShortcut),
         new Item(Item.Types.Spapple, 2),
-        new Item(Item.Types.Iron, 2)
+        new Item(Item.Types.Iron, 2),
+        new Item(Item.Types.PineCone, 2),
+        new Item(Item.Types.PineCone, 2),
+        new Item(Item.Types.PineCone, 2),
     });
 
     #region Initialization
@@ -156,6 +196,50 @@ namespace SpiritWorld.Game.Controllers {
 
     #endregion
 
+    #region Visual Changes
+
+    /// <summary>
+    /// Expand a bar slot based on the mouse position
+    /// </summary>
+    /// <param name="mousePosition"></param>
+    public void checkAndExpandBarSlotAroundMousePosition(Vector2 mousePosition) {
+      if ((TryToGetItemBarHoverPosition(mousePosition, out short barItemSlot, out float slotOffset))) {
+        Debug.Log($"slot: {barItemSlot}, slotOffset: {slotOffset}");
+        // if we're hovering over an expanded slot, just do nothing
+        if (barItemSlot != expandedBarSlot) {
+          int potentialBarSlot = slotOffset < 0.50f ? barItemSlot + 1 : Math.Max(0, barItemSlot - 1);
+          if (potentialBarSlot != expandedBarSlot) {
+            // if we have no expanded slot yet and we've moused between two existing slots:
+            if (expandedBarSlot == GridBasedInventory.EmptyGridSlot && (slotOffset > 0.80f || slotOffset < 0.20f)) {
+              expandedBarSlot = slotOffset > 0.80f ? barItemSlot + 1 : Math.Max(0, (int)barItemSlot);
+              Debug.Log($"expanding {expandedBarSlot}");
+              Universe.LocalPlayerManager.ItemHotBarController.spaceItemsAroundIndex(expandedBarSlot);
+              // realign everything if we've moved away
+            } else if (expandedBarSlot >= 0 && (slotOffset < 0.70f && slotOffset > 0.30f)) {
+              Debug.Log($"contracting {expandedBarSlot}");
+              Universe.LocalPlayerManager.ItemHotBarController.realignItemSlots();
+              expandedBarSlot = GridBasedInventory.EmptyGridSlot;
+            }
+          }
+        }
+      } else if (expandedBarSlot >= 0) {
+        Debug.Log($"contracting {expandedBarSlot}");
+        Universe.LocalPlayerManager.ItemHotBarController.realignItemSlots();
+        expandedBarSlot = GridBasedInventory.EmptyGridSlot;
+      }
+    }
+
+    /// <summary>
+    /// Realign slot items
+    /// </summary>
+    public void resetExpandedBarSlots() {
+      if (expandedBarSlot != GridBasedInventory.EmptyGridSlot) {
+        realignItemSlots();
+      }
+    }
+
+    #endregion
+
     #region Modify and Control Slots
 
     /// <summary>
@@ -177,14 +261,23 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     /// <param name="spaceIndex"></param>
     void spaceItemsAroundIndex(int spaceIndex) {
+      // can't space around the first slot, that would push the whole bar down.
+      if (spaceIndex <= 0) {
+        return;
+      }
       updateBarSlotCount(barInventory.activeBarSlotCount + 1);
+      if (spaceIndex >= barInventory.activeBarSlotCount) {
+        // TODO: add an empty spot to just the bottom
+        return;
+      }
+      int currentItemPosition = 0;
       for (int currentItemIndex = 0; currentItemIndex < barInventory.activeBarSlotCount; currentItemIndex++) {
-          HotBarItemSlotController slotController = itemSlotControllers[currentItemIndex];
-        if (currentItemIndex > spaceIndex) {
-          slotController.updateDisplayedItemTo(currentItemIndex, barInventory.activeBarSlotCount + 1);
-        } else {
-          slotController.updateDisplayedItemTo(currentItemIndex + 1, barInventory.activeBarSlotCount + 1);
+        if (currentItemIndex == spaceIndex) {
+          currentItemPosition++;
         }
+        HotBarItemSlotController slotController = itemSlotControllers[currentItemIndex];
+        slotController.updateDisplayedItemTo(currentItemPosition, barInventory.activeBarSlotCount + 1);
+        currentItemPosition++;
       }
     }
 
@@ -261,6 +354,41 @@ namespace SpiritWorld.Game.Controllers {
 
     #endregion
 
+    /// <summary>
+    /// try to get the item bar slot we're hovering over
+    /// </summary>
+    /// <returns></returns>
+    public static bool TryToGetItemBarHoverPosition(Vector2 pointerPosition, out short barItemSlot, out float slotOffset) {
+      if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+         Universe.LocalPlayerManager.ItemHotBarController.rectTransform,
+         pointerPosition,
+         Universe.LocalPlayerManager.ItemHotBarController.UICamera,
+         out Vector2 localCursor
+       )) {
+        float barSlotHeight
+          = Universe.LocalPlayerManager.ItemHotBarController.rectTransform.rect.height
+            / Universe.LocalPlayerManager.ItemHotBarController.visibleItemSlots;
+
+        // if we're above the first slot, we're not in a slot and just reset the position
+        if ((localCursor.y <= barSlotHeight / 2) 
+          && (localCursor.x > -(Universe.LocalPlayerManager.ItemHotBarController.rectTransform.rect.width / 2))
+          && (localCursor.x < Universe.LocalPlayerManager.ItemHotBarController.rectTransform.rect.width / 2)
+        ) {
+          float barSlotUntrimmed = (-(localCursor.y - barSlotHeight / 2) / barSlotHeight);
+          if (barSlotUntrimmed <= Universe.LocalPlayerManager.ItemHotBarController.visibleItemSlots + 1) {
+            barItemSlot = (short)barSlotUntrimmed;
+            slotOffset = barSlotUntrimmed - (float)Math.Truncate(barSlotUntrimmed);
+
+            return barItemSlot >= 0;
+          }
+        }
+      }
+
+      barItemSlot = 0;
+      slotOffset = 0;
+      return false;
+    }
+
     #region IObserver
 
     /// <summary>
@@ -299,4 +427,29 @@ namespace SpiritWorld.Game.Controllers {
 
     #endregion
   }
+
+#if UNITY_EDITOR
+
+  /// <summary>
+  /// Make a button to load for testing
+  /// </summary>
+  [CustomEditor(typeof(ItemHotBarController))]
+  public class ItemHotBarEditor : Editor {
+    public override void OnInspectorGUI() {
+      DrawDefaultInspector();
+
+      ItemHotBarController hotBarController = (ItemHotBarController)target;
+      if (GUILayout.Button(hotBarController.testSlotIsExpanded ? "Contract" : "Expand")) {
+        if (hotBarController.testSlotIsExpanded) {
+          hotBarController.testSlotIsExpanded = false;
+          Universe.LocalPlayerManager.ItemHotBarController.resetExpandedBarSlots();
+        } else {
+          Universe.LocalPlayerManager.ItemHotBarController.checkAndExpandBarSlotAroundMousePosition(hotBarController.testMouseLocation);
+          hotBarController.testSlotIsExpanded = true;
+        }
+      }
+    }
+  }
+
+#endif
 }

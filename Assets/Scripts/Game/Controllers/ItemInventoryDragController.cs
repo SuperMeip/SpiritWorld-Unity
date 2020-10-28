@@ -1,6 +1,10 @@
-﻿using SpiritWorld.World.Entities.Creatures;
+﻿using SpiritWorld.Inventories;
+using SpiritWorld.World.Entities.Creatures;
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace SpiritWorld.Game.Controllers {
 
@@ -94,7 +98,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// Drag the item around
     /// </summary>
-    public void Update() {
+    public override void OnDrag(PointerEventData eventData) {
       if (isBeingDragged) {
         transform.position = (containingInventory == Player.InventoryTypes.HotBar
           ? Universe.LocalPlayerManager.ItemHotBarController.UICamera
@@ -112,6 +116,11 @@ namespace SpiritWorld.Game.Controllers {
             parentController.setShaped(true);
           }
         }
+
+        // if we're in item bar teritory.
+        if (!Universe.LocalPlayerManager.PackGridController.packMenuIsOpen || !parentController.isShaped) {
+          Universe.LocalPlayerManager.ItemHotBarController.checkAndExpandBarSlotAroundMousePosition(eventData.position);
+        }
       }
     }
 
@@ -121,33 +130,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="eventData"></param>
     public override void OnPointerDown(PointerEventData eventData) {
       if (!AnItemIsBeingDragged) {
-        // record original values
-        originalParent = transform.parent;
-        originalLocation = transform.position;
-        originalScale = parentController.currentSize;
-        originalContainerInventory = containingInventory;
-        isBeingDragged = AnItemIsBeingDragged = true;
-        originalOpacity = parentController.currentOpacity;
-        wasShapedOriginally = containingInventory == Player.InventoryTypes.GridPack 
-          ? true 
-          : false;
-
-        /// update for dragging
-        parentController.setOpacity(1);
-        // if the pack menu is open it can manage all of the dragging
-        if (Universe.LocalPlayerManager.PackGridController.packMenuIsOpen && containingInventory != Player.InventoryTypes.GridPack) {
-          parentController.resize();
-          // save and replace the anchor values
-          originalMaxAnchor = parentController.rectTransform.anchorMax;
-          originalMinAnchor = parentController.rectTransform.anchorMin;
-          Vector2 gridSize = Universe.LocalPlayerManager.PackGridController.getGridSquareSize();
-          parentController.rectTransform.anchorMin = Vector2.zero;
-          parentController.rectTransform.anchorMax = gridSize + gridSize;
-
-          // re-parent to the open grid
-          containingInventory = Player.InventoryTypes.GridPack;
-          parentController.rectTransform.SetParent(Universe.LocalPlayerManager.PackGridController.gridTransform);
-        }
+        enableDrag();
       }
     }
 
@@ -157,9 +140,77 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="eventData"></param>
     public override void OnPointerUp(PointerEventData eventData) {
       if (isBeingDragged) {
-        isBeingDragged = AnItemIsBeingDragged = false;
-        resetToOriginalPosition();
+        disableDrag();
+
+        // check if we're dropping it into the shaped inventory.
+        if (parentController.isShaped) {
+          if (RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            Universe.LocalPlayerManager.PackGridController.rectTransform,
+            eventData.position,
+            Universe.LocalPlayerManager.PackGridController.UICamera,
+            out Vector2 localCursor
+          )) {
+            Vector2 gridClickLocation = localCursor + Universe.LocalPlayerManager.PackGridController.rectTransform.rect.size / 2;
+            Vector2 gridSize
+              = Universe.LocalPlayerManager.PackGridController.getGridSquareSize()
+                * Universe.LocalPlayerManager.PackGridController.rectTransform.rect.size;
+            Coordinate gridItemLocation = new Coordinate(
+              (short)(gridClickLocation.x / gridSize.x),
+              (short)(gridClickLocation.y / gridSize.y)
+            );
+            Debug.Log(gridItemLocation);
+            // return;
+          }
+          // check if we're dropping it into the item bar
+        } else if (ItemHotBarController.TryToGetItemBarHoverPosition(eventData.position, out short barSlotIndex, out float barSlotPlacementOffset)) {
+          Coordinate gridItemLocation = new Coordinate(barSlotIndex, 0);
+          Debug.Log(gridItemLocation);
+          Debug.Log(barSlotPlacementOffset > 0.78f || barSlotPlacementOffset < 0.20f ? "In Between" : "On the Mark");
+          // return;
+        }
+
+        resetToOriginalPosition(); 
       }
+    }
+
+    /// <summary>
+    /// Turn dragging on
+    /// </summary>
+    void enableDrag() {
+      // record original values
+      originalParent = transform.parent;
+      originalLocation = transform.position;
+      originalScale = parentController.currentSize;
+      originalContainerInventory = containingInventory;
+      isBeingDragged = AnItemIsBeingDragged = true;
+      originalOpacity = parentController.currentOpacity;
+      wasShapedOriginally = containingInventory == Player.InventoryTypes.GridPack
+        ? true
+        : false;
+
+      /// update for dragging
+      parentController.setOpacity(1);
+      // if the pack menu is open it can manage all of the dragging
+      if (Universe.LocalPlayerManager.PackGridController.packMenuIsOpen && containingInventory != Player.InventoryTypes.GridPack) {
+        parentController.resize();
+        // save and replace the anchor values
+        originalMaxAnchor = parentController.rectTransform.anchorMax;
+        originalMinAnchor = parentController.rectTransform.anchorMin;
+        Vector2 gridSize = Universe.LocalPlayerManager.PackGridController.getGridSquareSize();
+        parentController.rectTransform.anchorMin = Vector2.zero;
+        parentController.rectTransform.anchorMax = gridSize + gridSize;
+
+        // re-parent to the open grid
+        containingInventory = Player.InventoryTypes.GridPack;
+        parentController.rectTransform.SetParent(Universe.LocalPlayerManager.PackGridController.gridTransform);
+      }
+    }
+
+    /// <summary>
+    /// disable the dragging
+    /// </summary>
+    void disableDrag() {
+      isBeingDragged = AnItemIsBeingDragged = false;
     }
 
     /// <summary>
@@ -181,6 +232,9 @@ namespace SpiritWorld.Game.Controllers {
       if (wasShapedOriginally != parentController.isShaped) {
         parentController.setShaped(wasShapedOriginally);
       }
+
+      // if we expanded a slot and we're resetting, reset the slot
+      Universe.LocalPlayerManager.ItemHotBarController.resetExpandedBarSlots();
     }
   }
 }

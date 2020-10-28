@@ -79,7 +79,9 @@ namespace SpiritWorld.World.Entities.Creatures {
     public ShapedPack packInventory {
       get;
       protected set;
-    } = new ShapedPack((4, 7));
+    } = new ShapedPack((4, 7), new (Item, Coordinate)[] {
+      (new Item(Item.Types.Wood, 2), (2,3))
+    });
 
     /// <summary>
     /// The players inventories

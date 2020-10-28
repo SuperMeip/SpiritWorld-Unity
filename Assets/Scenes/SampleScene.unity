@@ -608,6 +608,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UICamera: {fileID: 8537240475375581676}
+  Canvas: {fileID: 1201407728}
   HotBarSlotPrefab: {fileID: 2028598755210869712, guid: ec1a4abb574b3e24b93cb7819f779d19,
     type: 3}
 --- !u!222 &389939551
@@ -1104,7 +1105,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 5.0789e-41, z: 0, w: -12.8125}
+  m_BoundingSphereOverride: {x: 0, y: 1.69243e-40, z: 0, w: -4.03125}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -4330,6 +4331,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UICamera: {fileID: 1827735961}
+  Canvas: {fileID: 429200126}
   GridTileTexture: {fileID: 2800000, guid: 27493d66948b2794ca7fb8425cc97e05, type: 3}
   BackgroundAspectRatio: {fileID: 5652995453767303121}
   MenuController: {fileID: 429200123}
