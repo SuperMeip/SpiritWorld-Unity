@@ -80,7 +80,9 @@ namespace SpiritWorld.World.Entities.Creatures {
       get;
       protected set;
     } = new ShapedPack((4, 7), new (Item, Coordinate)[] {
-      (new Item(Item.Types.Wood, 2), (2,3))
+      (new Item(Item.Types.Wood, 2), (2,4)),
+      (new Item(Item.Types.Wood, 2), (2,3)),
+      (new Item(Item.Types.Wood, 2), (2,2))
     });
 
     /// <summary>

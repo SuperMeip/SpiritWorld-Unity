@@ -182,7 +182,7 @@ namespace SpiritWorld.Inventories {
       /// add the stack
       int? freeStackId = stackId ?? getFirstFreeStackSlot();
       if (freeStackId != null) {
-        stacks.Insert((int)freeStackId, itemStack);
+        stacks[(int)freeStackId] = itemStack;
       } else {
         stacks.Add(itemStack);
         freeStackId = stacks.Count - 1;

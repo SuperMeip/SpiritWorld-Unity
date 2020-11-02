@@ -22,7 +22,7 @@ namespace SpiritWorld.Inventories {
     /// remove the stack at the given grid location from the inventory
     /// </summary>
     /// <returns>removed items</returns>
-    Item[] removeAt(Coordinate itemLocation);
+    Item removeAt(Coordinate itemLocation);
 
     /// <summary>
     /// Try to empty the given inventory into this one, and get modified pivot data

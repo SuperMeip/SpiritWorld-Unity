@@ -16,13 +16,13 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The height of an item slot
     /// </summary>
-    const float ItemSlotHeight 
+    const float ItemSlotHeight
       = HotBarItemSlotController.LargeSize;
 
     /// <summary>
     /// The unit height of the item bar per slot
     /// </summary>
-    const float ItemBarUnitHeight 
+    const float ItemBarUnitHeight
       = ItemSlotHeight + HotBarItemSlotController.DefaultSize / 2;
 
     /// <summary>
@@ -65,7 +65,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <summary>
     /// The currently selected item of the local player via their hot bar.
     /// </summary>
-    public Item selectedItem 
+    public Item selectedItem
       => getSelectedItem();
 
     /// <summary>
@@ -85,6 +85,11 @@ namespace SpiritWorld.Game.Controllers {
     /// The index in the item bar that's currently selected
     /// </summary>
     int currentlySelectedItemIndex = 0;
+
+    /// <summary>
+    /// The index in the item bar that's currently hovered over with another item
+    /// </summary>
+    int currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
 
     /// <summary>
     /// The item slot controllers for each item slot
@@ -188,7 +193,7 @@ namespace SpiritWorld.Game.Controllers {
     /// try scrolling up
     /// </summary>
     void tryToScrollUp() {
-      if (currentlySelectedItemIndex < barInventory.usedBarSlotCount - 1) {
+      if (currentlySelectedItemIndex < barInventory.activeBarSlotCount - 1) {
         currentlySelectedItemIndex++;
         rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y + ItemSlotHeight);
       }
@@ -198,33 +203,106 @@ namespace SpiritWorld.Game.Controllers {
 
     #region Visual Changes
 
+    public void hoverOver(Vector2 mousePosition) {
+      if (TryToGetItemBarHoverPosition(mousePosition, out short barItemSlot, out float slotOffset) 
+        && barItemSlot != ItemInventoryDragController.ItemBeingDragged?.stackId
+      ) {
+        // if the player is holding in the key to expand the item bar
+        if (Input.GetButton("Expand Item Bar")) {
+          // if there's currently a targeted item, we need to shrink it first.
+          if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+            itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+            currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
+          // once it's shrunk, we can try to select the tile between
+          } else {
+            int newExpandedSlot = slotOffset > 0.50f ? barItemSlot + 1 : Math.Max(0, (int)barItemSlot);
+            if (expandedBarSlot != newExpandedSlot) {
+              if (expandedBarSlot != GridBasedInventory.EmptyGridSlot) {
+                realignItemSlots();
+              }
+              expandedBarSlot = newExpandedSlot;
+              spaceItemsAroundIndex(expandedBarSlot);
+            }
+          }
+          // if they're not
+        } else {
+          // if there's an expanded slot, first close it
+          if (expandedBarSlot != GridBasedInventory.EmptyGridSlot) {
+            realignItemSlots();
+            expandedBarSlot = GridBasedInventory.EmptyGridSlot;
+          // once it's closed, just select the hovered item.
+          } else {
+            if (currentlyTargetedItemIndex != barItemSlot) {
+              if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+                itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+              }
+              currentlyTargetedItemIndex = barItemSlot;
+              itemSlotControllers[barItemSlot].markHoverTarget();
+            }
+          }
+        }
+      // if we're not hovering
+      } else {
+        // close and disable anything we need to
+        if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+          itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+          currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
+        }
+        if (expandedBarSlot != GridBasedInventory.EmptyGridSlot) {
+          realignItemSlots();
+          expandedBarSlot = GridBasedInventory.EmptyGridSlot;
+        }
+      }
+    }
+
     /// <summary>
     /// Expand a bar slot based on the mouse position
     /// </summary>
     /// <param name="mousePosition"></param>
     public void checkAndExpandBarSlotAroundMousePosition(Vector2 mousePosition) {
       if ((TryToGetItemBarHoverPosition(mousePosition, out short barItemSlot, out float slotOffset))) {
-        Debug.Log($"slot: {barItemSlot}, slotOffset: {slotOffset}");
         // if we're hovering over an expanded slot, just do nothing
         if (barItemSlot != expandedBarSlot) {
-          int potentialBarSlot = slotOffset < 0.50f ? barItemSlot + 1 : Math.Max(0, barItemSlot - 1);
-          if (potentialBarSlot != expandedBarSlot) {
+          //int potentialBarSlot = slotOffset < 0.50f ? barItemSlot + 1 : Math.Max(0, barItemSlot - 1);
+          //if (potentialBarSlot != expandedBarSlot) {
             // if we have no expanded slot yet and we've moused between two existing slots:
             if (expandedBarSlot == GridBasedInventory.EmptyGridSlot && (slotOffset > 0.80f || slotOffset < 0.20f)) {
-              expandedBarSlot = slotOffset > 0.80f ? barItemSlot + 1 : Math.Max(0, (int)barItemSlot);
-              Debug.Log($"expanding {expandedBarSlot}");
-              Universe.LocalPlayerManager.ItemHotBarController.spaceItemsAroundIndex(expandedBarSlot);
-              // realign everything if we've moved away
-            } else if (expandedBarSlot >= 0 && (slotOffset < 0.70f && slotOffset > 0.30f)) {
-              Debug.Log($"contracting {expandedBarSlot}");
-              Universe.LocalPlayerManager.ItemHotBarController.realignItemSlots();
-              expandedBarSlot = GridBasedInventory.EmptyGridSlot;
-            }
+              // if we have a target index, close it first
+              if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+                itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+                currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
+              } else {
+                expandedBarSlot = slotOffset > 0.80f ? barItemSlot + 1 : Math.Max(0, (int)barItemSlot);
+                spaceItemsAroundIndex(expandedBarSlot);
+              }
+            // If we're on an item slot
+            } else if (slotOffset < 0.8f && slotOffset > 0.20f) {
+              // if there was a slot expanded, contract it.
+              if (expandedBarSlot >= 0) {
+                realignItemSlots();
+                expandedBarSlot = GridBasedInventory.EmptyGridSlot;
+              // if there's not, we set this tile as the one we're hovering over.
+              } else {
+                // if we have a target index, close it first
+                if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+                  itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+                  currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
+                }
+                // mark our current hover target
+                currentlyTargetedItemIndex = barItemSlot;
+                itemSlotControllers[barItemSlot].markHoverTarget();
+              }
+           // }
           }
         }
+      // if we're off the item bar area, just realign the slots and close out any over targets.
       } else if (expandedBarSlot >= 0) {
-        Debug.Log($"contracting {expandedBarSlot}");
-        Universe.LocalPlayerManager.ItemHotBarController.realignItemSlots();
+        // if we have a target index, close it first
+        if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+          itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+          currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
+        }
+        realignItemSlots();
         expandedBarSlot = GridBasedInventory.EmptyGridSlot;
       }
     }
@@ -235,7 +313,12 @@ namespace SpiritWorld.Game.Controllers {
     public void resetExpandedBarSlots() {
       if (expandedBarSlot != GridBasedInventory.EmptyGridSlot) {
         realignItemSlots();
+        expandedBarSlot = GridBasedInventory.EmptyGridSlot;
       }
+      /*if (currentlyTargetedItemIndex != GridBasedInventory.EmptyGridSlot) {
+        itemSlotControllers[currentlyTargetedItemIndex].unmarkHoverTarget();
+        currentlyTargetedItemIndex = GridBasedInventory.EmptyGridSlot;
+      }*/
     }
 
     #endregion
@@ -322,6 +405,16 @@ namespace SpiritWorld.Game.Controllers {
     }
 
     /// <summary>
+    /// remove the item icon at the given slot
+    /// </summary>
+    /// <param name="slotIndex"></param>
+    void removeItemAtSlot(int slotIndex) {
+      if (tryToGetSlot(slotIndex, out HotBarItemSlotController slotController)) {
+        slotController.removeDisplayedItem();
+      }
+    }
+
+    /// <summary>
     /// Try to get the item slot controller at the given slot
     /// </summary>
     /// <param name="slotIndex"></param>
@@ -331,7 +424,8 @@ namespace SpiritWorld.Game.Controllers {
       itemSlotController = slotIndex < itemSlotControllers.Count
         ? itemSlotControllers[slotIndex]
         : null;
-      return itemSlotController == null;
+
+      return itemSlotController != null;
     }
 
     /// <summary>
@@ -397,7 +491,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="event"></param>
     public void notifyOf(IEvent @event) {
       switch (@event) {
-        case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
+        case PlayerManager.LocalPlayerInventoryItemsUpdatedEvent pcPIIUE:
           if (pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.HotBar) {
             foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
               // this is for hot bar, not pockets
@@ -416,6 +510,16 @@ namespace SpiritWorld.Game.Controllers {
                   slotController.updateFadeDistance(Math.Abs(updatedItemPivot.x - currentlySelectedItemIndex));
                   slotController.markUnselected();
                 }
+              }
+            }
+          }
+          break;
+        case PlayerManager.LocalPlayerInventoryItemsRemovedEvent pcPIIRE:
+          if (pcPIIRE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.HotBar) {
+            foreach (Coordinate updatedItemPivot in pcPIIRE.modifiedPivots) {
+              // remove the item icons from the given slots
+              if (!barInventory.isInPockets(updatedItemPivot)) {
+                removeItemAtSlot(updatedItemPivot.x);
               }
             }
           }

@@ -1,22 +1,25 @@
-﻿using SpiritWorld.Inventories;
+﻿using SpiritWorld.Inventories.Items;
 using SpiritWorld.World.Entities.Creatures;
-using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UI;
 
 namespace SpiritWorld.Game.Controllers {
 
   /// <summary>
   /// controls an item being able to be dragged and dropped into inventories
   /// </summary>
-  class ItemInventoryDragController : EventTrigger {
+  public class ItemInventoryDragController : EventTrigger {
+
+    /// <summary>
+    /// The item currently beign dragged. only one at a time
+    /// </summary>
+    public static ItemInventoryDragController ItemBeingDragged = null;
 
     /// <summary>
     /// If an item is being dragged by one of these controllers
     /// </summary>
-    public static bool AnItemIsBeingDragged = false;
+    public static bool AnItemIsBeingDragged
+      => ItemBeingDragged != null;
 
     /// <summary>
     /// The stack id this controller represents
@@ -38,6 +41,11 @@ namespace SpiritWorld.Game.Controllers {
     /// If this is the item being dragged at the moment
     /// </summary>
     public bool isBeingDragged = false;
+
+    /// <summary>
+    /// the grid location of the item before moving
+    /// </summary>
+    Coordinate originalGridLocation;
 
     /// <summary>
     /// The inital location before being dragged
@@ -89,9 +97,10 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     /// <param name="parent"></param>
     /// <param name="stackId"></param>
-    public void initialize(ItemIconController parent, int stackId, Player.InventoryTypes containingInventory) {
+    public void initialize(ItemIconController parent, int stackId, Coordinate gridLocation, Player.InventoryTypes containingInventory) {
       parentController = parent;
       this.stackId = stackId;
+      this.originalGridLocation = gridLocation;
       this.containingInventory = containingInventory;
     }
 
@@ -100,6 +109,12 @@ namespace SpiritWorld.Game.Controllers {
     /// </summary>
     public override void OnDrag(PointerEventData eventData) {
       if (isBeingDragged) {
+        // re-parent the outline and quantity indicators to the dragable icon if we need to
+        if (containingInventory == Player.InventoryTypes.GridPack) {
+          parentController.parentQuantityIndicatorTo(parentController.transform);
+        }
+
+        // grab it
         transform.position = (containingInventory == Player.InventoryTypes.HotBar
           ? Universe.LocalPlayerManager.ItemHotBarController.UICamera
           : Universe.LocalPlayerManager.PackGridController.UICamera
@@ -111,7 +126,6 @@ namespace SpiritWorld.Game.Controllers {
           // on the right side of the screen
           if (Input.mousePosition.x > screenCenter && parentController.isShaped) {
             parentController.setShaped(false);
-            // TODO: give the item grab pannel it's own canvas, so you can put the icons to it's own scale while being dragged.
           } else if (Input.mousePosition.x < screenCenter && !parentController.isShaped) {
             parentController.setShaped(true);
           }
@@ -119,7 +133,7 @@ namespace SpiritWorld.Game.Controllers {
 
         // if we're in item bar teritory.
         if (!Universe.LocalPlayerManager.PackGridController.packMenuIsOpen || !parentController.isShaped) {
-          Universe.LocalPlayerManager.ItemHotBarController.checkAndExpandBarSlotAroundMousePosition(eventData.position);
+          Universe.LocalPlayerManager.ItemHotBarController.hoverOver(eventData.position);
         }
       }
     }
@@ -158,19 +172,42 @@ namespace SpiritWorld.Game.Controllers {
               (short)(gridClickLocation.x / gridSize.x),
               (short)(gridClickLocation.y / gridSize.y)
             );
-            Debug.Log(gridItemLocation);
-            // return;
+            // if it's within the grid, try to plop it in
+            if (gridItemLocation.isWithin(Coordinate.Zero, Universe.LocalPlayer.packInventory.dimensions)) {
+              //Debug.Log(gridItemLocation);
+              tryToAddToInventoryGridSlot(Player.InventoryTypes.GridPack, gridItemLocation);
+              return;
+            }
           }
           // check if we're dropping it into the item bar
         } else if (ItemHotBarController.TryToGetItemBarHoverPosition(eventData.position, out short barSlotIndex, out float barSlotPlacementOffset)) {
           Coordinate gridItemLocation = new Coordinate(barSlotIndex, 0);
-          Debug.Log(gridItemLocation);
-          Debug.Log(barSlotPlacementOffset > 0.78f || barSlotPlacementOffset < 0.20f ? "In Between" : "On the Mark");
-          // return;
+          //Debug.Log(gridItemLocation);
+          //Debug.Log(barSlotPlacementOffset > 0.78f || barSlotPlacementOffset < 0.20f ? "In Between" : "On the Mark");
+          tryToAddToInventoryGridSlot(Player.InventoryTypes.HotBar, gridItemLocation);
+          return;
         }
 
-        resetToOriginalPosition(); 
+        resetToOriginalPosition();
       }
+    }
+
+    /// <summary>
+    /// add this item to the given inventory at the given slot
+    /// </summary>
+    /// <param name="gridItemLocation"></param>
+    void tryToAddToInventoryGridSlot(Player.InventoryTypes inventoryType, Coordinate gridItemLocation) {
+      // make sure it's not the same spot.
+      if (!(originalContainerInventory == inventoryType && gridItemLocation.Equals(originalGridLocation))) {
+        Item thisItem = Universe.LocalPlayerManager.removeFromInventoryAt(originalContainerInventory, originalGridLocation);
+        Item leftovers = Universe.LocalPlayerManager.tryToAddToInventoryAt(thisItem, inventoryType, gridItemLocation, out _);
+        // if we have leftovers, put them back, reset things, and update the inventory
+        if (leftovers != null) {
+          Universe.LocalPlayerManager.tryToAddToInventoryAt(leftovers, originalContainerInventory, originalGridLocation, out _);
+        }
+      }
+
+      resetToOriginalPosition();
     }
 
     /// <summary>
@@ -182,7 +219,8 @@ namespace SpiritWorld.Game.Controllers {
       originalLocation = transform.position;
       originalScale = parentController.currentSize;
       originalContainerInventory = containingInventory;
-      isBeingDragged = AnItemIsBeingDragged = true;
+      ItemBeingDragged = this;
+      isBeingDragged = true;
       originalOpacity = parentController.currentOpacity;
       wasShapedOriginally = containingInventory == Player.InventoryTypes.GridPack
         ? true
@@ -210,7 +248,8 @@ namespace SpiritWorld.Game.Controllers {
     /// disable the dragging
     /// </summary>
     void disableDrag() {
-      isBeingDragged = AnItemIsBeingDragged = false;
+      ItemBeingDragged = null;
+      isBeingDragged = false;
     }
 
     /// <summary>
@@ -231,6 +270,11 @@ namespace SpiritWorld.Game.Controllers {
       parentController.setOpacity(originalOpacity);
       if (wasShapedOriginally != parentController.isShaped) {
         parentController.setShaped(wasShapedOriginally);
+      }
+
+      // re-parent the indicator to the grid
+      if (containingInventory == Player.InventoryTypes.GridPack) {
+        parentController.parentQuantityIndicatorTo(Universe.LocalPlayerManager.PackGridController.transform);
       }
 
       // if we expanded a slot and we're resetting, reset the slot

@@ -87,7 +87,15 @@ namespace SpiritWorld.Inventories {
     /// </summary>
     /// <param name="itemLocation"></param>
     /// <returns></returns>
-    public abstract Item[] removeAt(Coordinate itemLocation);
+    public virtual Item removeAt(Coordinate pivotLocation) {
+      Item removedItem = getItemStackAt(pivotLocation, out int stackId);
+      if (stackId != EmptyGridSlot) {
+        clearStack(stackId);
+      }
+      stackSlotGrid[pivotLocation.x][pivotLocation.y] = EmptyGridSlot;
+
+      return removedItem;
+    }
 
     /// <summary>
     /// try to empty another inventory into this shaped one with important deets added
@@ -121,12 +129,16 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// Try to swap an item at a given location with another
     /// </summary>
-    /// <param name="location"></param>
-    /// <param name="item"></param>
-    /// <returns></returns>
-    protected virtual bool tryToSwapOut(Coordinate location, Item newItem, out Item oldItem) {
+    /// <returns>leftovers or the replaced item</returns>
+    protected virtual Item tryToSwapOut(Coordinate location, Item newItem, out Item succesfullyAddedItem) {
+      succesfullyAddedItem = newItem;
+
       // gather old item info and clear it out
-      oldItem = getItemStackAt(location);
+      Item oldItem = getItemStackAt(location);
+      Item leftovers = oldItem;
+      if (oldItem != null && oldItem.canStackWith(newItem)) {
+        leftovers = newItem.addToStack(oldItem, out succesfullyAddedItem);
+      }
       int stackId = stackSlotGrid[location.x][location.y];
       if (stackId != EmptyGridSlot) {
         clearStack(stackId);
@@ -136,7 +148,7 @@ namespace SpiritWorld.Inventories {
       stackId = addNewStack(newItem, stackId == EmptyGridSlot ? (int?)null : stackId);
       addItemStackToSlot(stackId, location);
 
-      return true;
+      return leftovers;
     }
 
     /// <summary>

@@ -119,7 +119,7 @@ namespace SpiritWorld.Inventories.Items {
     /// <param name="other"></param>
     /// <returns></returns>
     public bool Equals(Item other) {
-      return canStackWith(other) && quantity == other.quantity;
+      return other != null && canStackWith(other) && quantity == other.quantity;
     }
   }
 }

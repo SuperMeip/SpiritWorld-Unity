@@ -17,12 +17,6 @@ namespace SpiritWorld.Inventories {
     }
 
     /// <summary>
-    /// Count the in use stacks
-    /// </summary>
-    public int usedBarSlotCount
-      => stackSlotGrid.Count(barSlot => barSlot[0] != EmptyGridSlot);
-
-    /// <summary>
     /// how many slots are in the item bar
     /// </summary>
     public int barSize
@@ -107,6 +101,7 @@ namespace SpiritWorld.Inventories {
 
     /// <summary>
     /// Get if the location is in the pockets
+    /// TODO: move pockets to their own inventory
     /// </summary>
     /// <param name="gridLocation"></param>
     /// <returns></returns>
@@ -137,8 +132,7 @@ namespace SpiritWorld.Inventories {
       if (barSlot < activeBarSlotCount) {
         // if it's the main bar slot or we've expanded this far already into the deep spots, just swap out the item.
         if (deepSlot == 0 || stackSlotGrid[barSlot].Length > deepSlot) {
-          successfullyAddedItem = tryToSwapOut(barAndDeepSlot, item, out Item oldItem) ? item : null;
-          return oldItem;
+          return tryToSwapOut(barAndDeepSlot, item, out successfullyAddedItem);
         // if we need to expand by one
         } else if (deepSlot < maxSlotDepth) {
           addStack(item, (barSlot, deepSlot));
@@ -209,7 +203,7 @@ namespace SpiritWorld.Inventories {
       }
 
       // if we have leftovers and found an empty slot stick it there
-      if (firstEmptySlot != EmptyGridSlot) {
+      if (itemsLeftToAdd != null && firstEmptySlot != EmptyGridSlot) {
         Coordinate slotLocation = (firstEmptySlot, 0);
         modifiedPivots.Add(slotLocation);
         addStack(itemsLeftToAdd, slotLocation);
@@ -220,15 +214,6 @@ namespace SpiritWorld.Inventories {
 
       modifiedStackPivots = modifiedPivots.ToArray();
       return itemsLeftToAdd;
-    }
-
-    /// <summary>
-    /// Remove the item from the inventory at
-    /// </summary>
-    /// <param name="itemLocation"></param>
-    /// <returns></returns>
-    public override Item[] removeAt(Coordinate itemLocation) {
-      throw new System.NotImplementedException();
     }
   }
 }

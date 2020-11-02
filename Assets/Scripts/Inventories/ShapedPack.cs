@@ -78,9 +78,10 @@ namespace SpiritWorld.Inventories {
         leftoverStack = pivotStack.addToStack(item, out successfullyAddedItem);
       /// try to swap it for the other item if they're the same shape
       } else if (item.type.Shape == pivotStack.type.Shape) {
-        successfullyAddedItem = tryToSwapOut(location, item, out leftoverStack) 
-          ? item 
-          : null;
+        leftoverStack = tryToSwapOut(location, item, out successfullyAddedItem);
+      /// if we couldn't stack or swap it, return the item
+      } else {
+        leftoverStack = item;
       }
 
       return leftoverStack;
@@ -147,10 +148,46 @@ namespace SpiritWorld.Inventories {
     /// <summary>
     /// Remove the item at the given coordinate location
     /// </summary>
-    /// <param name="itemLocation"></param>
+    /// <param name="pivotLocation"></param>
     /// <returns></returns>
-    public override Item[] removeAt(Coordinate itemLocation) {
-      throw new System.NotImplementedException();
+    public override Item removeAt(Coordinate pivotLocation) {
+      Item removedItem = getItemStackAt(pivotLocation, out int stackId);
+      if (stackId != EmptyGridSlot) {
+        clearStack(stackId);
+      }
+
+      removeShapedItemStack(removedItem, pivotLocation);
+      stackPivotLocations.Remove(stackId);
+
+      return removedItem;
+    }
+
+    /// <summary>
+    /// Get the item stack and it's pivot
+    /// </summary>
+    /// <param name="location"></param>
+    /// <param name="pivot"></param>
+    /// <returns></returns>
+    public Item getItemStackAt(Coordinate location, out Coordinate pivot) {
+      int stackId = stackSlotGrid[location.x][location.y];
+      pivot = stackPivotLocations[stackId];
+      return stackId != EmptyGridSlot
+        ? stacks[stackId]
+        : null;
+    }
+
+    /// <summary>
+    /// Add a shaped item at the given pivot location
+    /// </summary>
+    /// <param name="item"></param>
+    /// <param name="location"></param>
+    void removeShapedItemStack(Item removedItem, Coordinate location) {
+      Coordinate itemPivot = removedItem.type.ShapePivot;
+      Coordinate.Zero.until((removedItem.type.Shape.GetLength(0), removedItem.type.Shape.GetLength(1)), offset => {
+        // from bottom left => right top
+        Coordinate currentGridLocation = location + (offset - itemPivot);
+        stackSlotGrid[currentGridLocation.x][currentGridLocation.y] = EmptyGridSlot;
+      });
     }
 
     /// <summary>

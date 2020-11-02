@@ -1,6 +1,7 @@
 ﻿using SpiritWorld.Inventories;
 using SpiritWorld.Inventories.Items;
 using SpiritWorld.World.Entities.Creatures;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -50,6 +51,22 @@ namespace SpiritWorld.Game.Controllers {
     } = 1;
 
     /// <summary>
+    /// The indicator object for stacksize
+    /// </summary>
+    public RectTransform itemStackSizeIndicator {
+      get;
+      private set;
+    }
+
+    /// <summary>
+    /// The drag controller if one exists
+    /// </summary>
+    public ItemInventoryDragController dragController {
+      get;
+      private set;
+    }
+
+    /// <summary>
     /// The current icon size
     /// </summary>
     public Vector2 currentSize
@@ -66,11 +83,6 @@ namespace SpiritWorld.Game.Controllers {
     /// Renderers used to modify model based icons
     /// </summary>
     Renderer[] itemModelRenderers;
-
-    /// <summary>
-    /// The drag controller if one exists
-    /// </summary>
-    ItemInventoryDragController dragController;
 
     /// <summary>
     /// default icon scaler. This is the item model if it's a model, or the small icon sprite's container.
@@ -100,11 +112,6 @@ namespace SpiritWorld.Game.Controllers {
     CanvasGroup _canvasGroup;
 
     /// <summary>
-    /// The indicator object for stacksize
-    /// </summary>
-    RectTransform itemStackSizeIndicator;
-
-    /// <summary>
     /// The text object for the stack size
     /// </summary>
     Text itemStackSizeIndicatorText;
@@ -125,6 +132,7 @@ namespace SpiritWorld.Game.Controllers {
       bool loadShapedIcon = false,
       bool isDraggable = false,
       int stackIndex = GridBasedInventory.EmptyGridSlot,
+      Coordinate gridLocation = default,
       Player.InventoryTypes parentInventory = Player.InventoryTypes.None
     ) {
       // make the icon under the given parent, or alone if we want
@@ -132,7 +140,11 @@ namespace SpiritWorld.Game.Controllers {
         ? Instantiate(ItemDataMapper.ItemIconPrefab, parent)
         : Instantiate(ItemDataMapper.ItemIconPrefab);
 
-      Sprite itemSprite = ItemDataMapper.GetIconFor(item);
+      // move to the top
+      if (parent != null) {
+        icon.transform.SetAsFirstSibling();
+      }
+
       ItemIconController iconController = icon.GetComponent<ItemIconController>();
       iconController.item = item;
       iconController.backgroundImage = icon.transform.Find("Icon Background").GetComponent<Image>();
@@ -140,65 +152,82 @@ namespace SpiritWorld.Game.Controllers {
       /// add the drag controller.
       if (isDraggable) {
         iconController.dragController = icon.AddComponent<ItemInventoryDragController>();
-        iconController.dragController.initialize(iconController, stackIndex, parentInventory);
+        iconController.dragController.initialize(iconController, stackIndex, gridLocation, parentInventory);
       }
 
-      /// if we found a sprite
-      if (itemSprite != null) {
-        /// load the regular icon
-        iconController.defaultIconScaler = icon.transform.Find("Small Icon Scaler").gameObject;
-        GameObject sprite = Instantiate(new GameObject(), iconController.defaultIconScaler.transform);
-        sprite.layer = 5;
-        SpriteRenderer spriteRenderer = sprite.AddComponent<SpriteRenderer>();
-        spriteRenderer.sprite = itemSprite;
-      // if we didn't, use the object as an icon.
-      } else {
-        iconController.defaultIconScaler = icon.transform.Find("Model Icon Scaler").gameObject;
-        GameObject itemModel = Instantiate(ItemDataMapper.GetModelFor(item), iconController.defaultIconScaler.transform);
-        iconController.itemModelRenderers = itemModel.GetComponentsInChildren<Renderer>();
-      }
-
-      /// if we're also loading the shaped icon:
-      if (loadShapedIcon) {
-        // get the shaped scaler
-        iconController.shapedIconScaler = icon.transform.Find("Shaped Icon Scaler").gameObject;
-
-        // make the prototype image object
-        GameObject imageObject = new GameObject {
-          layer = 5
-        };
-        imageObject.AddComponent<Image>();
-        // resize the sprite according to it's shape size.
-        RectTransform rectTransform = imageObject.GetComponent<RectTransform>();
-        rectTransform.anchorMax = (item.type.ShapeSize - item.type.ShapePivot).Vec2;
-        rectTransform.anchorMin = ((0, 0) - item.type.ShapePivot).Vec2;
-        rectTransform.SetLTRB(0);
-
-        // if we need a new icon for the shaped icon than the basic square icon, get it
-        if (item.type.ShapeSize > (1, 1)) {
-          Sprite shapedIcon = ItemDataMapper.GetIconFor(item, true);
-          Image shapedIconImage = Instantiate(imageObject, iconController.shapedIconScaler.transform).GetComponent<Image>();
-          shapedIconImage.sprite = shapedIcon;
+      // try to get the sprite
+      if (item != null) {
+        Sprite itemSprite = ItemDataMapper.GetIconFor(item);
+        /// if we found a sprite
+        if (itemSprite != null) {
+          /// load the regular icon
+          iconController.defaultIconScaler = icon.transform.Find("Small Icon Scaler").gameObject;
+          GameObject sprite = Instantiate(new GameObject(), iconController.defaultIconScaler.transform);
+          sprite.layer = 5;
+          SpriteRenderer spriteRenderer = sprite.AddComponent<SpriteRenderer>();
+          spriteRenderer.sprite = itemSprite;
+          // if we didn't, use the object as an icon.
+        } else {
+          iconController.defaultIconScaler = icon.transform.Find("Model Icon Scaler").gameObject;
+          GameObject itemModel = Instantiate(ItemDataMapper.GetModelFor(item), iconController.defaultIconScaler.transform);
+          iconController.itemModelRenderers = itemModel.GetComponentsInChildren<Renderer>();
         }
 
-        // add the outline
-        Image outline = Instantiate(imageObject, iconController.shapedIconScaler.transform).GetComponent<Image>();
-        outline.sprite = ItemDataMapper.GetShapedOutlineFor(item);
-        outline.color = new Color(1, 1, 0);
-      }
+        /// if we're also loading the shaped icon:
+        if (loadShapedIcon) {
+          // get the shaped scaler
+          iconController.shapedIconScaler = icon.transform.Find("Shaped Icon Scaler").gameObject;
 
-      // set the correct icon scaler active
-      iconController.defaultIconScaler.SetActive(true);
+          // make the prototype image object
+          GameObject imageObject = new GameObject {
+            layer = 5
+          };
+          imageObject.AddComponent<Image>();
+          // resize the sprite according to it's shape size.
+          RectTransform rectTransform = imageObject.GetComponent<RectTransform>();
+          rectTransform.anchorMax = (item.type.ShapeSize - item.type.ShapePivot).Vec2;
+          rectTransform.anchorMin = ((0, 0) - item.type.ShapePivot).Vec2;
+          rectTransform.SetLTRB(0);
 
-      /// set up the stack indicator
-      if (item.type.StackSize > 1) {
+          // if we need a new icon for the shaped icon than the basic square icon, get it
+          if (item.type.ShapeSize > (1, 1)) {
+            Sprite shapedIcon = ItemDataMapper.GetIconFor(item, true);
+            Image shapedIconImage = Instantiate(imageObject, iconController.shapedIconScaler.transform).GetComponent<Image>();
+            shapedIconImage.sprite = shapedIcon;
+          }
+
+          // add the outline
+          Image outline = Instantiate(imageObject, iconController.shapedIconScaler.transform).GetComponent<Image>();
+          outline.sprite = ItemDataMapper.GetShapedOutlineFor(item);
+          outline.color = new Color(1, 1, 0);
+        }
+
+        // set the correct icon scaler active
+        iconController.defaultIconScaler.SetActive(true);
+
+        /// set up the stack indicator
         iconController.itemStackSizeIndicator = icon.transform.Find("Stack Quantity Indicator").GetComponent<RectTransform>();
-        iconController.itemStackSizeIndicator.gameObject.SetActive(true);
+        iconController.itemStackSizeIndicatorText = iconController.itemStackSizeIndicator.GetComponentInChildren<Text>();
+        iconController.updateStackCount();
+        if (item.type.StackSize > 1) {
+          iconController.itemStackSizeIndicator.gameObject.SetActive(true);
+        }
+      } else {
+        iconController.itemStackSizeIndicator = icon.transform.Find("Stack Quantity Indicator").GetComponent<RectTransform>();
         iconController.itemStackSizeIndicatorText = iconController.itemStackSizeIndicator.GetComponentInChildren<Text>();
         iconController.updateStackCount();
       }
 
       return iconController;
+    }
+
+    /// <summary>
+    /// Move the transform of the quanity indicator's parent
+    /// </summary>
+    /// <param name="transform"></param>
+    public void parentQuantityIndicatorTo(Transform transform) {
+      itemStackSizeIndicator.SetParent(transform, true);
+      itemStackSizeIndicator.transform.SetAsLastSibling();
     }
 
     /// <summary>
@@ -225,7 +254,9 @@ namespace SpiritWorld.Game.Controllers {
       rectTransform.sizeDelta = new Vector2(diameter, diameter);
       if (hasAModelIcon) {
         float modelScale = (diameter / DefaultIconDiameter) * DefaultModelScale;
-        defaultIconScaler.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
+        if (defaultIconScaler != null) {
+          defaultIconScaler.transform.localScale = new Vector3(modelScale, modelScale, modelScale);
+        }
       }
     }
 
@@ -244,7 +275,9 @@ namespace SpiritWorld.Game.Controllers {
           shapedIconScaler.SetActive(true);
           backgroundImage.gameObject.SetActive(false);
           if (itemUsesSeperateShapedIcon) {
-            defaultIconScaler.SetActive(false);
+            if (defaultIconScaler != null) {
+              defaultIconScaler.SetActive(false);
+            }
 
             // Move the stack qty icon if nessisary
             if (item.type.StackSize > 1) {
@@ -265,7 +298,9 @@ namespace SpiritWorld.Game.Controllers {
           shapedIconScaler.SetActive(false);
           backgroundImage.gameObject.SetActive(true);
           if (itemUsesSeperateShapedIcon) {
-            defaultIconScaler.SetActive(true);
+            if (defaultIconScaler != null) {
+              defaultIconScaler.SetActive(true);
+            }
 
             // Move the stack qty icon if nessisary
             if (item.type.StackSize > 1) {
@@ -290,10 +325,12 @@ namespace SpiritWorld.Game.Controllers {
     /// update the stack count of this item
     /// </summary>
     public void updateStackCount() {
-      if (item.type.StackSize > 1) {
+      if (item != null && item.type.StackSize > 1) {
         itemStackSizeIndicatorText.text = item.quantity != 100 
           ? item.quantity.ToString() 
           : "C";
+      } else {
+        itemStackSizeIndicator.gameObject.SetActive(false);
       }
     }
 

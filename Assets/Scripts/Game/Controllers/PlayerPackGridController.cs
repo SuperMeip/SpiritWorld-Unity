@@ -176,6 +176,7 @@ namespace SpiritWorld.Game.Controllers {
           true,
           true,
           stackId,
+          pivot,
           Player.InventoryTypes.GridPack
         );
         iconController.setShaped(true);
@@ -213,6 +214,18 @@ namespace SpiritWorld.Game.Controllers {
       iconTransform.SetLTRB(0);
     }
 
+    /// <summary>
+    /// Remove the icon at the pivot location from the grid
+    /// </summary>
+    /// <param name=""></param>
+    void removeIcon(Coordinate pivotLocation) {
+      ItemIconController iconController = itemsByPivot[pivotLocation];
+      itemsByPivot.Remove(pivotLocation);
+
+      Destroy(iconController.itemStackSizeIndicator.gameObject);
+      Destroy(iconController.gameObject);
+    }
+
     #region IObserver
 
     /// <summary>
@@ -221,7 +234,7 @@ namespace SpiritWorld.Game.Controllers {
     /// <param name="event"></param>
     public void notifyOf(IEvent @event) {
       switch (@event) {
-        case PlayerManager.PackInventoryItemsUpdatedEvent pcPIIUE:
+        case PlayerManager.LocalPlayerInventoryItemsUpdatedEvent pcPIIUE:
           if (isInitalized && pcPIIUE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.GridPack) {
             foreach (Coordinate updatedItemPivot in pcPIIUE.modifiedPivots) {
               if (itemsByPivot.TryGetValue(updatedItemPivot, out ItemIconController iconController)) {
@@ -233,11 +246,21 @@ namespace SpiritWorld.Game.Controllers {
                   true,
                   true,
                   stackId,
+                  updatedItemPivot,
                   Player.InventoryTypes.GridPack
                 );
                 iconController.setShaped(true);
                 placeIcon(iconController, updatedItemPivot);
+                iconController.parentQuantityIndicatorTo(transform);
               }
+            }
+          }
+          break;
+        case PlayerManager.LocalPlayerInventoryItemsRemovedEvent pcPIIRE:
+          if (pcPIIRE.updatedInventoryType == World.Entities.Creatures.Player.InventoryTypes.GridPack) {
+            foreach (Coordinate updatedItemPivot in pcPIIRE.modifiedPivots) {
+              // remove the item icons from the given slots
+              removeIcon(updatedItemPivot);
             }
           }
           break;
